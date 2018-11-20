@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist/",
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "lib": ["es7", "dom"],
+    "module": "esnext",
+    "target": "es6",
+    "jsx": "preserve",
+    "allowJs": false,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports":true,
+    "paths": {
+      "components": ["src/components"],
+      "config": ["config"]
+    }
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
