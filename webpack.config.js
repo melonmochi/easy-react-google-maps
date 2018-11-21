@@ -64,6 +64,7 @@ module.exports = {
     alias: {
       components: path.resolve(__dirname, './src/components'),
       config: path.resolve(__dirname, './config'),
+      typings: path.resolve(__dirname, './typings'),
     },
     extensions: ['*', '.js', 'jsx', '.tsx', '.ts'],
   },

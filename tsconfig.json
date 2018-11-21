@@ -17,7 +17,8 @@
     "allowSyntheticDefaultImports":true,
     "paths": {
       "components": ["src/components"],
-      "config": ["config"]
+      "config": ["config"],
+      "typings": ["typings"]
     }
   },
   "exclude": [

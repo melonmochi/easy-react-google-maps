@@ -1,12 +1,14 @@
 import * as React from 'react';
 import {
   GoogleMapsApiLoader,
+  MapLayout,
   Map,
   Marker,
   SearchBox,
   InfoWindow,
   RecenterButton,
   FitBoundsButton,
+  MapTool,
 } from 'components';
 import { config } from 'config';
 // const mapStyles = require('./mapStyles.less')
@@ -15,14 +17,16 @@ export class MapContainer extends React.Component {
   render() {
     return (
       <div>
-        <Map
+        <MapLayout
+        >
+         <Map
           type="roadmap"
           gestureHandling="greedy"
           zoom={14}
           initialCenter={{ lat: 31.112112, lng: 121.366114 }}
           // mapStyle={mapStyles}
           {...this.props}
-        >
+         >
           <Marker
             title="Point A"
             position={{ lat: 37.773972, lng: -122.431297 }}
@@ -45,7 +49,9 @@ export class MapContainer extends React.Component {
           <SearchBox position="TOP_RIGHT" />
           <RecenterButton position="TOP_LEFT" />
           <FitBoundsButton />
-        </Map>
+          <MapTool />
+          </Map>
+        </MapLayout>
       </div>
     );
   }

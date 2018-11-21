@@ -12,4 +12,8 @@ export { default as RecenterButton } from './recenter-button';
 
 export { default as SearchBox } from './search-box';
 
+export { default as MapTool } from './map-tool';
+
+export { default as MapLayout } from './map-layout';
+
 export { camelCase } from './utils';
