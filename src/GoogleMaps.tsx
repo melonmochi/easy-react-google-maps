@@ -6,9 +6,6 @@ import {
   Marker,
   SearchBox,
   InfoWindow,
-  RecenterButton,
-  FitBoundsButton,
-  MapTool,
 } from 'components';
 import { config } from 'config';
 // const mapStyles = require('./mapStyles.less')
@@ -46,10 +43,7 @@ export class MapContainer extends React.Component {
           >
             <InfoWindow />
           </Marker>
-          <SearchBox position="TOP_RIGHT" />
-          <RecenterButton position="TOP_LEFT" />
-          <FitBoundsButton />
-          <MapTool />
+          <SearchBox position="TOP_LEFT" />
           </Map>
         </MapLayout>
       </div>

@@ -6,13 +6,14 @@ export type GestureHandlingType = 'cooperative' | 'greedy' | 'none' | 'auto';
 
 // tslint:disable-next-line:interface-name
 export interface MapProps {
-  google?: typeof google;
-  type?: MapTypeId;
-  zoom?: number;
+  google?: typeof google
+  type?: MapTypeId
+  zoom?: number
   backgroundColor?: string;
-  initialCenter?: { lat: number; lng: number; noWrap?: boolean };
-  gestureHandling?: GestureHandlingType;
-  mapStyle?: React.CSSProperties;
+  initialCenter?: { lat: number; lng: number; noWrap?: boolean }
+  gestureHandling?: GestureHandlingType
+  mapStyle?: React.CSSProperties
+  mapLoaded?: any
 }
 
 // tslint:disable-next-line:interface-name
@@ -45,10 +46,18 @@ export default class Map extends React.Component<MapProps, MapState> {
 
     this.setBounds = this.setBounds.bind(this);
     this.resetBounds = this.resetBounds.bind(this);
+    this.setCenter = this.setCenter.bind(this)
   }
 
   componentDidMount() {
     this.loadMap();
+    if(this.map) {
+      this.props.mapLoaded(this.map, this.state.center);
+    }
+  }
+
+  setCenter() {
+    this.map.setCenter(this.state.center)
   }
 
   setBounds(pos: google.maps.LatLng) {
