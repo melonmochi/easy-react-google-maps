@@ -6,7 +6,7 @@ import {
   Marker,
   SearchBox,
   InfoWindow,
-} from 'components';
+} from './components';
 import { config } from 'config';
 // const mapStyles = require('./mapStyles.less')
 

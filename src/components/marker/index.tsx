@@ -136,7 +136,6 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
 
       this.marker = await new google.maps.Marker(markerOpt);
       this.props.setBounds(markerPosition);
-      this.forceUpdate();
 
       evtNames.forEach(e => {
         this.marker.addListener(e, this.handleEvent(e));

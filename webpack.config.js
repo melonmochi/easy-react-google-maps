@@ -78,6 +78,8 @@ module.exports = {
   devServer: {
     contentBase: './dist',
     hot: true,
+    progress: true,
+    historyApiFallback: true,
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),

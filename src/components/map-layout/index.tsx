@@ -14,6 +14,7 @@ export interface MapState {
   map?: typeof google.maps.Map
   center?: { lat: number; lng: number; noWrap?: boolean }
   collapsed?: boolean
+  bounds?: google.maps.LatLngBounds;
 }
 
 const { Content, Sider } = Layout;
@@ -25,37 +26,50 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
     collapsed: true,
     map: undefined,
     center: undefined,
+    bounds: undefined,
   };
+
   map: google.maps.Map | undefined;
   center: { lat: number; lng: number; noWrap?: boolean } | undefined;
+  bounds: google.maps.LatLngBounds | undefined;
 
   constructor(props: MapProps) {
     super(props);
 
     this.mapLoaded = this.mapLoaded.bind(this);
-    this.setCenter = this.setCenter.bind(this)
+    this.setCenter = this.setCenter.bind(this);
+    this.fitBounds = this.fitBounds.bind(this);
   }
 
   onCollapse = (collapsed: boolean) => {
     this.setState({ collapsed });
   }
 
-  mapLoaded(loadedmap: typeof google.maps.Map, center: { lat: number; lng: number; noWrap?: boolean }) {
-    // tslint:disable-next-line:no-console
-    console.log("now in mpaloades before set map is", loadedmap)
+  mapLoaded(
+    loadedmap: typeof google.maps.Map,
+    center: { lat: number; lng: number; noWrap?: boolean },
+    bounds: google.maps.LatLngBounds,
+    ) {
     this.setState({
       map: loadedmap,
       center: center,
-    // tslint:disable-next-line:no-console
+      bounds: bounds,
     }, () => {
       this.map = this.state.map
       this.center = this.state.center
+      this.bounds = this.state.bounds
     })
   }
 
   setCenter() {
     if(this.map && this.center) {
       this.map.setCenter(this.center)
+    }
+  }
+
+  fitBounds() {
+    if(this.map && this.bounds) {
+      this.map.fitBounds(this.bounds)
     }
   }
 
@@ -81,10 +95,8 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
       map: this.state.map,
       center: this.state.center,
       setCenter: this.setCenter,
+      fitBounds: this.fitBounds,
     });
-
-    // tslint:disable-next-line:no-console
-    console.log('props in layout render is', props)
 
     return (
       <Layout className="layout">

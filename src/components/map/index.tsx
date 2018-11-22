@@ -46,18 +46,13 @@ export default class Map extends React.Component<MapProps, MapState> {
 
     this.setBounds = this.setBounds.bind(this);
     this.resetBounds = this.resetBounds.bind(this);
-    this.setCenter = this.setCenter.bind(this)
   }
 
   componentDidMount() {
     this.loadMap();
     if(this.map) {
-      this.props.mapLoaded(this.map, this.state.center);
+      this.props.mapLoaded(this.map, this.state.center, this.state.bounds);
     }
-  }
-
-  setCenter() {
-    this.map.setCenter(this.state.center)
   }
 
   setBounds(pos: google.maps.LatLng) {
