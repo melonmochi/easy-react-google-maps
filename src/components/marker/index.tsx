@@ -10,12 +10,13 @@ const evtNames = [
   'mouseover',
   'mouseup',
   'recenter',
+  'rightclick',
 ];
 
 // tslint:disable-next-line:interface-name
 export interface MarkerProps {
   google?: typeof google;
-  map?: any;
+  map?: google.maps.Map;
   title: string;
   position: { lat: number; lng: number; noWrap?: boolean };
   draggable?: boolean;
@@ -35,6 +36,8 @@ export interface MarkerState {
   onSelect: boolean;
   onShowInfo: boolean;
   infoWindowVisible: boolean;
+  contextMenu: boolean;
+  clickLatLng?: google.maps.LatLng;
 }
 
 export default class Marker extends React.Component<MarkerProps, MarkerState> {
@@ -51,6 +54,8 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
     newPosition: this.props.position,
     onSelect: false,
     onShowInfo: false,
+    contextMenu: false,
+    clickLatLng: this.props.map? this.props.map.getCenter(): undefined,
   };
 
   constructor(props: MarkerProps) {
@@ -64,23 +69,28 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
   }
 
   handleEvent(evt: string) {
-    return (e: Event) => {
+    return (e: google.maps.MouseEvent) => {
+      // tslint:disable-next-line:no-console
+      console.log('in handleEvent, the e is:', e)
       const evtName = `on${camelCase(evt)}`;
       if (this.props[evtName]) {
         this.props[evtName](this.props, this.marker, e);
       } else {
-        this.defaultEventHandler(evtName, this.marker);
+        this.defaultEventHandler(evtName, e, this.marker);
       }
     };
   }
 
-  defaultEventHandler(evtName: string, marker: google.maps.Marker) {
+  defaultEventHandler(evtName: string, e: google.maps.MouseEvent, marker: google.maps.Marker) {
     switch (evtName) {
       case 'onClick':
         this.setState({ onSelect: true, infoWindowVisible: true });
         break;
       case 'onDblclick':
         this.setState({ onSelect: true, infoWindowVisible: false });
+        break;
+      case 'onRightclick':
+        this.setState({ onSelect: true, contextMenu: true, clickLatLng: e.latLng });
         break;
       case 'onCloseinfowindow':
         this.setState({ infoWindowVisible: false });
@@ -98,7 +108,7 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
         });
         break;
       default:
-        throw new Error('No corresponding event')
+      // throw new Error('No corresponding event')
     }
   }
 
@@ -165,6 +175,8 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
         position: this.props.position,
         title: this.props.title,
         visibleInfoWindow: this.props.visibleInfoWindow,
+        contextMenu: this.state.contextMenu,
+        clickLatLng: this.state.clickLatLng || undefined,
       });
     });
   }

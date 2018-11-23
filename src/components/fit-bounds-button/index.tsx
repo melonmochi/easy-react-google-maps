@@ -10,7 +10,6 @@ export interface FitBoundsButtonProps {
 }
 
 export default class FitBoundsButton extends React.Component<FitBoundsButtonProps, any> {
-  private fbButtonRef = React.createRef<HTMLDivElement>();
 
   handleClick = () => {
     this.props.fitBounds()
@@ -18,11 +17,9 @@ export default class FitBoundsButton extends React.Component<FitBoundsButtonProp
 
   render() {
     return (
-      <div ref={this.fbButtonRef}>
-        <Tooltip title="Fit Bounds">
-          <Button onClick={this.handleClick} style={{ margin: '12px 12px' }} icon="arrows-alt" />
-        </Tooltip>
-      </div>
+      <Tooltip title="Fit Bounds">
+        <Button onClick={this.handleClick} style={{ margin: '12px 12px' }} icon="arrows-alt" />
+      </Tooltip>
     );
   }
 }

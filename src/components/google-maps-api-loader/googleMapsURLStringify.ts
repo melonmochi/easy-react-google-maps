@@ -29,7 +29,7 @@ export const googleMapsURLStringify = (loaderInput: GoogleMapsLoaderInputProps) 
     libraries = ['places'],
     region = 'US',
     url = 'https://maps.googleapis.com/maps/api/js',
-    version = '3.34',
+    version = '3.35',
   } = loaderInput;
 
   const urlStringify = () => {

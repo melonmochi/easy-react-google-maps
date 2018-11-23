@@ -20,14 +20,17 @@ export default class MapTool extends React.Component<MapToolProps, any> {
     return this.props.map ? (
       <div>
         <Card
+        style={{ width: 'auto' }}
           actions={[
             <Icon type="setting" key="mapToolsetting" />,
             <Icon type="edit" key="mapTooledit" />,
             <Icon type="ellipsis" key="mapToolellipsis" />,
           ]}
         >
-          <RecenterButton {...this.props} />
-          <FitBoundsButton {...this.props} />
+          <div style={{ display:'inline' }}>
+            <RecenterButton {...this.props} />
+            <FitBoundsButton {...this.props} />
+          </div>
         </Card>
       </div>
     ) : null;

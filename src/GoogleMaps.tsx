@@ -6,6 +6,7 @@ import {
   Marker,
   SearchBox,
   InfoWindow,
+  MarkerContextMenu,
 } from './components';
 import { config } from 'config';
 // const mapStyles = require('./mapStyles.less')
@@ -33,6 +34,7 @@ export class MapContainer extends React.Component {
             {...this.props}
           >
             <InfoWindow />
+            <MarkerContextMenu />
           </Marker>
           <Marker
             title="Point B"

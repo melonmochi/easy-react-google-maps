@@ -16,4 +16,6 @@ export { default as MapTool } from './map-tool';
 
 export { default as MapLayout } from './map-layout';
 
+export { default as MarkerContextMenu } from './marker-context-menu';
+
 export { camelCase } from './utils';

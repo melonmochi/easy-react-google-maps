@@ -12,19 +12,15 @@ export interface RecenterButtonProps {
 
 export default class RecenterButton extends React.Component<RecenterButtonProps, any> {
 
-  private rcButtonRef = React.createRef<HTMLDivElement>();
-
   handleClick = () => {
     this.props.setCenter()
   }
 
   render() {
     return (
-      <div ref={this.rcButtonRef}>
-        <Tooltip title="Recenter Map">
-          <Button onClick={this.handleClick} style={{ margin: '12px 12px' }} icon="undo" />
-        </Tooltip>
-      </div>
+      <Tooltip title="Recenter Map">
+        <Button onClick={this.handleClick} style={{ margin: '12px 12px' }} icon="undo" />
+      </Tooltip>
     );
   }
 }
