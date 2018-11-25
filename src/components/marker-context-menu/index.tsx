@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Menu } from 'antd'
 
 // tslint:disable-next-line:interface-name
 export interface MarkerContextMenuProps {
@@ -15,88 +14,95 @@ export interface MarkerContextMenuProps {
 
 // tslint:disable-next-line:interface-name
 export interface MarkerContextMenuState {
-  onOpenContextMenu: boolean;
+  cmOverlayView?: google.maps.OverlayView
+  containerElement?: HTMLDivElement
 }
 
 export default class MarkerContextMenu extends React.Component<MarkerContextMenuProps, MarkerContextMenuState> {
-  static defaultProps = {
-    infoWindowVisible: false,
-    visibleInfoWindows: true,
-  };
 
-  state = {
-    onOpenContextMenu: false,
-  };
-  cmOverlay: google.maps.OverlayView;
-
-  cmAnchor: HTMLDivElement;
+  containerElement: HTMLDivElement;
 
   private contextMenuRef = React.createRef<HTMLDivElement>();
 
-  componentDidMount() {
-    // tslint:disable-next-line:no-console
-    console.log('im in componentDidDount, this.props is', this.props)
-    if(this.props.marker) {
-      this.renderContextMenu();
+  constructor(props: MarkerContextMenuProps) {
+    super(props)
+    const { map } = this.props
+    const cmOverlay = new google.maps.OverlayView()
+    cmOverlay.onAdd = this.onAdd.bind(this)
+    cmOverlay.draw = this.draw.bind(this)
+    cmOverlay.onRemove = this.onRemove.bind(this)
+    if(map) {
+      cmOverlay.setMap(map)
     }
+    this.state = {
+      cmOverlayView: cmOverlay,
+    }
+  }
+
+  componentDidUpdate() {
+    this.renderContextMenu()
+  }
+
+  shouldComponentUpdate(nextProps: MarkerContextMenuProps) {
+    return nextProps.contextMenu !== this.props.contextMenu
   }
 
   renderContextMenu = () => {
-    const { map, marker, contextMenu, clickLatLng } = this.props
-    // tslint:disable-next-line:no-console
-    console.log('im in renderContextMenu, this.props is', this.props)
-    const cmComponent = this.contextMenuRef.current;
-    this.cmAnchor = document.createElement('div');
-    this.cmAnchor.appendChild(cmComponent as HTMLDivElement);
-    if( !map || !marker || !clickLatLng ) {
-      throw new Error('It could not be opened by lack of params')
+    const { map, contextMenu } = this.props
+    const { cmOverlayView } = this.state
+    if(contextMenu === true && cmOverlayView && map) {
+      cmOverlayView.onAdd()
     }
-    else {
-      this.cmOverlay = new google.maps.OverlayView()
-      this.cmOverlay.setMap(map);
-      this.cmOverlay.onAdd = this.onOpenContextMenu
-      this.cmOverlay.onRemove = this.onCloseContextmenu
-      this.cmOverlay.draw = this.drawContextMenu
-      if(contextMenu){
-        this.onOpenContextMenu()
-      } else {
-      }
+    if(contextMenu === false && cmOverlayView && map) {
+      cmOverlayView.onRemove()
     }
   }
 
-    onOpenContextMenu = () => {
-      this.cmOverlay.getPanes().floatPane.appendChild(this.cmAnchor)
+    onAdd = () => {
+      const { contextMenu } = this.props
+      const { cmOverlayView } = this.state
+      this.containerElement = document.createElement('div');
+      this.containerElement.style.position = 'absolute'
+      const cmComponent = this.contextMenuRef.current;
+      this.containerElement.appendChild(cmComponent as HTMLDivElement)
+      if(cmOverlayView && contextMenu === true){
+        cmOverlayView.getPanes().floatPane.appendChild(this.containerElement)
+      }
     };
 
-    onCloseContextmenu = () => {
-      if (this.cmAnchor.parentElement) {
-        this.cmAnchor.parentElement.removeChild(this.cmAnchor);
+    onRemove = () => {
+      const { contextMenu } = this.props
+      if (this.containerElement.parentElement && contextMenu === false) {
+        this.containerElement.parentElement.removeChild(this.containerElement);
       }
     }
 
-    drawContextMenu() {
+    draw() {
+      const { containerElement } = this
+      const { cmOverlayView } = this.state
       const { clickLatLng } = this.props
-      if(clickLatLng) {
-        const divPosition = this.cmOverlay.getProjection().fromLatLngToDivPixel(clickLatLng);
-        const display =
+      if(cmOverlayView && containerElement && clickLatLng) {
+        const divPosition = cmOverlayView.getProjection().fromLatLngToDivPixel(clickLatLng)
+        // tslint:disable-next-line:no-console
+        console.log('clicklatlon and divposition are', clickLatLng.lat(), divPosition)
+        if(divPosition) {
+          const display =
         Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000 ?
         'block' :
         'none';
         if (display === 'block') {
-          this.cmAnchor.style.left = divPosition.x + 'px';
-          this.cmAnchor.style.top = divPosition.y + 'px';
+          containerElement.style.left = divPosition.x + 'px';
+          containerElement.style.top = divPosition.y + 'px';
         }
-        if (this.cmAnchor.style.display !== display) {
-          this.cmAnchor.style.display = display;
+        if (containerElement.style.display !== display) {
+          containerElement.style.display = display;
         }
-      }
+      }}
     }
 
   render() {
-    return (
-      <div ref={this.contextMenuRef}>
-        <Menu />
-      </div>
-    )
+    return (<div ref={this.contextMenuRef}>
+    I'm layout
+  </div>)
   }
 }

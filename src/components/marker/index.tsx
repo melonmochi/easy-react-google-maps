@@ -55,7 +55,7 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
     onSelect: false,
     onShowInfo: false,
     contextMenu: false,
-    clickLatLng: this.props.map? this.props.map.getCenter(): undefined,
+    clickLatLng: undefined,
   };
 
   constructor(props: MarkerProps) {
@@ -70,8 +70,6 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
 
   handleEvent(evt: string) {
     return (e: google.maps.MouseEvent) => {
-      // tslint:disable-next-line:no-console
-      console.log('in handleEvent, the e is:', e)
       const evtName = `on${camelCase(evt)}`;
       if (this.props[evtName]) {
         this.props[evtName](this.props, this.marker, e);
@@ -84,13 +82,17 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
   defaultEventHandler(evtName: string, e: google.maps.MouseEvent, marker: google.maps.Marker) {
     switch (evtName) {
       case 'onClick':
-        this.setState({ onSelect: true, infoWindowVisible: true });
+        this.setState({ onSelect: true, infoWindowVisible: true, contextMenu: false });
         break;
       case 'onDblclick':
         this.setState({ onSelect: true, infoWindowVisible: false });
         break;
       case 'onRightclick':
         this.setState({ onSelect: true, contextMenu: true, clickLatLng: e.latLng });
+        if(e.latLng){
+          // tslint:disable-next-line:no-console
+          console.log('im in marker defaultEventHandler, this.state.clickLatLng.lat after set is', e.latLng.lat())
+        }
         break;
       case 'onCloseinfowindow':
         this.setState({ infoWindowVisible: false });
