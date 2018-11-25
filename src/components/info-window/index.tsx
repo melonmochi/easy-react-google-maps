@@ -8,7 +8,7 @@ export interface InfoWindowProps {
   title?: string;
   position?: { lat: number; lng: number };
   visibleInfoWindows?: boolean;
-  onSelect?: any;
+  selectedMarker?: any;
   onOpenInfoWindow?: any;
   onCloseInfoWindow?: any;
   defaultEventHandler?: any;
@@ -53,11 +53,11 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
 
     if (
       this.props.visibleInfoWindows !== prevProps.visibleInfoWindows ||
-      this.props.onSelect !== prevProps.onSelect ||
+      this.props.selectedMarker !== prevProps.selectedMarker ||
       this.props.infoWindowVisible !== prevProps.infoWindowVisible ||
       this.props.position !== prevProps.position
     ) {
-      this.props.onSelect && this.props.visibleInfoWindows && this.props.infoWindowVisible
+      this.props.selectedMarker === this.props.marker && this.props.visibleInfoWindows && this.props.infoWindowVisible
         ? this.openInfoWindow()
         : this.closeInfoWindow();
     }

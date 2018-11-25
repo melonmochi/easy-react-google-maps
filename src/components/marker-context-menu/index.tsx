@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Icon } from 'antd';
+import './style'
 
 // tslint:disable-next-line:interface-name
 export interface MarkerContextMenuProps {
@@ -7,8 +9,9 @@ export interface MarkerContextMenuProps {
   marker?: google.maps.Marker;
   title?: string;
   position?: { lat: number; lng: number };
-  contextMenu?: boolean;
   defaultEventHandler?: any;
+  selectedMarker?: google.maps.Marker;
+  contextMenu?: boolean;
   clickLatLng?: google.maps.LatLng | undefined;
 }
 
@@ -31,7 +34,7 @@ export default class MarkerContextMenu extends React.Component<MarkerContextMenu
     cmOverlay.onAdd = this.onAdd.bind(this)
     cmOverlay.draw = this.draw.bind(this)
     cmOverlay.onRemove = this.onRemove.bind(this)
-    if(map) {
+    if (map) {
       cmOverlay.setMap(map)
     }
     this.state = {
@@ -40,56 +43,60 @@ export default class MarkerContextMenu extends React.Component<MarkerContextMenu
   }
 
   componentDidUpdate() {
+    // tslint:disable-next-line:no-console
+    console.log('im in componentDidUpdate, this.props.contextMenu is', this.props)
     this.renderContextMenu()
   }
 
   shouldComponentUpdate(nextProps: MarkerContextMenuProps) {
-    return nextProps.contextMenu !== this.props.contextMenu
+    return (
+      nextProps.contextMenu !== this.props.contextMenu ||
+      nextProps.selectedMarker !== this.props.selectedMarker ||
+      nextProps.clickLatLng !== this.props.clickLatLng
+    )
   }
 
   renderContextMenu = () => {
-    const { map, contextMenu } = this.props
+    const { contextMenu, clickLatLng, selectedMarker } = this.props
     const { cmOverlayView } = this.state
-    if(contextMenu === true && cmOverlayView && map) {
-      cmOverlayView.onAdd()
-    }
-    if(contextMenu === false && cmOverlayView && map) {
-      cmOverlayView.onRemove()
+    if(cmOverlayView) {
+      cmOverlayView.draw()
+      if(selectedMarker === this.props.marker && clickLatLng && contextMenu) {
+        cmOverlayView.getPanes().floatPane.appendChild(this.containerElement)
+      } else {
+        // tslint:disable-next-line:no-console
+        console.log('im in else, removing overlay')
+        cmOverlayView.onRemove()
+      }
     }
   }
 
-    onAdd = () => {
-      const { contextMenu } = this.props
-      const { cmOverlayView } = this.state
-      this.containerElement = document.createElement('div');
-      this.containerElement.style.position = 'absolute'
-      const cmComponent = this.contextMenuRef.current;
-      this.containerElement.appendChild(cmComponent as HTMLDivElement)
-      if(cmOverlayView && contextMenu === true){
-        cmOverlayView.getPanes().floatPane.appendChild(this.containerElement)
-      }
-    };
+  onAdd = () => {
+    // tslint:disable-next-line:no-console
+    console.log('im in onadd')
+    this.containerElement = document.createElement('div');
+    this.containerElement.style.position = 'absolute'
+    const cmComponent = this.contextMenuRef.current;
+    this.containerElement.appendChild(cmComponent as HTMLDivElement)
+  };
 
-    onRemove = () => {
-      const { contextMenu } = this.props
-      if (this.containerElement.parentElement && contextMenu === false) {
-        this.containerElement.parentElement.removeChild(this.containerElement);
-      }
+  onRemove = () => {
+    if (this.containerElement.parentElement) {
+      this.containerElement.parentElement.removeChild(this.containerElement);
     }
+  }
 
-    draw() {
-      const { containerElement } = this
-      const { cmOverlayView } = this.state
-      const { clickLatLng } = this.props
-      if(cmOverlayView && containerElement && clickLatLng) {
-        const divPosition = cmOverlayView.getProjection().fromLatLngToDivPixel(clickLatLng)
-        // tslint:disable-next-line:no-console
-        console.log('clicklatlon and divposition are', clickLatLng.lat(), divPosition)
-        if(divPosition) {
-          const display =
-        Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000 ?
-        'block' :
-        'none';
+  draw() {
+    const { containerElement } = this
+    const { cmOverlayView } = this.state
+    const { clickLatLng } = this.props
+    if (cmOverlayView && containerElement && clickLatLng) {
+      const divPosition = cmOverlayView.getProjection().fromLatLngToDivPixel(clickLatLng)
+      if (divPosition) {
+        const display =
+          Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000 ?
+            'block' :
+            'none';
         if (display === 'block') {
           containerElement.style.left = divPosition.x + 'px';
           containerElement.style.top = divPosition.y + 'px';
@@ -97,12 +104,17 @@ export default class MarkerContextMenu extends React.Component<MarkerContextMenu
         if (containerElement.style.display !== display) {
           containerElement.style.display = display;
         }
-      }}
+      }
     }
+  }
 
   render() {
     return (<div ref={this.contextMenuRef}>
-    I'm layout
-  </div>)
+      <ul className="popup" >
+    <li><Icon type="user"/>Name</li>
+    <li><Icon type="heart-o"/>Like it</li>
+    <li><Icon type="star-o"/>Bookmark</li>
+  </ul>
+    </div>)
   }
 }

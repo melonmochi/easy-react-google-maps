@@ -44,6 +44,7 @@ export class MapContainer extends React.Component {
             animation="DROP"
           >
             <InfoWindow />
+            <MarkerContextMenu />
           </Marker>
           <SearchBox position="TOP_LEFT" />
           </Map>

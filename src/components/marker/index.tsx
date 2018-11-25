@@ -1,17 +1,6 @@
 import * as React from 'react';
 import { camelCase } from '../utils';
-
-const evtNames = [
-  'click',
-  'dblclick',
-  'dragend',
-  'mousedown',
-  'mouseout',
-  'mouseover',
-  'mouseup',
-  'recenter',
-  'rightclick',
-];
+import { evtNames }from './markerEvents'
 
 // tslint:disable-next-line:interface-name
 export interface MarkerProps {
@@ -27,20 +16,17 @@ export interface MarkerProps {
   bounds?: google.maps.LatLngBounds;
   setBounds?: any;
   resetBounds?: any;
+  selectedMarker?: google.maps.Marker;
+  selectThisMarker?: any;
+  infoWindowVisible?: boolean;
+  contextMenu?: boolean;
+  clickLatLng?: google.maps.LatLng;
+  defaultMarkerEventHandler?: any;
+  newPosition?: { lat: number; lng: number; noWrap?: boolean };
   [evtNames: string]: any;
 }
 
-// tslint:disable-next-line:interface-name
-export interface MarkerState {
-  newPosition?: { lat: number; lng: number; noWrap?: boolean };
-  onSelect: boolean;
-  onShowInfo: boolean;
-  infoWindowVisible: boolean;
-  contextMenu: boolean;
-  clickLatLng?: google.maps.LatLng;
-}
-
-export default class Marker extends React.Component<MarkerProps, MarkerState> {
+export default class Marker extends React.Component<MarkerProps, any> {
   static defaultProps = {
     draggable: true,
     visibleInfoWindow: true,
@@ -48,15 +34,6 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
   };
 
   marker: google.maps.Marker;
-
-  state = {
-    infoWindowVisible: false,
-    newPosition: this.props.position,
-    onSelect: false,
-    onShowInfo: false,
-    contextMenu: false,
-    clickLatLng: undefined,
-  };
 
   constructor(props: MarkerProps) {
     super(props);
@@ -80,38 +57,7 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
   }
 
   defaultEventHandler(evtName: string, e: google.maps.MouseEvent, marker: google.maps.Marker) {
-    switch (evtName) {
-      case 'onClick':
-        this.setState({ onSelect: true, infoWindowVisible: true, contextMenu: false });
-        break;
-      case 'onDblclick':
-        this.setState({ onSelect: true, infoWindowVisible: false });
-        break;
-      case 'onRightclick':
-        this.setState({ onSelect: true, contextMenu: true, clickLatLng: e.latLng });
-        if(e.latLng){
-          // tslint:disable-next-line:no-console
-          console.log('im in marker defaultEventHandler, this.state.clickLatLng.lat after set is', e.latLng.lat())
-        }
-        break;
-      case 'onCloseinfowindow':
-        this.setState({ infoWindowVisible: false });
-        break;
-      case 'onOpeninfowindow':
-        this.setState({ infoWindowVisible: true });
-        break;
-      case 'onDragend':
-        this.props.resetBounds();
-        this.setState({
-          newPosition: {
-            lat: marker.getPosition().lat(),
-            lng: marker.getPosition().lng(),
-          },
-        });
-        break;
-      default:
-      // throw new Error('No corresponding event')
-    }
+    this.props.defaultMarkerEventHandler(evtName, e, marker)
   }
 
   async renderMarker() {
@@ -122,7 +68,7 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
     if (!google || !map) {
       return;
     } else {
-      const markerPosition = this.state.newPosition;
+      const markerPosition = this.props.newPosition? this.props.newPosition: this.props.position;
 
       if (!label) {
         label = title;
@@ -169,16 +115,15 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
       return React.cloneElement(c as React.ReactElement<any>, {
         defaultEventHandler: this.defaultEventHandler,
         google: this.props.google,
-        infoWindowVisible: this.state.infoWindowVisible,
         map: this.props.map,
         marker: this.marker,
-        onSelect: this.state.onSelect,
-        onShowInfo: this.state.onShowInfo,
+        selectedMarker: this.props.selectedMarker,
         position: this.props.position,
         title: this.props.title,
         visibleInfoWindow: this.props.visibleInfoWindow,
-        contextMenu: this.state.contextMenu,
-        clickLatLng: this.state.clickLatLng || undefined,
+        contextMenu: this.props.contextMenu,
+        infoWindowVisible: this.props.infoWindowVisible,
+        clickLatLng: this.props.clickLatLng,
       });
     });
   }
