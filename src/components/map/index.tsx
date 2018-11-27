@@ -13,6 +13,7 @@ export interface MapProps {
   initialCenter?: { lat: number; lng: number; noWrap?: boolean }
   gestureHandling?: GestureHandlingType
   mapStyle?: React.CSSProperties
+  markerClustering?: boolean
   mapLoaded?: any
   [evtNames: string]: any;
 }
@@ -22,6 +23,7 @@ export interface MapState {
   center: { lat: number; lng: number; noWrap?: boolean };
   bounds: google.maps.LatLngBounds;
   selectedMarker?: google.maps.Marker;
+  markers?: Array<google.maps.Marker>;
   infoWindowVisible?: boolean
   contextMenu?: boolean
   clickLatLng?: google.maps.LatLng,
@@ -31,24 +33,6 @@ export interface MapState {
 export default class Map extends React.Component<MapProps, MapState> {
   map: google.maps.Map;
 
-  state = {
-    bounds: new google.maps.LatLngBounds(),
-    center: this.props.initialCenter
-      ? {
-          lat: this.props.initialCenter.lat,
-          lng: this.props.initialCenter.lng,
-          noWrap: this.props.initialCenter.noWrap ? this.props.initialCenter.noWrap : true,
-        }
-      : {
-          lat: 40.416778,
-          lng: -3.703778,
-        },
-    selectedMarker: undefined,
-    infoWindowVisible: undefined,
-    contextMenu: undefined,
-    clickLatLng: undefined,
-  };
-
   private mapRef = React.createRef<HTMLDivElement>();
 
   constructor(props: MapProps) {
@@ -57,6 +41,26 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.defaultMarkerEventHandler = this.defaultMarkerEventHandler.bind(this);
     this.setBounds = this.setBounds.bind(this);
     this.resetBounds = this.resetBounds.bind(this);
+    this.addThisMarker = this.addThisMarker.bind(this);
+
+    this.state = {
+        bounds: new google.maps.LatLngBounds(),
+        center: this.props.initialCenter
+          ? {
+            lat: this.props.initialCenter.lat,
+            lng: this.props.initialCenter.lng,
+            noWrap: this.props.initialCenter.noWrap ? this.props.initialCenter.noWrap : true,
+          }
+          : {
+            lat: 40.416778,
+            lng: -3.703778,
+          },
+        selectedMarker: undefined,
+        infoWindowVisible: undefined,
+        contextMenu: undefined,
+        clickLatLng: undefined,
+        markers: [] as Array<google.maps.Marker>,
+    }
   }
 
   componentDidMount() {
@@ -64,6 +68,12 @@ export default class Map extends React.Component<MapProps, MapState> {
     if(this.map) {
       this.props.mapLoaded(this.map, this.state.center, this.state.bounds);
     }
+  }
+
+  addThisMarker(marker: google.maps.Marker) {
+    this.setState({
+      markers: this.state.markers ? this.state.markers.push(marker) : ([] as any).push(marker),
+    })
   }
 
   selectThisMarker(marker: google.maps.Marker) {
@@ -126,6 +136,7 @@ export default class Map extends React.Component<MapProps, MapState> {
           clickLatLng: e.latLng,
         })
       case 'onDragend':
+        this.selectThisMarker(marker)
         this.resetBounds();
         this.setState({
           newPosition: {
@@ -201,6 +212,8 @@ export default class Map extends React.Component<MapProps, MapState> {
         contextMenu: this.state.contextMenu,
         clickLatLng: this.state.clickLatLng,
         defaultMarkerEventHandler: this.defaultMarkerEventHandler,
+        markers: this.state.markers,
+        addThisMarker: this.addThisMarker,
       });
     });
   }

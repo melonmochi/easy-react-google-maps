@@ -23,6 +23,7 @@ export interface MarkerProps {
   clickLatLng?: google.maps.LatLng;
   defaultMarkerEventHandler?: any;
   newPosition?: { lat: number; lng: number; noWrap?: boolean };
+  addThisMarker?: any
   [evtNames: string]: any;
 }
 
@@ -60,7 +61,7 @@ export default class Marker extends React.Component<MarkerProps, any> {
     this.props.defaultMarkerEventHandler(evtName, e, marker)
   }
 
-  async renderMarker() {
+  renderMarker() {
     const { google, map, title, withLabel, draggable, animation } = this.props;
 
     let { label } = this.props;
@@ -92,8 +93,9 @@ export default class Marker extends React.Component<MarkerProps, any> {
         title,
       };
 
-      this.marker = await new google.maps.Marker(markerOpt);
+      this.marker = new google.maps.Marker(markerOpt);
       this.props.setBounds(markerPosition);
+      this.props.addThisMarker(this.marker)
 
       evtNames.forEach(e => {
         this.marker.addListener(e, this.handleEvent(e));

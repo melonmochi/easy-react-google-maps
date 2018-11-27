@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Layout, Menu, Icon } from 'antd';
-import { MapTool } from 'components'
+import { MapTool, Uploader } from 'components'
 import './style';
 
 export interface MapProps {
@@ -113,11 +113,21 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
           {...this.props}
         >
           <div className="logo" />
-          <Menu theme="light" defaultSelectedKeys={['1']} mode="inline">
-            <Menu.Item key="files">
-              <Icon type="file" />
-              <span>Files</span>
-            </Menu.Item>
+          <Menu
+            theme="light"
+            defaultSelectedKeys={['basictools']}
+            mode="inline"
+          >
+            <SubMenu
+              key="files"
+              title={
+                <span><Icon type="file" />
+                  <span>Files</span>
+                </span>
+                }
+            >
+              <Uploader />
+            </SubMenu>
             <SubMenu
               key="basictools"
               title={

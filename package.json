@@ -4,9 +4,9 @@
   "main": "lib/easy-react-google-maps.js",
   "license": "MIT",
   "dependencies": {
-    "antd": "^3.10.7",
-    "less": "^3.8.1",
-    "scriptjs": "^2.5.9"
+    "@google/markerclustererplus": "^2.1.11",
+    "antd": "^3.10.9",
+    "less": "^3.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
@@ -14,6 +14,7 @@
     "@babel/preset-env": "^7.1.6",
     "@babel/preset-react": "^7.0.0",
     "@types/googlemaps": "^3.30.16",
+    "@types/markerclustererplus": "^2.1.33",
     "@types/node": "^10.12.9",
     "@types/react": "^16.7.6",
     "@types/react-dom": "^16.0.9",

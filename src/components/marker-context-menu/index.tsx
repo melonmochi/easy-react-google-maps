@@ -43,8 +43,6 @@ export default class MarkerContextMenu extends React.Component<MarkerContextMenu
   }
 
   componentDidUpdate() {
-    // tslint:disable-next-line:no-console
-    console.log('im in componentDidUpdate, this.props.contextMenu is', this.props)
     this.renderContextMenu()
   }
 
@@ -64,16 +62,12 @@ export default class MarkerContextMenu extends React.Component<MarkerContextMenu
       if(selectedMarker === this.props.marker && clickLatLng && contextMenu) {
         cmOverlayView.getPanes().floatPane.appendChild(this.containerElement)
       } else {
-        // tslint:disable-next-line:no-console
-        console.log('im in else, removing overlay')
         cmOverlayView.onRemove()
       }
     }
   }
 
   onAdd = () => {
-    // tslint:disable-next-line:no-console
-    console.log('im in onadd')
     this.containerElement = document.createElement('div');
     this.containerElement.style.position = 'absolute'
     const cmComponent = this.contextMenuRef.current;

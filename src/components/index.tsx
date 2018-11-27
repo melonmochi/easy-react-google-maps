@@ -14,8 +14,12 @@ export { default as SearchBox } from './search-box';
 
 export { default as MapTool } from './map-tool';
 
+export { default as Uploader } from './uploader';
+
 export { default as MapLayout } from './map-layout';
 
 export { default as MarkerContextMenu } from './marker-context-menu';
+
+export { default as MarkerClusterer } from './marker-clusterer';
 
 export { camelCase } from './utils';

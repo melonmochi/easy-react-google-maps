@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Card, Icon } from 'antd';
+import { Card } from 'antd';
 import {
   RecenterButton,
   FitBoundsButton,
@@ -20,21 +20,13 @@ export interface MapToolProps {
 export default class MapTool extends React.Component<MapToolProps, any> {
   render() {
     return this.props.map ? (
-      <div>
-        <Card
+      <Card
         style={{ width: 'auto' }}
-          actions={[
-            <Icon type="setting" key="mapToolsetting" />,
-            <Icon type="edit" key="mapTooledit" />,
-            <Icon type="ellipsis" key="mapToolellipsis" />,
-          ]}
-        >
-          <div style={{ display:'inline' }}>
-            <RecenterButton {...this.props} />
-            <FitBoundsButton {...this.props} />
-          </div>
-        </Card>
-      </div>
+        bordered={false}
+      >
+        <RecenterButton {...this.props} />
+        <FitBoundsButton {...this.props} />
+      </Card>
     ) : null;
   }
 }
