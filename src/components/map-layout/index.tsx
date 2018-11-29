@@ -23,7 +23,7 @@ const SubMenu = Menu.SubMenu;
 export default class MapLayout extends React.Component<MapProps, MapState> {
 
   state = {
-    collapsed: true,
+    collapsed: false,
     map: undefined,
     center: undefined,
     bounds: undefined,
@@ -115,7 +115,7 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
           <div className="logo" />
           <Menu
             theme="light"
-            defaultSelectedKeys={['basictools']}
+            defaultOpenKeys={['files']}
             mode="inline"
           >
             <SubMenu
