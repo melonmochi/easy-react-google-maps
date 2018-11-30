@@ -1,16 +1,16 @@
 import React from 'react'
 import { Upload, Icon, message, Button, Select } from 'antd';
 import JSZip from 'jszip'
-
-// const Dragger = Upload.Dragger;
-
 const Option = Select.Option;
+const Parser = require('text2json').Parser
+const parse = new Parser({hasHeader : true})
 
 interface UploaderState {
   fileList: Array<any>,
   uploading: boolean,
   onSelectFile?: any,
   lastUploadedFiles: Array<any>,
+  onSelectKey: String,
 }
 
 export default class Uploader extends React.Component<any, UploaderState> {
@@ -19,19 +19,25 @@ export default class Uploader extends React.Component<any, UploaderState> {
     uploading: false,
     onSelectFile: undefined,
     lastUploadedFiles: new Array(),
+    onSelectKey: '',
   }
 
-  handleChangeSelect(value: any) {
-    // tslint:disable-next-line:no-console
-    console.log(`selected ${value}`);
+  handleChangeSelect = (value: string) => {
+    this.setState({
+      onSelectKey: value,
+    })
   }
 
   handleUpload = () => {
     const { fileList } = this.state;
 
     const ifDone = (file: any) => {
-      return file.status === 'true'
+      return file.status === 'ok'
     }
+
+    this.setState({
+      lastUploadedFiles: new Array(),
+    })
 
     const uploadingList = new Array()
 
@@ -49,18 +55,30 @@ export default class Uploader extends React.Component<any, UploaderState> {
                 const loadedFile = { ...file, status: 'ok' }
                 uploadingList.push(loadedFile)
                 file.status = 'done'
-                file.uncompressedFiles = zip
+                Object.keys(zip.files).forEach( (key) => {
+                  zip.files[key].async("text").then(
+                    u8 => {parse.text2json (u8, (err: any, data: any) => {
+                      if (err) {
+                        console.error (err)
+                      } else {
+                        // tslint:disable-next-line:no-console
+                        console.log(data)
+                      }
+                    })
+                  })
+                });
                 // tslint:disable-next-line:no-console
-                console.log('im in loadAsync, first then, uploadingList is', uploadingList)
+                console.log('im in loadAsync zip.files is', typeof(zip.files))
+                file.uncompressedFiles = zip
+                file.onSelectFile = file
                 this.setState({
-                  onSelectFile: this.state.onSelectFile? file: this.state.onSelectFile,
+                  onSelectFile: file,
+                  onSelectKey: fileList.indexOf(file).toString(),
                 })
               },
             )
             .catch(
               () => {
-                // tslint:disable-next-line:no-console
-                console.log('im in loadAsync, catch')
                 const loadedFile = { ...file, status: 'failed' }
                 uploadingList.push(loadedFile)
                 file.status = 'error'
@@ -68,34 +86,20 @@ export default class Uploader extends React.Component<any, UploaderState> {
             )
             .then(
               () => {
-                // tslint:disable-next-line:no-console
-                console.log('im in loadAsync, second then uploadingList is', uploadingList)
                 this.setState({
-                  fileList,
                   lastUploadedFiles: uploadingList,
-                })
-              },
-            )
-            .then(
-              () => {
-                this.setState({
                   uploading: false,
                 })
-                // tslint:disable-next-line:no-console
-                console.log('im done a iteratal with file:', this.state)
-                this.forceUpdate()
               },
             )
         },
         )
 
     Promise.all(loadingPromises).then(() => {
-      // tslint:disable-next-line:no-console
-      console.log('im in loadingPromises, this.state is', this.state)
-      const { lastUploadedFiles } = this.state
+      const { lastUploadedFiles, uploading } = this.state
       const uploadStatus = lastUploadedFiles.every(ifDone)
 
-      if (lastUploadedFiles.length === 0) {
+      if (lastUploadedFiles.length === 0 && !uploading) {
         message.warn('no files uploaded', 10);
       } else if (uploadStatus) {
         message.success('files uploaded successfully.', 10);
@@ -106,7 +110,9 @@ export default class Uploader extends React.Component<any, UploaderState> {
   }
 
   render() {
-    const { uploading, fileList, onSelectFile } = this.state;
+    const { uploading, fileList, onSelectFile, onSelectKey } = this.state;
+    // tslint:disable-next-line:no-console
+    console.log('in render, this.state.fileList is', this.state.fileList)
     const props = {
       multiple: true,
       onRemove: (file: any) => {
@@ -114,8 +120,15 @@ export default class Uploader extends React.Component<any, UploaderState> {
           const index = state.fileList.indexOf(file);
           const newFileList = state.fileList.slice();
           newFileList.splice(index, 1);
+          const newLoadedList = newFileList.filter(newFile => newFile.status === 'done')
           return {
             fileList: newFileList,
+            onSelectKey:
+              newLoadedList.length > 0
+                ?
+                (newLoadedList.length - 1).toString()
+                :
+                '',
           };
         });
       },
@@ -127,7 +140,7 @@ export default class Uploader extends React.Component<any, UploaderState> {
         }
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isLt2M) {
-          message.warn('File size is better be smaller than 2MB!', 10);
+          message.warn('File size is better to be smaller than 2MB!', 10);
         }
         this.setState((state: any) => ({
           fileList: [...state.fileList, file],
@@ -139,7 +152,7 @@ export default class Uploader extends React.Component<any, UploaderState> {
 
     const uploadedList = new Array()
     for (let i = 0; i < fileList.length && fileList[i].status === 'done'; i++) {
-      uploadedList.push(<Option key={i.toString()}>{i.toString()}</Option>);
+      uploadedList.push(<Option key={i.toString()}>{fileList[i].name}</Option>);
     }
     return (
       <div style={{ margin: '12px' }}>
@@ -167,6 +180,7 @@ export default class Uploader extends React.Component<any, UploaderState> {
           onChange={this.handleChangeSelect}
           filterOption={(input, option) => option.props.children && typeof (option.props.children) === 'string' ? option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0 : null}
           disabled={!onSelectFile}
+          value={onSelectKey}
         >
           {uploadedList}
         </Select>
