@@ -6,6 +6,7 @@
   "dependencies": {
     "@google/markerclustererplus": "^2.1.11",
     "antd": "^3.10.9",
+    "fs": "^0.0.1-security",
     "jszip": "^3.1.5",
     "less": "^3.8.1",
     "text2json": "^2.2.3"

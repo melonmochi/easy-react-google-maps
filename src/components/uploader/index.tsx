@@ -3,6 +3,8 @@ import { Upload, Icon, message, Button, Select } from 'antd';
 import JSZip from 'jszip'
 const Option = Select.Option;
 const Parser = require('text2json').Parser
+// tslint:disable-next-line:no-console
+console.log(Parser)
 const parse = new Parser({hasHeader : true})
 
 interface UploaderState {
@@ -57,18 +59,12 @@ export default class Uploader extends React.Component<any, UploaderState> {
                 file.status = 'done'
                 Object.keys(zip.files).forEach( (key) => {
                   zip.files[key].async("text").then(
-                    u8 => {parse.text2json (u8, (err: any, data: any) => {
-                      if (err) {
-                        console.error (err)
-                      } else {
-                        // tslint:disable-next-line:no-console
-                        console.log(data)
-                      }
+                    (u8: any) => {
+                      // tslint:disable-next-line:no-console
+                      console.log('im in loadAsync zip.files is', typeof(parse.text2json))
+                      parse.text2json (u8)
                     })
-                  })
                 });
-                // tslint:disable-next-line:no-console
-                console.log('im in loadAsync zip.files is', typeof(zip.files))
                 file.uncompressedFiles = zip
                 file.onSelectFile = file
                 this.setState({
@@ -133,8 +129,10 @@ export default class Uploader extends React.Component<any, UploaderState> {
         });
       },
       beforeUpload: (file: any) => {
-        const isZIP = file.type === 'application/zip';
+        const isZIP = file.type === 'application/zip' || 'application/x-zip-compressed';
         if (!isZIP) {
+          // tslint:disable-next-line:no-console
+          console.log(file.type)
           message.error('You can only upload zip file!', 10);
           file.status = 'error'
         }
