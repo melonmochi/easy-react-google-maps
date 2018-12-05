@@ -56,6 +56,19 @@ declare module 'typings' {
     region: String
   }
 
+  type Calendar = {
+    service_id: string,
+    start_date: string,
+    end_date: string,
+    monday: string,
+    tuesday: string,
+    wednesday: string,
+    thursday: string,
+    friday: string,
+    saturday: string,
+    sunday: string,
+  }
+
   type GTFSFile = {
     agency?: Object,
     stops?: Object,
@@ -63,9 +76,7 @@ declare module 'typings' {
     trips?: Object,
     stop_times?: Object,
     calendar?: {
-      [key: string]: {
-        service_id: string,
-      };
+      [key: string]: Calendar
     }
     calendar_dates?: Object,
     fare_attributes?: Object,

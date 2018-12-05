@@ -1,42 +1,36 @@
 import React from 'react'
 import { Card, Select, Row, Col, Switch } from 'antd'
-import { GTFSFile } from 'typings'
+import { GTFSFile, Calendar } from 'typings'
+import CalendarInfo from './calendar-info';
 
 interface UploadedDataListProps {
-  onLoadedData?: GTFSFile,
+  onLoadedData: GTFSFile,
 }
 
 interface UploadedDataListState {
-  calendar?: any
   onSelectCalendarKey?: String,
+  onSelectCalendar?: Calendar,
   calInfoExpand?: boolean
 }
 
 const Option = Select.Option;
 
-export default class UploadedDataList extends React.Component<UploadedDataListProps, UploadedDataListState> {
+export default class UploadedDataList extends React.PureComponent<UploadedDataListProps, UploadedDataListState> {
+  constructor(props: UploadedDataListProps) {
+    super(props)
 
-  state = {
-    calendar: new Array(),
+    this.state = {
+    onSelectCalendar: undefined,
     onSelectCalendarKey: undefined,
     calInfoExpand: false,
+    }
   }
 
-  componentDidMount() {
-    // tslint:disable-next-line:no-console
-    console.log('im in componentDidMount, this.props is', this.props)
-    const { onLoadedData } = this.props
-    if(onLoadedData) {
-      const { calendar } = onLoadedData
-      this.setState({
-        calendar: onLoadedData.calendar,
-      })
-      if(calendar) {
-        this.setState({
-          onSelectCalendarKey: Object.keys(calendar)[0],
-        })
-      }
-    }
+  setDefault = (key: string, cal: Calendar) => {
+    this.setState({
+      onSelectCalendarKey: key,
+      onSelectCalendar: cal,
+    })
   }
 
   handleChangeCalendar = (value: string) => {
@@ -50,16 +44,25 @@ export default class UploadedDataList extends React.Component<UploadedDataListPr
     this.setState({ calInfoExpand: !calInfoExpand });
   }
 
+  componentDidUpdate() {
+    const { calendar } = this.props.onLoadedData
+    const { onSelectCalendarKey } = this.state
+    if (calendar) {
+      if(!onSelectCalendarKey) {
+        const key = Object.keys(calendar)[0]
+        this.setDefault( key, calendar[key] )
+      }
+    }
+  }
+
   render() {
-    // tslint:disable-next-line:no-console
-    console.log('im in render of data-list, this.state is', this.state)
-    const { calendar, onSelectCalendarKey } = this.state
+    const { calendar } = this.props.onLoadedData
+    const { onSelectCalendarKey, onSelectCalendar, calInfoExpand} = this.state
 
     const calendarList = new Array()
-    if(calendar) {
-      for (let i = 0; i < Object.keys(calendar).length ; i++) {
-        const cal = calendar[i]
-        calendarList.push(<Option key={i.toString()}>{cal.service_id}</Option>);
+    if (calendar) {
+      for (let i = 0; i < Object.keys(calendar).length; i++) {
+        calendarList.push(<Option key={i.toString()}>{calendar[i].service_id}</Option>);
       }
     }
 
@@ -69,7 +72,7 @@ export default class UploadedDataList extends React.Component<UploadedDataListPr
           gutter={{ md: 24, lg: 36, xl: 48 }}
           type="flex"
           align="middle"
-          justify= 'center'
+          justify='center'
         >
           <Col
             span={16}
@@ -82,7 +85,7 @@ export default class UploadedDataList extends React.Component<UploadedDataListPr
               optionFilterProp="children"
               onChange={this.handleChangeCalendar}
               filterOption={(input, option) => option.props.children && typeof (option.props.children) === 'string' ? option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0 : null}
-              //disabled={!calendar}
+              disabled={!onSelectCalendarKey}
               value={onSelectCalendarKey}
             >
               {calendarList}
@@ -90,10 +93,18 @@ export default class UploadedDataList extends React.Component<UploadedDataListPr
           </Col>
           <Col
             span={8}
-            style={{ paddingLeft: 0, paddingRight: 0, justifyContent: 'center'}}
+            style={{ paddingLeft: 0, paddingRight: 0, justifyContent: 'center' }}
           >
             <Switch checkedChildren="Show" unCheckedChildren="Hide" onChange={this.toggle} />
           </Col>
+        </Row>
+        <Row
+          gutter={{ md: 24, lg: 36, xl: 48 }}
+          type="flex"
+          align="middle"
+          justify='center'
+        >
+          {onSelectCalendar && calInfoExpand? <CalendarInfo onLoadedCalendar={onSelectCalendar} />: null}
         </Row>
       </Card>
     )

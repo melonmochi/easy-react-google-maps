@@ -150,7 +150,7 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
               }
               disabled={Object.keys(this.state.onLoadedData).length === 0}
             >
-              <UploadedDataList onLoadedData={this.state.onLoadedData}/>
+              {this.state.onLoadedData? <UploadedDataList onLoadedData={this.state.onLoadedData}/>: null}
             </SubMenu>
             <SubMenu
               key="basictools"
