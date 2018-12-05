@@ -55,4 +55,24 @@ declare module 'typings' {
     avoidTolls: Boolean,
     region: String
   }
+
+  type GTFSFile = {
+    agency?: Object,
+    stops?: Object,
+    routes?: Object,
+    trips?: Object,
+    stop_times?: Object,
+    calendar?: {
+      [key: string]: {
+        service_id: string,
+      };
+    }
+    calendar_dates?: Object,
+    fare_attributes?: Object,
+    fare_rules?: Object,
+    shapes?: Object,
+    frequencies?: Object,
+    transfers?: Object,
+    feed_info?: Object,
+  }
 }

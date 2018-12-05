@@ -6,10 +6,10 @@
   "dependencies": {
     "@google/markerclustererplus": "^2.1.11",
     "antd": "^3.10.9",
-    "fs": "^0.0.1-security",
+    "csv-parser": "^2.1.0",
+    "csvtojson": "^2.0.8",
     "jszip": "^3.1.5",
-    "less": "^3.8.1",
-    "text2json": "^2.2.3"
+    "less": "^3.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
@@ -48,7 +48,7 @@
     "tslint-eslint-rules": "^5.4.0",
     "tslint-react": "^3.6.0",
     "typescript": "^3.1.6",
-    "webpack": "^4.25.1",
+    "webpack": "^4.27.0",
     "webpack-bundle-analyzer": "^3.0.3",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10"

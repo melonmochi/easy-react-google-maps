@@ -16,6 +16,7 @@ export interface MapProps {
   markerClustering?: boolean
   mapLoaded?: any
   [evtNames: string]: any;
+
 }
 
 // tslint:disable-next-line:interface-name
@@ -28,6 +29,7 @@ export interface MapState {
   contextMenu?: boolean
   clickLatLng?: google.maps.LatLng,
   newPosition?: { lat: number; lng: number; noWrap?: boolean };
+  onLoadedData?: { [key: string]: any }
 }
 
 export default class Map extends React.Component<MapProps, MapState> {
@@ -159,6 +161,13 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.setState({
       bounds: new google.maps.LatLngBounds(),
     });
+  }
+
+  addFileToData(name: string, file: Object) {
+    const fileName: string = name;
+    this.setState({
+      onLoadedData: {...this.state.onLoadedData, [fileName]: file },
+    })
   }
 
   loadMap() {

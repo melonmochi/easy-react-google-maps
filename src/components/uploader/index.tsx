@@ -1,27 +1,31 @@
+'use strict'
 import React from 'react'
 import { Upload, Icon, message, Button, Select } from 'antd';
 import JSZip from 'jszip'
+
+const csv=require('csvtojson')
+
 const Option = Select.Option;
-const Parser = require('text2json').Parser
-// tslint:disable-next-line:no-console
-console.log(Parser)
-const parse = new Parser({hasHeader : true})
+
+interface UploaderProps {
+  addFileToData: any
+}
 
 interface UploaderState {
   fileList: Array<any>,
   uploading: boolean,
-  onSelectFile?: any,
+  onSelectFiles: {[key: string]: any},
   lastUploadedFiles: Array<any>,
-  onSelectKey: String,
+  onSelectKey: String | undefined,
 }
 
-export default class Uploader extends React.Component<any, UploaderState> {
+export default class Uploader extends React.Component<UploaderProps, UploaderState> {
   state = {
     fileList: new Array(),
     uploading: false,
-    onSelectFile: undefined,
+    onSelectFiles: new Object(),
     lastUploadedFiles: new Array(),
-    onSelectKey: '',
+    onSelectKey: undefined,
   }
 
   handleChangeSelect = (value: string) => {
@@ -57,18 +61,19 @@ export default class Uploader extends React.Component<any, UploaderState> {
                 const loadedFile = { ...file, status: 'ok' }
                 uploadingList.push(loadedFile)
                 file.status = 'done'
-                Object.keys(zip.files).forEach( (key) => {
+                Object.keys(zip.files).forEach((key) => {
                   zip.files[key].async("text").then(
                     (u8: any) => {
-                      // tslint:disable-next-line:no-console
-                      console.log('im in loadAsync zip.files is', typeof(parse.text2json))
-                      parse.text2json (u8)
+                      csv()
+                        .fromString(u8)
+                        .then((jsonObj: object) => {
+                          const fileName: string = zip.files[key].name.split('.')[0];
+                          this.props.addFileToData(fileName, jsonObj)
+                        })
                     })
                 });
                 file.uncompressedFiles = zip
-                file.onSelectFile = file
                 this.setState({
-                  onSelectFile: file,
                   onSelectKey: fileList.indexOf(file).toString(),
                 })
               },
@@ -106,9 +111,7 @@ export default class Uploader extends React.Component<any, UploaderState> {
   }
 
   render() {
-    const { uploading, fileList, onSelectFile, onSelectKey } = this.state;
-    // tslint:disable-next-line:no-console
-    console.log('in render, this.state.fileList is', this.state.fileList)
+    const { uploading, fileList, onSelectKey } = this.state;
     const props = {
       multiple: true,
       onRemove: (file: any) => {
@@ -131,8 +134,6 @@ export default class Uploader extends React.Component<any, UploaderState> {
       beforeUpload: (file: any) => {
         const isZIP = file.type === 'application/zip' || 'application/x-zip-compressed';
         if (!isZIP) {
-          // tslint:disable-next-line:no-console
-          console.log(file.type)
           message.error('You can only upload zip file!', 10);
           file.status = 'error'
         }
@@ -177,7 +178,7 @@ export default class Uploader extends React.Component<any, UploaderState> {
           optionFilterProp="children"
           onChange={this.handleChangeSelect}
           filterOption={(input, option) => option.props.children && typeof (option.props.children) === 'string' ? option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0 : null}
-          disabled={!onSelectFile}
+          disabled={!onSelectKey}
           value={onSelectKey}
         >
           {uploadedList}

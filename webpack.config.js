@@ -86,8 +86,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: 'Easy React Google Maps',
       template: 'src/assets/index.html',
-    }
-    ),
+    }),
     // new BundleAnalyzerPlugin()
   ],
 };

@@ -1,44 +1,48 @@
 import * as React from 'react';
 import { Layout, Menu, Icon } from 'antd';
-import { MapTool, Uploader } from 'components'
+import { MapTool, Uploader, UploadedDataList } from 'components'
+import { GTFSFile } from 'typings'
 import './style';
 
-export interface MapProps {
+export interface MapLayoutProps {
   google?: typeof google
   map?: typeof google.maps.Map
   center?: google.maps.LatLng
 }
 
-export interface MapState {
+export interface MapLayoutState {
   google?: typeof google
   map?: typeof google.maps.Map
   center?: { lat: number; lng: number; noWrap?: boolean }
   collapsed?: boolean
   bounds?: google.maps.LatLngBounds;
+  onLoadedData?: GTFSFile
 }
 
 const { Content, Sider } = Layout;
 const SubMenu = Menu.SubMenu;
 
-export default class MapLayout extends React.Component<MapProps, MapState> {
+export default class MapLayout extends React.Component<MapLayoutProps, MapLayoutState> {
 
   state = {
     collapsed: false,
     map: undefined,
     center: undefined,
     bounds: undefined,
+    onLoadedData: {},
   };
 
   map: google.maps.Map | undefined;
   center: { lat: number; lng: number; noWrap?: boolean } | undefined;
   bounds: google.maps.LatLngBounds | undefined;
 
-  constructor(props: MapProps) {
+  constructor(props: MapLayoutProps) {
     super(props);
 
     this.mapLoaded = this.mapLoaded.bind(this);
     this.setCenter = this.setCenter.bind(this);
     this.fitBounds = this.fitBounds.bind(this);
+    this.addFileToData = this.addFileToData.bind(this);
   }
 
   onCollapse = (collapsed: boolean) => {
@@ -73,6 +77,13 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
     }
   }
 
+  addFileToData(name: string, file: Object) {
+    const fileName: string = name;
+    this.setState({
+      onLoadedData: { ...this.state.onLoadedData, [fileName]: file },
+    })
+  }
+
   renderChildren() {
     const { children } = this.props;
 
@@ -91,11 +102,13 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
   }
 
   render() {
+
     const props = Object.assign({}, this.props, {
       map: this.state.map,
       center: this.state.center,
       setCenter: this.setCenter,
       fitBounds: this.fitBounds,
+      addFileToData: this.addFileToData,
     });
 
     return (
@@ -115,7 +128,7 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
           <div className="logo" />
           <Menu
             theme="light"
-            defaultOpenKeys={['files']}
+            defaultOpenKeys={['files', 'data']}
             mode="inline"
           >
             <SubMenu
@@ -126,7 +139,18 @@ export default class MapLayout extends React.Component<MapProps, MapState> {
                 </span>
                 }
             >
-              <Uploader />
+              <Uploader {...props}/>
+            </SubMenu>
+            <SubMenu
+              key="data"
+              title={
+                <span><Icon type="database" />
+                  <span>Data</span>
+                </span>
+              }
+              disabled={Object.keys(this.state.onLoadedData).length === 0}
+            >
+              <UploadedDataList onLoadedData={this.state.onLoadedData}/>
             </SubMenu>
             <SubMenu
               key="basictools"
