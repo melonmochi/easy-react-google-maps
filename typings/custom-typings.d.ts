@@ -69,6 +69,12 @@ declare module 'typings' {
     sunday: string,
   }
 
+  type CalendarDates = {
+    service_id: string,
+    date: string,
+    exception_type: string
+  }
+
   type GTFSFile = {
     agency?: Object,
     stops?: Object,
@@ -78,7 +84,9 @@ declare module 'typings' {
     calendar?: {
       [key: string]: Calendar
     }
-    calendar_dates?: Object,
+    calendar_dates?: {
+      [key: string]: CalendarDates
+    },
     fare_attributes?: Object,
     fare_rules?: Object,
     shapes?: Object,

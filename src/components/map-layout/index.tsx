@@ -123,6 +123,7 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
           collapsed={this.state.collapsed}
           onCollapse={this.onCollapse}
           reverseArrow
+          width={300}
           {...this.props}
         >
           <div className="logo" />

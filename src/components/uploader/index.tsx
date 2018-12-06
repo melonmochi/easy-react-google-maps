@@ -1,9 +1,9 @@
 'use strict'
 import React from 'react'
-import { Upload, Icon, message, Button, Select } from 'antd';
+import { Upload, Icon, message, Button, Select, Row, Tooltip } from 'antd';
 import JSZip from 'jszip'
 
-const csv=require('csvtojson')
+const csv = require('csvtojson')
 
 const Option = Select.Option;
 
@@ -14,7 +14,7 @@ interface UploaderProps {
 interface UploaderState {
   fileList: Array<any>,
   uploading: boolean,
-  onSelectFiles: {[key: string]: any},
+  onSelectFiles: { [key: string]: any },
   lastUploadedFiles: Array<any>,
   onSelectKey: String | undefined,
 }
@@ -154,26 +154,38 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
       uploadedList.push(<Option key={i.toString()}>{fileList[i].name}</Option>);
     }
     return (
-      <div style={{ margin: '12px' }}>
-        <Upload
-          {...props}
+      <div style={{ margin: 6 }}>
+        <Row
+          gutter={{ md: 24, lg: 36, xl: 48 }}
+          type="flex"
+          align="top"
+          justify='start'
+          style={{ marginLeft: 0, marginRight: 0, marginBottom: 6 }}
         >
-          <Button>
-            <Icon type="upload" /> Select File
-          </Button>
-        </Upload>
-        <Button
-          type="primary"
-          onClick={this.handleUpload}
-          disabled={fileList.length === 0}
-          loading={uploading}
-          style={{ marginTop: 12, marginBottom: 12 }}
-        >
-          {uploading ? 'Uploading' : 'Start Upload'}
-        </Button>
+          <Upload
+            {...props}
+          >
+            <Button
+              style={{ width: 214 }}
+            >
+              <Icon type="upload" /> Select File
+              </Button>
+          </Upload>
+          <Tooltip title={'Upload'}>
+            <Button
+              type="primary"
+              shape="circle"
+              icon="cloud-upload"
+              onClick={this.handleUpload}
+              disabled={fileList.length === 0}
+              loading={uploading}
+              style={{ marginLeft: 6 }}
+            />
+          </Tooltip>
+        </Row>
         <Select
           showSearch
-          style={{ display: 'inline' }}
+          style={{ width: 214 }}
           placeholder="Imported data"
           optionFilterProp="children"
           onChange={this.handleChangeSelect}
