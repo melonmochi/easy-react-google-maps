@@ -10,10 +10,9 @@ export interface FitBoundsButtonProps {
 }
 
 export default class FitBoundsButton extends React.Component<FitBoundsButtonProps, any> {
-
   handleClick = () => {
-    this.props.fitBounds()
-  }
+    this.props.fitBounds();
+  };
 
   render() {
     return (

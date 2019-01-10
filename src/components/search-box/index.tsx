@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { GoogleMapsControlPosition } from 'typings'
+import { GoogleMapsControlPosition } from 'typings';
 
 // tslint:disable-next-line:interface-name
 export interface SearchBoxProps {

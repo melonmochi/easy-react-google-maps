@@ -18,7 +18,8 @@
     "paths": {
       "components": ["src/components"],
       "config": ["config"],
-      "typings": ["typings"]
+      "typings": ["typings"],
+      "utils": ["src/components/utils"]
     },
   },
   "exclude": [

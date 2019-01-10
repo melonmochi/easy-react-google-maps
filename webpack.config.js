@@ -65,6 +65,7 @@ module.exports = {
       components: path.resolve(__dirname, './src/components'),
       config: path.resolve(__dirname, './config'),
       typings: path.resolve(__dirname, './typings'),
+      utils: path.resolve(__dirname, './src/components/utils'),
     },
     extensions: ['*', '.js', 'jsx', '.tsx', '.ts'],
   },

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { camelCase } from '../utils';
-import { evtNames }from './markerEvents'
+import { evtNames } from './markerEvents';
 
 // tslint:disable-next-line:interface-name
 export interface MarkerProps {
@@ -15,15 +15,12 @@ export interface MarkerProps {
   visibleInfoWindow?: boolean;
   bounds?: google.maps.LatLngBounds;
   setBounds?: any;
-  resetBounds?: any;
   selectedMarker?: google.maps.Marker;
   selectThisMarker?: any;
   infoWindowVisible?: boolean;
-  contextMenu?: boolean;
-  clickLatLng?: google.maps.LatLng;
   defaultMarkerEventHandler?: any;
   newPosition?: { lat: number; lng: number; noWrap?: boolean };
-  addThisMarker?: any
+  addThisMarker?: any;
   [evtNames: string]: any;
 }
 
@@ -58,7 +55,7 @@ export default class Marker extends React.Component<MarkerProps, any> {
   }
 
   defaultEventHandler(evtName: string, e: google.maps.MouseEvent, marker: google.maps.Marker) {
-    this.props.defaultMarkerEventHandler(evtName, e, marker)
+    this.props.defaultMarkerEventHandler(evtName, e, marker);
   }
 
   renderMarker() {
@@ -69,7 +66,7 @@ export default class Marker extends React.Component<MarkerProps, any> {
     if (!google || !map) {
       return;
     } else {
-      const markerPosition = this.props.newPosition? this.props.newPosition: this.props.position;
+      const markerPosition = this.props.newPosition ? this.props.newPosition : this.props.position;
 
       if (!label) {
         label = title;
@@ -94,8 +91,9 @@ export default class Marker extends React.Component<MarkerProps, any> {
       };
 
       this.marker = new google.maps.Marker(markerOpt);
+      console.log('im in renderMarker, markerOpt is', markerPosition);
       this.props.setBounds(markerPosition);
-      this.props.addThisMarker(this.marker)
+      this.props.addThisMarker(this.marker);
 
       evtNames.forEach(e => {
         this.marker.addListener(e, this.handleEvent(e));
@@ -119,13 +117,10 @@ export default class Marker extends React.Component<MarkerProps, any> {
         google: this.props.google,
         map: this.props.map,
         marker: this.marker,
-        selectedMarker: this.props.selectedMarker,
         position: this.props.position,
         title: this.props.title,
         visibleInfoWindow: this.props.visibleInfoWindow,
-        contextMenu: this.props.contextMenu,
         infoWindowVisible: this.props.infoWindowVisible,
-        clickLatLng: this.props.clickLatLng,
       });
     });
   }

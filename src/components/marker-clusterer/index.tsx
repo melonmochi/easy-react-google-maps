@@ -1,42 +1,48 @@
-import React from "react"
-const MarkerClusterer = require('@google/markerclustererplus')
+import React from 'react';
+const MarkerClusterer = require('@google/markerclustererplus');
 
 export interface MarkerClustererProps {
-    google?: typeof google;
-    map?: google.maps.Map;
-    visibleInfoWindow?: boolean;
-    bounds?: google.maps.LatLngBounds;
-    setBounds?: any;
-    resetBounds?: any;
-    selectedMarker?: google.maps.Marker;
-    selectThisMarker?: any;
-    infoWindowVisible?: boolean;
-    contextMenu?: boolean;
-    clickLatLng?: google.maps.LatLng;
-    defaultMarkerEventHandler?: any;
-    newPosition?: { lat: number; lng: number; noWrap?: boolean };
-    addThisMarker?: any,
-    markers?: Array<google.maps.Marker>
-    [evtNames: string]: any;
+  google?: typeof google;
+  map?: google.maps.Map;
+  visibleInfoWindow?: boolean;
+  bounds?: google.maps.LatLngBounds;
+  setBounds?: any;
+  resetBounds?: any;
+  selectedMarker?: google.maps.Marker;
+  selectThisMarker?: any;
+  infoWindowVisible?: boolean;
+  contextMenu?: boolean;
+  clickLatLng?: google.maps.LatLng;
+  defaultMarkerEventHandler?: any;
+  newPosition?: { lat: number; lng: number; noWrap?: boolean };
+  addThisMarker?: any;
+  markers?: Array<google.maps.Marker>;
+  [evtNames: string]: any;
 }
 
 export interface MarkerClustererState {
-  markerClusterer: any
+  markerClusterer: any;
 }
 
-export default class MarkerClusterering extends React.PureComponent<MarkerClustererProps, MarkerClustererState> {
+export default class MarkerClusterering extends React.PureComponent<
+  MarkerClustererProps,
+  MarkerClustererState
+> {
   constructor(props: MarkerClustererProps) {
-    super(props)
+    super(props);
     this.state = {
       markerClusterer: undefined,
-    }
+    };
   }
 
   componentDidMount() {
-    const markerClusterer = new MarkerClusterer(this.props.map, this.props.markers, {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'})
+    const markerClusterer = new MarkerClusterer(this.props.map, this.props.markers, {
+      imagePath:
+        'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+    });
     this.setState({
       markerClusterer: markerClusterer,
-    })
+    });
   }
 
   renderChildren() {
@@ -71,6 +77,6 @@ export default class MarkerClusterering extends React.PureComponent<MarkerCluste
   }
 
   render() {
-    return this.renderChildren()
+    return this.renderChildren();
   }
 }

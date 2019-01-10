@@ -8,4 +8,4 @@ if ((module as any).hot) {
   (module as any).hot.accept();
 }
 
-export * from 'components'
+export * from 'components';

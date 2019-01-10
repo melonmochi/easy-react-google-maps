@@ -57,7 +57,9 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
       this.props.infoWindowVisible !== prevProps.infoWindowVisible ||
       this.props.position !== prevProps.position
     ) {
-      this.props.selectedMarker === this.props.marker && this.props.visibleInfoWindows && this.props.infoWindowVisible
+      this.props.selectedMarker === this.props.marker &&
+      this.props.visibleInfoWindows &&
+      this.props.infoWindowVisible
         ? this.openInfoWindow()
         : this.closeInfoWindow();
     }

@@ -11,10 +11,9 @@ export interface RecenterButtonProps {
 }
 
 export default class RecenterButton extends React.Component<RecenterButtonProps, any> {
-
   handleClick = () => {
-    this.props.setCenter()
-  }
+    this.props.setCenter();
+  };
 
   render() {
     return (

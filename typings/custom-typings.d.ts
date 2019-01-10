@@ -69,24 +69,81 @@ declare module 'typings' {
     sunday: string,
   }
 
-  type CalendarDates = {
+  type Calendars = {
+    [key: string]: Calendar
+  }
+
+  type CalendarDate = {
     service_id: string,
     date: string,
     exception_type: string
   }
 
+  type CalendarDates = {
+    [key: string]: CalendarDate
+  }
+
+  type Stop = {
+    stop_id: string
+    stop_code?: string
+    stop_name: string
+    stop_desc?: string
+    stop_lat: string
+    stop_lon: string
+    zone_id?: string
+    stop_url?: string
+    loacation_type?: string
+    parent_station?: string
+    stop_timezone?: string
+    wheelchair_boarding?: string
+  }
+
+  type Stops = {
+    [key: string]: Stop
+  }
+
+  type RouteShort = {
+    route_id: string
+    agency_id?: string
+    route_short_name: string
+    route_long_name?: string
+    route_desc?: string
+    route_type: string
+    route_url?: string
+    route_color?: string
+    route_text_color?: string
+    route_sort_order?: string
+  }
+
+  type RouteLong = {
+    route_id: string
+    agency_id?: string
+    route_short_name?: string
+    route_long_name: string
+    route_desc?: string
+    route_type: string
+    route_url?: string
+    route_color?: string
+    route_text_color?: string
+    route_sort_order?: string
+  }
+
+  type RoutesShort = {
+    [key: string]: RouteShort
+  }
+
+  type RoutesLong = {
+    [key: string]: RouteLong
+  }
+
   type GTFSFile = {
     agency?: Object,
-    stops?: Object,
-    routes?: Object,
+    stops?: Stops,
+    routes?: RoutesShort | RoutesLong,
     trips?: Object,
     stop_times?: Object,
-    calendar?: {
-      [key: string]: Calendar
-    }
-    calendar_dates?: {
-      [key: string]: CalendarDates
-    },
+    calendar?: Calendars
+    calendar_dates?: CalendarDates
     fare_attributes?: Object,
     fare_rules?: Object,
     shapes?: Object,
