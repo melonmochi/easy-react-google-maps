@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { camelCase } from '../utils';
-import { evtNames } from './markerEvents';
+import { markerEvents, camelCase } from 'utils';
 
-// tslint:disable-next-line:interface-name
 export interface MarkerProps {
   google?: typeof google;
   map?: google.maps.Map;
@@ -12,54 +10,131 @@ export interface MarkerProps {
   label?: string;
   withLabel?: boolean;
   animation?: 'DROP' | 'BOUNCE';
-  visibleInfoWindow?: boolean;
-  bounds?: google.maps.LatLngBounds;
-  setBounds?: any;
   selectedMarker?: google.maps.Marker;
-  selectThisMarker?: any;
-  infoWindowVisible?: boolean;
-  defaultMarkerEventHandler?: any;
+  markerEvtHandlers?: {
+    [evtName: string]: (evtName: string, e: google.maps.event, marker: google.maps.Marker) => void;
+  }
   newPosition?: { lat: number; lng: number; noWrap?: boolean };
-  addThisMarker?: any;
-  [evtNames: string]: any;
+  selectThisMarker?: (marker: google.maps.Marker) => void
+  addThisMarkerToClusterer?: (marker: google.maps.Marker) => void
+  removeThisMarkerToClusterer?: (marker: google.maps.Marker) => void
+  resetBounds?: () => void
 }
 
-export default class Marker extends React.Component<MarkerProps, any> {
-  static defaultProps = {
-    draggable: true,
-    visibleInfoWindow: true,
-    withLabel: false,
-  };
+export type MarkerState = {
+  clickLatLng?: google.maps.LatLng;
+  thisInfoWindowVisible: boolean;
+  thisContextMenuVisible: boolean;
+}
 
-  marker: google.maps.Marker;
+export default class Marker extends React.Component<MarkerProps, MarkerState> {
 
-  constructor(props: MarkerProps) {
-    super(props);
-
-    this.defaultEventHandler = this.defaultEventHandler.bind(this);
+  state = {
+    clickLatLng: undefined,
+    thisInfoWindowVisible: false,
+    thisContextMenuVisible: false,
   }
+
+  marker: google.maps.Marker
 
   componentDidMount() {
     this.renderMarker();
   }
 
-  handleEvent(evt: string) {
+  componentWillUnmount() {
+    const { marker } = this
+    marker.setMap(null)
+
+    const { removeThisMarkerToClusterer } = this.props
+
+    if(removeThisMarkerToClusterer) {
+      removeThisMarkerToClusterer(marker)
+    }
+  }
+
+  handleInfoWindowState = (evt: string) => {
+    switch (evt) {
+      case 'onCloseinfowindow':
+        this.setState({ thisInfoWindowVisible: false });
+        break;
+      case 'onOpeninfowindow':
+        this.setState({ thisInfoWindowVisible: true });
+        break;
+      default:
+      // throw new Error('No corresponding event')
+    }
+  }
+
+  handleMarkerEvent = (evt: string, marker: google.maps.Marker) => {
     return (e: google.maps.MouseEvent) => {
-      const evtName = `on${camelCase(evt)}`;
-      if (this.props[evtName]) {
-        this.props[evtName](this.props, this.marker, e);
+      const evtName = `on${camelCase(evt)}`
+      const { markerEvtHandlers } = this.props
+      if (markerEvtHandlers && markerEvtHandlers[evtName]) {
+        markerEvtHandlers[evtName](evtName, e, marker);
       } else {
-        this.defaultEventHandler(evtName, e, this.marker);
+        this.defaultMarkerEventHandler(evtName, e, marker);
       }
     };
   }
 
-  defaultEventHandler(evtName: string, e: google.maps.MouseEvent, marker: google.maps.Marker) {
-    this.props.defaultMarkerEventHandler(evtName, e, marker);
+  defaultMarkerEventHandler(
+    evtName: string,
+    e: google.maps.MouseEvent,
+    marker: google.maps.Marker,
+  ) {
+    const { selectThisMarker, resetBounds } = this.props
+    if(selectThisMarker && resetBounds) {
+      switch (evtName) {
+        case 'onClick':
+          if(marker !== this.props.selectedMarker) {
+            selectThisMarker(marker);
+          }
+          this.setState({ thisInfoWindowVisible: true, thisContextMenuVisible: false, clickLatLng: e.latLng });
+          break;
+        case 'onDblclick':
+          if(marker !== this.props.selectedMarker) {
+            selectThisMarker(marker);
+          }
+          this.setState({ thisInfoWindowVisible: false, thisContextMenuVisible: false, clickLatLng: e.latLng });
+          break;
+        case 'onRightclick':
+          if(marker !== this.props.selectedMarker) {
+            selectThisMarker(marker);
+          }
+          selectThisMarker(marker);
+          this.setState({ thisInfoWindowVisible: false, thisContextMenuVisible: true, clickLatLng: e.latLng });
+          break;
+        case 'onDrag':
+          this.setState({
+            thisInfoWindowVisible: false,
+            thisContextMenuVisible: false,
+            clickLatLng: e.latLng,
+          });
+        case 'onDragend':
+        resetBounds()
+          selectThisMarker(marker);
+          marker.setPosition( {
+              lat: marker.getPosition().lat(),
+              lng: marker.getPosition().lng(),
+            })
+          this.setState({
+            clickLatLng: e.latLng,
+          })
+        default:
+        // throw new Error('No corresponding event')
+      }
+    }
   }
 
   renderMarker() {
-    const { google, map, title, withLabel, draggable, animation } = this.props;
+    const {
+      google,
+      map, title,
+      withLabel,
+      draggable,
+      animation,
+      addThisMarkerToClusterer,
+    } = this.props;
 
     let { label } = this.props;
 
@@ -91,12 +166,16 @@ export default class Marker extends React.Component<MarkerProps, any> {
       };
 
       this.marker = new google.maps.Marker(markerOpt);
-      console.log('im in renderMarker, markerOpt is', markerPosition);
-      this.props.setBounds(markerPosition);
-      this.props.addThisMarker(this.marker);
 
-      evtNames.forEach(e => {
-        this.marker.addListener(e, this.handleEvent(e));
+      this.marker.setMap(map)
+
+      if(addThisMarkerToClusterer) {
+        addThisMarkerToClusterer(this.marker)
+      }
+
+      markerEvents.forEach(e => {
+        const { marker, handleMarkerEvent } = this
+        marker.addListener(e, handleMarkerEvent(e, marker));
       });
     }
   }
@@ -113,19 +192,22 @@ export default class Marker extends React.Component<MarkerProps, any> {
         return;
       }
       return React.cloneElement(c as React.ReactElement<any>, {
-        defaultEventHandler: this.defaultEventHandler,
+        handleMarkerEvent: this.handleMarkerEvent.bind(this),
+        handleInfoWindowState: this.handleInfoWindowState.bind(this),
         google: this.props.google,
         map: this.props.map,
         marker: this.marker,
         position: this.props.position,
         title: this.props.title,
-        visibleInfoWindow: this.props.visibleInfoWindow,
-        infoWindowVisible: this.props.infoWindowVisible,
+        selectedMarker: this.props.selectedMarker,
+        infoWindowVisible: this.props.selectedMarker === this.marker && this.state.thisInfoWindowVisible? true: false,
+        contextMenuVisible: this.props.selectedMarker === this.marker && this.state.thisContextMenuVisible? true: false,
+        clickLatLng: this.state.clickLatLng,
       });
     });
   }
 
   render() {
-    return <div>{this.marker ? this.renderChildren() : <div>Loading marker...</div>}</div>;
+    return <div>{this.renderChildren()}</div>;
   }
 }

@@ -1,13 +1,25 @@
 import * as React from 'react';
 import { camelCase } from '../utils';
-import { evtNames } from './mapEvents';
+import { mapEvents } from 'utils';
 import { MapTypeId, GestureHandlingType, Stop } from 'typings';
 import './style';
-import { Marker, InfoWindow, MarkerContextMenu } from 'components';
+import { Marker,
+  InfoWindow,
+  MarkerContextMenu } from 'components';
+import { Spin } from 'antd';
 
-// tslint:disable-next-line:interface-name
+const MarkerClusterer = require('@google/markerclustererplus')
+
 export interface MapProps {
   google?: typeof google;
+  onCheckedStopsList?: Stop[];
+  mapLoaded?: (
+    loadedmap: google.maps.Map,
+    center: google.maps.LatLng,
+  ) => void;
+  setBounds?: (markersArray: google.maps.Marker[]) => void
+  resetBounds?: () => void
+  onCheckStops?: (newShownStopsList: Stop[]) => void;
   type?: MapTypeId;
   zoom?: number;
   backgroundColor?: string;
@@ -15,167 +27,120 @@ export interface MapProps {
   gestureHandling?: GestureHandlingType;
   mapStyle?: React.CSSProperties;
   markerClustering?: boolean;
-  mapLoaded?: any;
-  onSelectStops?: Stop[];
-  [evtNames: string]: any;
+  mapEvtHandlers?: {
+    [evtName: string]: (evtName: string, e: google.maps.event, map: google.maps.Map) => void;
+  }
 }
 
-// tslint:disable-next-line:interface-name
 export interface MapState {
-  center: { lat: number; lng: number; noWrap?: boolean };
-  bounds: google.maps.LatLngBounds;
+  center: google.maps.LatLng;
   selectedMarker?: google.maps.Marker;
-  markers: Array<google.maps.Marker>;
-  infoWindowVisible?: boolean;
-  contextMenu?: boolean;
-  clickLatLng?: google.maps.LatLng;
-  newPosition?: { lat: number; lng: number; noWrap?: boolean };
   onLoadedData?: { [key: string]: any };
 }
 
 export default class Map extends React.Component<MapProps, MapState> {
+  static defaultProps = {
+    onCheckedStopsList: [] as Array<Stop>,
+    markerClustering: true,
+  };
+
   map: google.maps.Map;
+  markersClusterer: MarkerClusterer
 
   private mapRef = React.createRef<HTMLDivElement>();
 
   constructor(props: MapProps) {
     super(props);
     this.selectThisMarker = this.selectThisMarker.bind(this);
-    this.defaultMarkerEventHandler = this.defaultMarkerEventHandler.bind(this);
-    this.setBounds = this.setBounds.bind(this);
-    this.resetBounds = this.resetBounds.bind(this);
-    this.addThisMarker = this.addThisMarker.bind(this);
+    this.handleEvent = this.handleEvent.bind(this);
+    this.addThisMarkerToClusterer = this.addThisMarkerToClusterer.bind(this);
+    this.removeThisMarkerToClusterer = this.removeThisMarkerToClusterer.bind(this);
+    this.resetBounds = this.resetBounds.bind(this)
+
+    const { initialCenter } = this.props
 
     this.state = {
-      bounds: new google.maps.LatLngBounds(),
-      center: this.props.initialCenter
-        ? {
-            lat: this.props.initialCenter.lat,
-            lng: this.props.initialCenter.lng,
-            noWrap: this.props.initialCenter.noWrap ? this.props.initialCenter.noWrap : true,
-          }
-        : {
-            lat: 40.416778,
-            lng: -3.703778,
-          },
+      center: initialCenter
+        ? new google.maps.LatLng(
+          initialCenter.lat,
+          initialCenter.lng,
+          initialCenter.noWrap ? initialCenter.noWrap : true,
+        )
+        : new google.maps.LatLng(40.416778, -3.703778),
       selectedMarker: undefined,
-      infoWindowVisible: undefined,
-      contextMenu: undefined,
-      clickLatLng: undefined,
-      markers: [] as Array<google.maps.Marker>,
     };
   }
 
   componentDidMount() {
     this.loadMap();
-    if (this.map) {
-      this.props.mapLoaded(this.map, this.state.center, this.state.bounds);
+    const { map, markersClusterer} = this
+    const { mapLoaded } = this.props
+    if ( map && mapLoaded ) {
+      mapLoaded(map, this.state.center);
+    }
+    if( map && !markersClusterer) {
+      this.markersClusterer = new MarkerClusterer(
+        map,
+        [],
+      )
     }
   }
 
-  addThisMarker(marker: google.maps.Marker) {
-    const { markers } = this.state;
-    markers.push(marker);
-    this.setState({
-      markers,
-    });
+  addThisMarkerToClusterer(marker: google.maps.Marker) {
+    const { setBounds } = this.props
+    this.markersClusterer.addMarker(marker)
+    if(setBounds) {
+      setBounds(this.markersClusterer.getMarkers())
+    }
   }
 
-  selectThisMarker(marker: google.maps.Marker) {
+  removeThisMarkerToClusterer(marker: google.maps.Marker) {
+    const { setBounds } = this.props
+    this.markersClusterer.removeMarker(marker)
+    if(setBounds) {
+      setBounds(this.markersClusterer.getMarkers())
+    }
+  }
+
+  resetBounds = () => {
+    const { setBounds } = this.props
+    if(setBounds) {
+      setBounds(this.markersClusterer.getMarkers())
+    }
+  }
+
+  selectThisMarker = (marker: google.maps.Marker) => {
     this.setState({
       selectedMarker: marker,
-      infoWindowVisible: false,
-      contextMenu: false,
     });
   }
 
   handleEvent(evt: string) {
-    return (e: google.maps.event) => {
-      const evtName = `on${camelCase(evt)}`;
-      if (this.props[evtName]) {
-        this.props[evtName](this.props, this.map, e);
+    return (e: google.maps.MouseEvent) => {
+      const evtName = `on${camelCase(evt)}`
+      const { mapEvtHandlers } = this.props
+      if (mapEvtHandlers && mapEvtHandlers[evtName]) {
+        mapEvtHandlers[evtName](evtName, e, this.map);
       } else {
-        this.defaultEventHandler(evtName, e, this.map);
+        this.defaultMapEventHandler(evtName, e, this.map);
       }
     };
   }
 
-  defaultEventHandler(evtName: string, _e: google.maps.event, _map: google.maps.Map) {
+  defaultMapEventHandler(evtName: string, _e: google.maps.event, _map: google.maps.Map) {
     switch (evtName) {
       case 'onClick':
-        this.setState({ selectedMarker: undefined, infoWindowVisible: false, contextMenu: false });
+        this.setState({ selectedMarker: undefined });
         break;
       case 'onDblclick':
-        this.setState({ selectedMarker: undefined, infoWindowVisible: false, contextMenu: false });
+        this.setState({ selectedMarker: undefined });
         break;
       case 'onRightclick':
-        this.setState({ selectedMarker: undefined, infoWindowVisible: false, contextMenu: false });
+        this.setState({ selectedMarker: undefined });
         break;
       default:
       // throw new Error('No corresponding event')
     }
-  }
-
-  defaultMarkerEventHandler(
-    evtName: string,
-    e: google.maps.MouseEvent,
-    marker: google.maps.Marker
-  ) {
-    switch (evtName) {
-      case 'onClick':
-        this.selectThisMarker(marker);
-        this.setState({ infoWindowVisible: true });
-        break;
-      case 'onDblclick':
-        this.selectThisMarker(marker);
-        this.setState({ infoWindowVisible: false });
-        break;
-      case 'onRightclick':
-        this.selectThisMarker(marker);
-        this.setState({ contextMenu: true, clickLatLng: e.latLng });
-        break;
-      case 'onCloseinfowindow':
-        this.setState({ infoWindowVisible: false });
-        break;
-      case 'onOpeninfowindow':
-        this.setState({ infoWindowVisible: true });
-        break;
-      case 'onDrag':
-        this.setState({
-          clickLatLng: e.latLng,
-        });
-      case 'onDragend':
-        this.selectThisMarker(marker);
-        this.resetBounds();
-        this.setState({
-          newPosition: {
-            lat: marker.getPosition().lat(),
-            lng: marker.getPosition().lng(),
-          },
-        });
-      default:
-      // throw new Error('No corresponding event')
-    }
-  }
-
-  setBounds = (pos: google.maps.LatLng) => {
-    console.log('im in setBounds, pos is', this.state.bounds, typeof this.state.bounds, pos);
-    this.setState({
-      bounds: this.state.bounds.extend(pos),
-    });
-  };
-
-  resetBounds() {
-    this.setState({
-      bounds: new google.maps.LatLngBounds(),
-    });
-  }
-
-  addFileToData(name: string, file: Object) {
-    const fileName: string = name;
-    this.setState({
-      onLoadedData: { ...this.state.onLoadedData, [fileName]: file },
-    });
   }
 
   loadMap() {
@@ -193,12 +158,17 @@ export default class Map extends React.Component<MapProps, MapState> {
           gestureHandling: this.props.gestureHandling,
           mapTypeId: this.props.type, // optional main map layer. Terrain, satellite, hybrid or roadmap--if unspecified, defaults to roadmap.
           zoom: this.props.zoom, // sets zoom. Lower numbers are zoomed further out.
-        }
+          mapTypeControlOptions: {
+            position: google.maps.ControlPosition.TOP_RIGHT,
+          },
+          fullscreenControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_TOP,
+          },
+        },
       );
 
       this.map = new maps.Map(node, mapConfig); // creates a new Google map on the specified node (ref='map') with the specified configuration set above.
-      this.forceUpdate();
-      evtNames.forEach(e => {
+      mapEvents.forEach(e => {
         this.map.addListener(e, this.handleEvent(e));
       });
     }
@@ -211,51 +181,46 @@ export default class Map extends React.Component<MapProps, MapState> {
       return;
     }
 
-    return React.Children.map(children, c => {
+    return React.Children
+      .map(children, c => {
+
       if (!c) {
         return;
       }
       return React.cloneElement(c as React.ReactElement<any>, {
-        bounds: this.state.bounds,
         center: this.state.center,
         google: this.props.google,
         map: this.map,
-        visibleInfoWindow: this.props.visibleInfoWindow,
-        resetBounds: this.resetBounds,
-        setBounds: this.setBounds,
         selectThisMarker: this.selectThisMarker,
         selectedMarker: this.state.selectedMarker,
-        infoWindowVisible: this.state.infoWindowVisible,
-        contextMenu: this.state.contextMenu,
-        clickLatLng: this.state.clickLatLng,
-        defaultMarkerEventHandler: this.defaultMarkerEventHandler,
-        markers: this.state.markers,
-        addThisMarker: this.addThisMarker,
+        addThisMarkerToClusterer: this.addThisMarkerToClusterer,
+        removeThisMarkerToClusterer: this.removeThisMarkerToClusterer,
+        resetBounds: this.resetBounds,
       });
     });
   }
 
-  renderMapMarkers(onSelectStops: Stop[]) {
-    return onSelectStops.map((stop: Stop) => (
-      <Marker
-        title={stop.stop_name}
-        position={{ lat: parseFloat(stop.stop_lat), lng: parseFloat(stop.stop_lon) }}
-        withLabel
-        label={stop.stop_name.charAt(0).toUpperCase()}
-        animation="DROP"
-        key={stop.stop_id}
-        google={this.props.google}
-        map={this.map}
-        setBounds={this.setBounds}
-        selectThisMarker={this.selectThisMarker}
-        infoWindowVisible={this.state.infoWindowVisible}
-        defaultMarkerEventHandler={this.defaultMarkerEventHandler}
-        addThisMarker={this.addThisMarker}
-      >
-        <InfoWindow />
-        <MarkerContextMenu />
-      </Marker>
-    ));
+  renderMarkers() {
+    const { onCheckedStopsList } = this.props
+    return onCheckedStopsList?
+      onCheckedStopsList.map((stop: Stop) => (
+        <Marker
+          google={this.props.google}
+          map={this.map}
+          key={stop.stop_id}
+          title={stop.stop_name}
+          position={{lat: parseFloat(stop.stop_lat), lng: parseFloat(stop.stop_lon)}}
+          withLabel
+          selectThisMarker={this.selectThisMarker}
+          selectedMarker={this.state.selectedMarker}
+          addThisMarkerToClusterer={this.addThisMarkerToClusterer}
+          removeThisMarkerToClusterer={this.removeThisMarkerToClusterer}
+          resetBounds={this.resetBounds}
+        >
+          <InfoWindow />
+          <MarkerContextMenu />
+        </Marker>
+    )): [] as React.ReactChildren[]
   }
 
   public render() {
@@ -266,13 +231,22 @@ export default class Map extends React.Component<MapProps, MapState> {
       classNameMap = 'map';
     }
 
-    const { onSelectStops } = this.props;
-
     return (
       <div className={classNameContainer}>
         <div ref={this.mapRef} className={classNameMap} />
-        {this.map ? this.renderChildren() : <div>Loading map...</div>}
-        {this.map && onSelectStops ? this.renderMapMarkers(onSelectStops) : null}
+        <Spin
+              tip="Loading Map..."
+              spinning={this.map? false: true}
+              size='large'
+              style={{ minHeight: 800 }}
+            >
+          <div
+            style={{ height: '100%' }}
+          >
+            {this.map ? this.renderChildren() : null}
+            {this.map ? this.renderMarkers() : null}
+          </div>
+        </Spin>
       </div>
     );
   }

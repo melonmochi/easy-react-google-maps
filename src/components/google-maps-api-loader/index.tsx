@@ -22,7 +22,7 @@ export interface GoogleMapsLoaderState {
 }
 
 export const GoogleMapsApiLoader = (loaderInput: GoogleMapsLoaderInputProps) => (
-  WrappedComponent: React.ComponentType
+  WrappedComponent: React.ComponentType,
 ) =>
   class GoogleMaps extends React.Component<any, GoogleMapsLoaderState> {
     state: Readonly<GoogleMapsLoaderState> = {
@@ -39,7 +39,7 @@ export const GoogleMapsApiLoader = (loaderInput: GoogleMapsLoaderInputProps) => 
       const googleMapsURL = googleMapsURLStringify(loaderInput);
       if (!window.google) {
         googleMapsScriptLoader(googleMapsURL).then((googleApi: typeof google) =>
-          this.handleloaded(googleApi)
+          this.handleloaded(googleApi),
         );
       } else {
         this.handleloaded(window.google);
@@ -55,9 +55,7 @@ export const GoogleMapsApiLoader = (loaderInput: GoogleMapsLoaderInputProps) => 
         <div>
           <WrappedComponent {...props} />
         </div>
-      ) : (
-        <div>Map is loading</div>
-      );
+      ) :null;
     }
   };
 

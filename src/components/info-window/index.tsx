@@ -1,17 +1,13 @@
 import * as React from 'react';
 
-// tslint:disable-next-line:interface-name
 export interface InfoWindowProps {
   google?: typeof google;
   map?: google.maps.Map;
   marker?: google.maps.Marker;
-  title?: string;
-  position?: { lat: number; lng: number };
-  visibleInfoWindows?: boolean;
-  selectedMarker?: any;
+  selectedMarker?: google.maps.Marker;
   onOpenInfoWindow?: any;
   onCloseInfoWindow?: any;
-  defaultEventHandler?: any;
+  handleInfoWindowState?: (evt: string) => void
   infoWindowVisible?: boolean;
 }
 
@@ -21,10 +17,6 @@ export interface InfoWindowState {
 }
 
 export default class InfoWindow extends React.Component<InfoWindowProps, InfoWindowState> {
-  static defaultProps = {
-    infoWindowVisible: false,
-    visibleInfoWindows: true,
-  };
 
   state = {
     onInfoWindow: false,
@@ -32,51 +24,40 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
 
   infowindow: google.maps.InfoWindow;
 
-  componentDidMount() {
-    this.renderInfoWindow();
+  shouldComponentUpdate(prevProps: InfoWindowProps) {
+    return (
+      prevProps.infoWindowVisible !== this.props.infoWindowVisible ||
+      prevProps.selectedMarker !== this.props.selectedMarker
+    );
   }
 
-  componentDidUpdate(prevProps: InfoWindowProps) {
-    const { google, map } = this.props;
+  componentDidUpdate() {
+    const { google, map, marker, selectedMarker, infoWindowVisible } = this.props;
 
-    if (!google || !map) {
+    if (!google || !map || !marker) {
       return;
     }
 
-    if (map !== prevProps.map) {
-      this.renderInfoWindow();
-    }
-
-    if (this.props.position !== prevProps.position) {
-      this.updatePosition();
-    }
-
-    if (
-      this.props.visibleInfoWindows !== prevProps.visibleInfoWindows ||
-      this.props.selectedMarker !== prevProps.selectedMarker ||
-      this.props.infoWindowVisible !== prevProps.infoWindowVisible ||
-      this.props.position !== prevProps.position
-    ) {
-      this.props.selectedMarker === this.props.marker &&
-      this.props.visibleInfoWindows &&
-      this.props.infoWindowVisible
-        ? this.openInfoWindow()
-        : this.closeInfoWindow();
+    if(selectedMarker === marker && infoWindowVisible) {
+      if (!this.infowindow) {
+        this.createInfoWindow(marker);
+        this.openInfoWindow(map, marker);
+      }
+      if (this.infowindow) {
+        this.openInfoWindow(map, marker);
+      }
+    } else {
+      if (this.infowindow) {
+        this.closeInfoWindow()
+      }
     }
   }
 
-  renderInfoWindow() {
-    const { google, map, marker, title } = this.props;
-
-    if (!google || !map || !marker || !title) {
-      return;
-    }
-
+  createInfoWindow(marker: google.maps.Marker) {
     this.infowindow = new google.maps.InfoWindow({
-      content: title,
+      content: marker.getTitle(),
     });
 
-    this.infowindow.addListener('domready', this.onOpenInfoWindow.bind(this));
     this.infowindow.addListener('closeclick', this.onCloseInfoWindow.bind(this));
   }
 
@@ -84,7 +65,10 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
     if (this.props.onOpenInfoWindow) {
       this.props.onOpenInfoWindow();
     } else {
-      this.props.defaultEventHandler('onOpeninfowindow');
+      const { marker, handleInfoWindowState } = this.props
+      if(marker && handleInfoWindowState) {
+        handleInfoWindowState('onOpeninfowindow');
+      }
     }
   }
 
@@ -92,12 +76,15 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
     if (this.props.onCloseInfoWindow) {
       this.props.onCloseInfoWindow();
     } else {
-      this.props.defaultEventHandler('onCloseinfowindow');
+      const { marker, handleInfoWindowState } = this.props
+      if(marker && handleInfoWindowState) {
+        handleInfoWindowState('onCloseinfowindow');
+      }
     }
   }
 
-  openInfoWindow() {
-    this.infowindow.open(this.props.map, this.props.marker);
+  openInfoWindow(map: google.maps.Map, marker: google.maps.Marker) {
+    this.infowindow.open(map, marker);
     this.setState({
       onInfoWindow: true,
     });
@@ -108,19 +95,6 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
     this.setState({
       onInfoWindow: false,
     });
-  }
-
-  updatePosition() {
-    const { position } = this.props;
-    let pos: google.maps.LatLng;
-    if (position) {
-      if (!(position instanceof google.maps.LatLng)) {
-        pos = new google.maps.LatLng(position.lat, position.lng);
-      } else {
-        pos = position;
-      }
-      this.infowindow.setPosition(pos);
-    }
   }
 
   render() {

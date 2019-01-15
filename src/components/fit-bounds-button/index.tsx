@@ -3,15 +3,14 @@ import { Button, Tooltip } from 'antd';
 
 // tslint:disable-next-line:interface-name
 export interface FitBoundsButtonProps {
-  google?: typeof google;
-  map?: google.maps.Map;
-  bounds?: google.maps.LatLngBounds;
-  fitBounds?: any;
+  fitBounds: () => void
+  ;
 }
 
 export default class FitBoundsButton extends React.Component<FitBoundsButtonProps, any> {
   handleClick = () => {
-    this.props.fitBounds();
+    const { fitBounds } = this.props
+    fitBounds();
   };
 
   render() {

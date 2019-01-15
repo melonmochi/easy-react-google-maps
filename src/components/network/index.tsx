@@ -6,7 +6,7 @@ const { TreeNode } = Tree;
 interface NetworkListProps {
   onLoadedStops: Stop[];
   onLoadedRoutes?: RoutesShort | RoutesLong;
-  onCheckStopsList: any;
+  onShowStopsList: (stopsCollapsed: boolean) => void;
 }
 
 interface NetworkListState {
@@ -21,7 +21,7 @@ export default class NetworkList extends React.Component<NetworkListProps, Netwo
   };
 
   handleOnCheck = (keys: string[]) => {
-    this.props.onCheckStopsList(!keys.includes('net-stops'));
+    this.props.onShowStopsList(!keys.includes('net-stops'));
   };
 
   render() {

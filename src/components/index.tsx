@@ -22,8 +22,6 @@ export { default as MapLayout } from './map-layout';
 
 export { default as MarkerContextMenu } from './marker-context-menu';
 
-export { default as MarkerClusterer } from './marker-clusterer';
-
 export { default as NetworkList } from './network';
 
 export { default as StopsList } from './stops-list';

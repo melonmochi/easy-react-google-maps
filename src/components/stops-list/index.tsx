@@ -4,27 +4,28 @@ import { Tree, Icon } from 'antd';
 const { TreeNode } = Tree;
 
 interface StopsListProps {
-  onLoadedStops: Stop[];
+  onLoadedStopsList: Stop[];
   onCheckStops: any;
 }
 
 export default class StopsList extends React.PureComponent<StopsListProps, any> {
   handleOnCheck = (keys: string[]) => {
-    const { onLoadedStops, onCheckStops } = this.props;
-    const onSelectStops = onLoadedStops.filter((stop: Stop) => keys.includes(stop.stop_id));
-    onCheckStops(onSelectStops);
+    const { onLoadedStopsList, onCheckStops } = this.props;
+    const onShownStops = onLoadedStopsList.filter((stop: Stop) => keys.includes(stop.stop_id));
+    onCheckStops(onShownStops);
   };
 
   render() {
-    const { onLoadedStops } = this.props;
+    const { onLoadedStopsList } = this.props;
 
-    const stopsTreeNode = onLoadedStops.map((stop: Stop) => {
+    const stopsTreeNode = onLoadedStopsList.map((stop: Stop) => {
       return <TreeNode title={stop.stop_name} key={stop.stop_id} />;
     });
 
-    const defaultCheckedKeys = onLoadedStops.map((stop: Stop) => {
+    const defaultCheckedKeys = onLoadedStopsList.map((stop: Stop) => {
       return stop.stop_id;
     });
+
     return (
       <Tree
         checkable

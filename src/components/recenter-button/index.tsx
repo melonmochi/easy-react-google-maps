@@ -3,16 +3,14 @@ import { Button, Tooltip } from 'antd';
 
 // tslint:disable-next-line:interface-name
 export interface RecenterButtonProps {
-  google?: typeof google;
-  map?: google.maps.Map;
-  center?: { lat: number; lng: number; noWrap?: boolean };
-  bounds?: google.maps.LatLngBounds;
-  setCenter?: any;
+  setCenter: () => void
+  ;
 }
 
 export default class RecenterButton extends React.Component<RecenterButtonProps, any> {
   handleClick = () => {
-    this.props.setCenter();
+    const { setCenter } = this.props
+    setCenter()
   };
 
   render() {

@@ -51,9 +51,6 @@ export default class SearchBox extends React.Component<SearchBoxProps, any> {
         map.controls[google.maps.ControlPosition[position]].push(input as HTMLInputElement);
       }
 
-      this.setState({
-        markers: [],
-      });
       this.searchBox.addListener('places_changed', this.onPlacesChanged);
     }
   }

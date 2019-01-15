@@ -4,14 +4,9 @@ import { RecenterButton, FitBoundsButton } from 'components';
 
 // tslint:disable-next-line:interface-name
 export interface MapToolProps {
-  google?: typeof google;
   map?: google.maps.Map;
-  center?: { lat: number; lng: number; noWrap?: boolean };
-  bounds?: google.maps.LatLngBounds;
-  setCenter?: any;
-  fitBounds?: any;
-  contextMenu?: boolean;
-  clickLatLng?: google.maps.LatLng | undefined;
+  setCenter: () => void;
+  fitBounds: () => void;
 }
 
 export default class MapTool extends React.Component<MapToolProps, any> {

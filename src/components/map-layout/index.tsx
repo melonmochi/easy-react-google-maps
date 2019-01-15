@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Layout, Menu, Icon } from 'antd';
+import { Layout, Menu, Icon, Spin } from 'antd';
 import { MapTool, Uploader, CalendarList, NetworkList, StopsList } from 'components';
 import { Calendar, CalendarDate, Stop } from 'typings';
 import './style';
@@ -9,28 +9,21 @@ import * as csv from 'csvtojson';
 const CalendarFiles = ['calendar', 'calendar_dates'];
 
 export interface MapLayoutProps {
-  google?: typeof google;
-  map?: typeof google.maps.Map;
-  center?: google.maps.LatLng;
 }
 
-export type MapLayoutState = {
-  google?: typeof google;
-  map?: typeof google.maps.Map;
-  center?: {
-    lat: number;
-    lng: number;
-    noWrap?: boolean;
-  };
+export interface MapLayoutState {
+  map?: google.maps.Map;
+  bounds: google.maps.LatLngBounds;
+  center?: google.maps.LatLng;
   collapsed?: boolean;
-  bounds?: google.maps.LatLngBounds;
   calendarInfo?: {
     calendar?: Calendar[];
     calendar_dates?: CalendarDate[];
   };
-  onLoadedStops?: Stop[];
-  onSelectStops?: Stop[];
+  onLoadedStopsList?: Stop[];
+  onCheckedStopsList?: Stop[];
   stopsCollapsed: boolean;
+  uploading: boolean;
 };
 
 const { Content, Sider } = Layout;
@@ -38,19 +31,18 @@ const SubMenu = Menu.SubMenu;
 
 export default class MapLayout extends React.Component<MapLayoutProps, MapLayoutState> {
   state = {
-    collapsed: false,
     map: undefined,
+    bounds: new google.maps.LatLngBounds(),
     center: undefined,
-    bounds: undefined,
+    collapsed: false,
     calendarInfo: {},
-    onLoadedStops: [],
-    onSelectStops: [],
+    onLoadedStopsList: [],
+    onCheckedStopsList: [],
     stopsCollapsed: true,
+    uploading: false,
   };
 
-  map: google.maps.Map | undefined;
-  center: { lat: number; lng: number; noWrap?: boolean } | undefined;
-  bounds: google.maps.LatLngBounds | undefined;
+  map: google.maps.Map | undefined
 
   constructor(props: MapLayoutProps) {
     super(props);
@@ -58,8 +50,9 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
     this.mapLoaded = this.mapLoaded.bind(this);
     this.setCenter = this.setCenter.bind(this);
     this.fitBounds = this.fitBounds.bind(this);
+    this.setBounds = this.setBounds.bind(this);
     this.onSelectGTFSFile = this.onSelectGTFSFile.bind(this);
-    this.onCheckStopsList = this.onCheckStopsList.bind(this);
+    this.onShowStopsList = this.onShowStopsList.bind(this);
     this.onCheckStops = this.onCheckStops.bind(this);
   }
 
@@ -67,55 +60,63 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
     this.setState({ collapsed });
   };
 
-  onCheckStops = (stopsList: Stop[]) => {
+  onCheckStops = (newOnCheckedStopsList: Stop[]) => {
     this.setState({
-      onSelectStops: stopsList,
+      onCheckedStopsList: newOnCheckedStopsList,
     });
   };
 
-  onCheckStopsList = (stopsCollapsed: boolean) => {
+  onShowStopsList = (stopsCollapsed: boolean) => {
     this.setState({ stopsCollapsed });
   };
 
-  mapLoaded(
-    loadedmap: typeof google.maps.Map,
-    center: { lat: number; lng: number; noWrap?: boolean },
-    bounds: google.maps.LatLngBounds
-  ) {
-    this.setState(
-      {
-        map: loadedmap,
+  mapLoaded = (
+    map: google.maps.Map,
+    center: google.maps.LatLng,
+    ) => {
+      this.setState({
+        map: map,
         center: center,
-        bounds: bounds,
-      },
-      () => {
-        this.map = this.state.map;
-        this.center = this.state.center;
-        this.bounds = this.state.bounds;
-      }
-    );
-  }
+      }, () => {
+        this.map = this.state.map
+      })
+    };
 
-  setCenter() {
-    if (this.map && this.center) {
-      this.map.setCenter(this.center);
+  setCenter = () => {
+    const { center } = this.state
+    if(this.map && center) {
+      this.map.setCenter(center)
     }
   }
+
+  setBounds = (markersArray: google.maps.Marker[]) => {
+    const emptyBounds = new google.maps.LatLngBounds()
+    markersArray.forEach((m: google.maps.Marker) => emptyBounds.extend(m.getPosition()))
+    this.setState({
+      bounds: emptyBounds,
+    }, () => {
+      this.fitBounds()
+    })
+  };
 
   fitBounds() {
-    if (this.map && this.bounds) {
-      this.map.fitBounds(this.bounds);
+    if (this.map) {
+      this.map.fitBounds(this.state.bounds);
     }
   }
 
-  onSelectGTFSFile(onSelectFile: any) {
-    this.LoadCalendars(onSelectFile);
-    this.LoadStops(onSelectFile);
+  onSelectGTFSFile = (onSelectFile: any) => {
+    this.setState({
+      uploading: true,
+    })
+    this.LoadData(onSelectFile);
   }
 
-  LoadCalendars(onSelectFile: { [key: string]: string }) {
+  LoadData = (onSelectFile: any) => {
     this.setState({
       calendarInfo: undefined,
+      onLoadedStopsList: undefined,
+      onCheckedStopsList: undefined,
     });
     Object.keys(onSelectFile)
       .filter((key: string) => CalendarFiles.includes(key))
@@ -131,12 +132,6 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
             });
           });
       });
-  }
-
-  LoadStops(onSelectFile: { [key: string]: string }) {
-    this.setState({
-      onLoadedStops: undefined,
-    });
 
     const stopsFile = Object.keys(onSelectFile)
       .filter((key: string) => key === 'stops')
@@ -146,7 +141,9 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
       .fromString(stopsFile)
       .then((json: Stop[]) => {
         this.setState({
-          onLoadedStops: json,
+          onLoadedStopsList: json,
+          onCheckedStopsList: json,
+          uploading: false,
         });
       });
   }
@@ -163,8 +160,13 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
         return;
       }
       return React.cloneElement(c as React.ReactElement<any>, {
+        map: this.state.map,
+        center: this.state.center,
+        setCenter: this.setCenter,
+        setBounds: this.setBounds,
         mapLoaded: this.mapLoaded,
-        onSelectStops: this.state.onSelectStops,
+        onCheckedStopsList: this.state.onCheckedStopsList,
+        onCheckStops:this.onCheckStops,
       });
     });
   }
@@ -175,16 +177,17 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
       center: this.state.center,
       setCenter: this.setCenter,
       fitBounds: this.fitBounds,
+      setBounds: this.setBounds,
       onSelectGTFSFile: this.onSelectGTFSFile,
     });
 
-    const { calendarInfo, onLoadedStops } = this.state;
-
-    console.log('im in render layout, onSelectStops is', this.state.onSelectStops);
+    const { calendarInfo, onLoadedStopsList } = this.state;
 
     return (
       <Layout className="layout">
-        <Content className="content">{this.renderChildren()}</Content>
+        <Content className="content">
+          {this.renderChildren()}
+        </Content>
         <Sider
           theme="light"
           className="sider"
@@ -195,78 +198,93 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
           width={300}
           {...this.props}
         >
-          <div className="logo" />
-          <Menu theme="light" defaultOpenKeys={['files', 'data']} mode="inline">
-            <SubMenu
-              key="files"
-              title={
-                <span>
-                  <Icon type="file" />
-                  <span>Files</span>
-                </span>
-              }
+          <Spin spinning={this.state.uploading}>
+            <div className="logo" />
+            <Menu
+              theme="light"
+              defaultOpenKeys={['files', 'data']}
+              mode="inline"
+              style={{ borderRight: 0 }}
             >
-              <Uploader {...props} />
-            </SubMenu>
-            <SubMenu
-              key="data"
-              title={
-                <span>
-                  <Icon type="database" />
-                  <span>Data</span>
-                </span>
-              }
-              disabled={!calendarInfo}
-            >
-              {calendarInfo ? <CalendarList calendarInfo={calendarInfo} /> : null}
-            </SubMenu>
-            <SubMenu
-              key="network"
-              title={
-                <span>
-                  <Icon type="cluster" />
-                  <span>Network</span>
-                </span>
-              }
-              disabled={!onLoadedStops || onLoadedStops.length === 0}
-            >
-              {onLoadedStops ? (
-                <NetworkList
-                  onLoadedStops={onLoadedStops}
-                  onCheckStopsList={this.onCheckStopsList}
+              <SubMenu
+                key="files"
+                title={
+                  <span>
+                    <Icon type="file" />
+                    <span>Files</span>
+                  </span>
+                }
+              >
+                <Uploader {...props} />
+              </SubMenu>
+              <SubMenu
+                key="data"
+                title={
+                  <span>
+                    <Icon type="database" />
+                    <span>Data</span>
+                  </span>
+                }
+                disabled={!calendarInfo}
+              >
+                {calendarInfo ? <CalendarList calendarInfo={calendarInfo} /> : null}
+              </SubMenu>
+              <SubMenu
+                key="network"
+                title={
+                  <span>
+                    <Icon type="cluster" />
+                    <span>Network</span>
+                  </span>
+                }
+                disabled={!onLoadedStopsList || onLoadedStopsList.length === 0}
+              >
+                {onLoadedStopsList ? (
+                  <NetworkList
+                    onLoadedStops={onLoadedStopsList}
+                    onShowStopsList={this.onShowStopsList}
+                  />
+                ) : null}
+              </SubMenu>
+              <SubMenu
+                key="basictools"
+                title={
+                  <span>
+                    <Icon type="tool" />
+                    <span>Basic tools</span>
+                  </span>
+                }
+                disabled={!this.state.map}
+              >
+                <MapTool
+                  map={this.state.map}
+                  setCenter={this.setCenter}
+                  fitBounds={this.fitBounds}
                 />
-              ) : null}
-            </SubMenu>
-            <SubMenu
-              key="basictools"
-              title={
-                <span>
-                  <Icon type="tool" />
-                  <span>Basic tools</span>
-                </span>
-              }
-            >
-              <MapTool {...props} />
-            </SubMenu>
-            <Menu.Item key="drawer" disabled>
-              <Icon type="edit" />
-              <span>Drawer</span>
-            </Menu.Item>
-          </Menu>
+              </SubMenu>
+              <Menu.Item key="drawer" disabled>
+                <Icon type="edit" />
+                <span>Drawer</span>
+              </Menu.Item>
+            </Menu>
+          </Spin>
         </Sider>
         <Sider
           theme="light"
           className="sider-stopslist"
           collapsedWidth={0}
           collapsed={this.state.stopsCollapsed}
-          onCollapse={this.onCheckStopsList}
+          onCollapse={this.onShowStopsList}
           reverseArrow
           trigger={null}
           width={400}
           {...this.props}
         >
-          {onLoadedStops ? (
-            <StopsList onLoadedStops={onLoadedStops} onCheckStops={this.onCheckStops} />
+          {onLoadedStopsList ? (
+            <StopsList
+              onLoadedStopsList={onLoadedStopsList}
+              onCheckStops={this.onCheckStops}
+            />
           ) : null}
         </Sider>
       </Layout>

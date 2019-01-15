@@ -11,7 +11,7 @@ export interface MarkerContextMenuProps {
   position?: { lat: number; lng: number };
   defaultEventHandler?: any;
   selectedMarker?: google.maps.Marker;
-  contextMenu?: boolean;
+  contextMenuVisible?: boolean;
   clickLatLng?: google.maps.LatLng | undefined;
 }
 
@@ -50,14 +50,14 @@ export default class MarkerContextMenu extends React.Component<
 
   shouldComponentUpdate(nextProps: MarkerContextMenuProps) {
     return (
-      nextProps.contextMenu !== this.props.contextMenu ||
+      nextProps.contextMenuVisible !== this.props.contextMenuVisible ||
       nextProps.selectedMarker !== this.props.selectedMarker ||
       nextProps.clickLatLng !== this.props.clickLatLng
     );
   }
 
   renderContextMenu = () => {
-    const { contextMenu, clickLatLng, selectedMarker } = this.props;
+    const { contextMenuVisible: contextMenu, clickLatLng, selectedMarker } = this.props;
     const { cmOverlayView } = this.state;
     if (cmOverlayView) {
       cmOverlayView.draw();
@@ -72,7 +72,7 @@ export default class MarkerContextMenu extends React.Component<
   onAdd = () => {
     this.containerElement = document.createElement('div');
     this.containerElement.style.position = 'absolute';
-    const cmComponent = this.contextMenuRef.current;
+    const cmComponent = this.contextMenuRef.current;;
     this.containerElement.appendChild(cmComponent as HTMLDivElement);
   };
 
@@ -105,20 +105,22 @@ export default class MarkerContextMenu extends React.Component<
   render() {
     return (
       <div ref={this.contextMenuRef}>
-        <ul className="popup">
+        {this.props.contextMenuVisible?
+          <ul className="popup">
           <li>
             <Icon type="user" />
             Name
-          </li>
+            </li>
           <li>
             <Icon type="heart-o" />
             Like it
-          </li>
+            </li>
           <li>
             <Icon type="star-o" />
             Bookmark
-          </li>
-        </ul>
+            </li>
+        </ul>: null
+        }
       </div>
     );
   }

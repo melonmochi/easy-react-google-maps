@@ -7,7 +7,6 @@ import {
   Marker,
   InfoWindow,
   MarkerContextMenu,
-  MarkerClusterer,
 } from './components';
 import { config } from 'config';
 // const mapStyles = require('./mapStyles.less')
@@ -25,29 +24,28 @@ export class MapContainer extends React.Component {
             // mapStyle={mapStyles}
             {...this.props}
           >
-            <MarkerClusterer>
-              <Marker
-                title="Point A"
-                position={{ lat: 37.773972, lng: -122.431297 }}
-                withLabel
-                label="C"
-                animation="DROP"
-                {...this.props}
-              >
-                <InfoWindow />
-                <MarkerContextMenu />
-              </Marker>
-              <Marker
-                title="Point B"
-                position={{ lat: 35.773972, lng: -129.431297 }}
-                withLabel
-                label="J"
-                animation="DROP"
-              >
-                <InfoWindow />
-                <MarkerContextMenu />
-              </Marker>
-            </MarkerClusterer>
+            <Marker
+              title="Point A"
+              position={{ lat: 37.773972, lng: -122.431297 }}
+              withLabel
+              draggable
+              // label="C"
+              animation="DROP"
+              {...this.props}
+            >
+              <InfoWindow />
+              <MarkerContextMenu />
+            </Marker>
+            <Marker
+              title="Point B"
+              position={{ lat: 35.773972, lng: -129.431297 }}
+              withLabel
+              label="J"
+              animation="DROP"
+            >
+              <InfoWindow />
+              <MarkerContextMenu />
+            </Marker>
             <SearchBox position="TOP_LEFT" />
           </Map>
         </MapLayout>

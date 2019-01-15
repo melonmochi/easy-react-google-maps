@@ -48,12 +48,12 @@ export const zipLoader = (uploadList: FileList) => {
         const unZipPromises = Object.keys(zip.files)
           .map((k: string) => zip.files[k])
           .filter((compressedFile: JSZip.JSZipObject) =>
-            GTFSFiles.includes(compressedFile.name.split('.')[0])
+            GTFSFiles.includes(compressedFile.name.split('.')[0]),
           )
           .map((compressedFile: JSZip.JSZipObject) => {
             compressedFile
               .async(
-                'text' /*, metadata => {
+                'text', /*, metadata => {
                         console.log("progression of " + compressedFile.name +  " is " + metadata.percent.toFixed(2) + " %")
                       }*/
               )
