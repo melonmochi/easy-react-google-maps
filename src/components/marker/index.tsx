@@ -13,42 +13,41 @@ export interface MarkerProps {
   selectedMarker?: google.maps.Marker;
   markerEvtHandlers?: {
     [evtName: string]: (evtName: string, e: google.maps.event, marker: google.maps.Marker) => void;
-  }
+  };
   newPosition?: { lat: number; lng: number; noWrap?: boolean };
-  selectThisMarker?: (marker: google.maps.Marker) => void
-  addThisMarkerToClusterer?: (marker: google.maps.Marker) => void
-  removeThisMarkerToClusterer?: (marker: google.maps.Marker) => void
-  resetBounds?: () => void
+  selectThisMarker?: (marker: google.maps.Marker) => void;
+  addThisMarkerToClusterer?: (marker: google.maps.Marker) => void;
+  removeThisMarkerToClusterer?: (marker: google.maps.Marker) => void;
+  resetBounds?: () => void;
 }
 
 export type MarkerState = {
   clickLatLng?: google.maps.LatLng;
   thisInfoWindowVisible: boolean;
   thisContextMenuVisible: boolean;
-}
+};
 
 export default class Marker extends React.Component<MarkerProps, MarkerState> {
-
   state = {
     clickLatLng: undefined,
     thisInfoWindowVisible: false,
     thisContextMenuVisible: false,
-  }
+  };
 
-  marker: google.maps.Marker
+  marker: google.maps.Marker;
 
   componentDidMount() {
     this.renderMarker();
   }
 
   componentWillUnmount() {
-    const { marker } = this
-    marker.setMap(null)
+    const { marker } = this;
+    marker.setMap(null);
 
-    const { removeThisMarkerToClusterer } = this.props
+    const { removeThisMarkerToClusterer } = this.props;
 
-    if(removeThisMarkerToClusterer) {
-      removeThisMarkerToClusterer(marker)
+    if (removeThisMarkerToClusterer) {
+      removeThisMarkerToClusterer(marker);
     }
   }
 
@@ -63,46 +62,58 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
       default:
       // throw new Error('No corresponding event')
     }
-  }
+  };
 
   handleMarkerEvent = (evt: string, marker: google.maps.Marker) => {
     return (e: google.maps.MouseEvent) => {
-      const evtName = `on${camelCase(evt)}`
-      const { markerEvtHandlers } = this.props
+      const evtName = `on${camelCase(evt)}`;
+      const { markerEvtHandlers } = this.props;
       if (markerEvtHandlers && markerEvtHandlers[evtName]) {
         markerEvtHandlers[evtName](evtName, e, marker);
       } else {
         this.defaultMarkerEventHandler(evtName, e, marker);
       }
     };
-  }
+  };
 
   defaultMarkerEventHandler(
     evtName: string,
     e: google.maps.MouseEvent,
-    marker: google.maps.Marker,
+    marker: google.maps.Marker
   ) {
-    const { selectThisMarker, resetBounds } = this.props
-    if(selectThisMarker && resetBounds) {
+    const { selectThisMarker, resetBounds } = this.props;
+    if (selectThisMarker && resetBounds) {
       switch (evtName) {
         case 'onClick':
-          if(marker !== this.props.selectedMarker) {
+          if (marker !== this.props.selectedMarker) {
             selectThisMarker(marker);
           }
-          this.setState({ thisInfoWindowVisible: true, thisContextMenuVisible: false, clickLatLng: e.latLng });
+          this.setState({
+            thisInfoWindowVisible: true,
+            thisContextMenuVisible: false,
+            clickLatLng: e.latLng,
+          });
           break;
         case 'onDblclick':
-          if(marker !== this.props.selectedMarker) {
+          if (marker !== this.props.selectedMarker) {
             selectThisMarker(marker);
           }
-          this.setState({ thisInfoWindowVisible: false, thisContextMenuVisible: false, clickLatLng: e.latLng });
+          this.setState({
+            thisInfoWindowVisible: false,
+            thisContextMenuVisible: false,
+            clickLatLng: e.latLng,
+          });
           break;
         case 'onRightclick':
-          if(marker !== this.props.selectedMarker) {
+          if (marker !== this.props.selectedMarker) {
             selectThisMarker(marker);
           }
           selectThisMarker(marker);
-          this.setState({ thisInfoWindowVisible: false, thisContextMenuVisible: true, clickLatLng: e.latLng });
+          this.setState({
+            thisInfoWindowVisible: false,
+            thisContextMenuVisible: true,
+            clickLatLng: e.latLng,
+          });
           break;
         case 'onDrag':
           this.setState({
@@ -111,15 +122,15 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
             clickLatLng: e.latLng,
           });
         case 'onDragend':
-        resetBounds()
+          resetBounds();
           selectThisMarker(marker);
-          marker.setPosition( {
-              lat: marker.getPosition().lat(),
-              lng: marker.getPosition().lng(),
-            })
+          marker.setPosition({
+            lat: marker.getPosition().lat(),
+            lng: marker.getPosition().lng(),
+          });
           this.setState({
             clickLatLng: e.latLng,
-          })
+          });
         default:
         // throw new Error('No corresponding event')
       }
@@ -129,7 +140,8 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
   renderMarker() {
     const {
       google,
-      map, title,
+      map,
+      title,
       withLabel,
       draggable,
       animation,
@@ -167,14 +179,14 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
 
       this.marker = new google.maps.Marker(markerOpt);
 
-      this.marker.setMap(map)
+      this.marker.setMap(map);
 
-      if(addThisMarkerToClusterer) {
-        addThisMarkerToClusterer(this.marker)
+      if (addThisMarkerToClusterer) {
+        addThisMarkerToClusterer(this.marker);
       }
 
       markerEvents.forEach(e => {
-        const { marker, handleMarkerEvent } = this
+        const { marker, handleMarkerEvent } = this;
         marker.addListener(e, handleMarkerEvent(e, marker));
       });
     }
@@ -200,8 +212,14 @@ export default class Marker extends React.Component<MarkerProps, MarkerState> {
         position: this.props.position,
         title: this.props.title,
         selectedMarker: this.props.selectedMarker,
-        infoWindowVisible: this.props.selectedMarker === this.marker && this.state.thisInfoWindowVisible? true: false,
-        contextMenuVisible: this.props.selectedMarker === this.marker && this.state.thisContextMenuVisible? true: false,
+        infoWindowVisible:
+          this.props.selectedMarker === this.marker && this.state.thisInfoWindowVisible
+            ? true
+            : false,
+        contextMenuVisible:
+          this.props.selectedMarker === this.marker && this.state.thisContextMenuVisible
+            ? true
+            : false,
         clickLatLng: this.state.clickLatLng,
       });
     });

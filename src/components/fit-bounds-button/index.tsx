@@ -3,13 +3,12 @@ import { Button, Tooltip } from 'antd';
 
 // tslint:disable-next-line:interface-name
 export interface FitBoundsButtonProps {
-  fitBounds: () => void
-  ;
+  fitBounds: () => void;
 }
 
 export default class FitBoundsButton extends React.Component<FitBoundsButtonProps, any> {
   handleClick = () => {
-    const { fitBounds } = this.props
+    const { fitBounds } = this.props;
     fitBounds();
   };
 

@@ -7,7 +7,7 @@ export interface InfoWindowProps {
   selectedMarker?: google.maps.Marker;
   onOpenInfoWindow?: any;
   onCloseInfoWindow?: any;
-  handleInfoWindowState?: (evt: string) => void
+  handleInfoWindowState?: (evt: string) => void;
   infoWindowVisible?: boolean;
 }
 
@@ -17,7 +17,6 @@ export interface InfoWindowState {
 }
 
 export default class InfoWindow extends React.Component<InfoWindowProps, InfoWindowState> {
-
   state = {
     onInfoWindow: false,
   };
@@ -38,7 +37,7 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
       return;
     }
 
-    if(selectedMarker === marker && infoWindowVisible) {
+    if (selectedMarker === marker && infoWindowVisible) {
       if (!this.infowindow) {
         this.createInfoWindow(marker);
         this.openInfoWindow(map, marker);
@@ -48,7 +47,7 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
       }
     } else {
       if (this.infowindow) {
-        this.closeInfoWindow()
+        this.closeInfoWindow();
       }
     }
   }
@@ -65,8 +64,8 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
     if (this.props.onOpenInfoWindow) {
       this.props.onOpenInfoWindow();
     } else {
-      const { marker, handleInfoWindowState } = this.props
-      if(marker && handleInfoWindowState) {
+      const { marker, handleInfoWindowState } = this.props;
+      if (marker && handleInfoWindowState) {
         handleInfoWindowState('onOpeninfowindow');
       }
     }
@@ -76,8 +75,8 @@ export default class InfoWindow extends React.Component<InfoWindowProps, InfoWin
     if (this.props.onCloseInfoWindow) {
       this.props.onCloseInfoWindow();
     } else {
-      const { marker, handleInfoWindowState } = this.props
-      if(marker && handleInfoWindowState) {
+      const { marker, handleInfoWindowState } = this.props;
+      if (marker && handleInfoWindowState) {
         handleInfoWindowState('onCloseinfowindow');
       }
     }

@@ -6,10 +6,9 @@ import './style';
 
 import * as csv from 'csvtojson';
 
-const CalendarFiles = ['calendar', 'calendar_dates'];
+// const CalendarFiles = ['calendar', 'calendar_dates'];
 
-export interface MapLayoutProps {
-}
+export interface MapLayoutProps {}
 
 export interface MapLayoutState {
   map?: google.maps.Map;
@@ -24,7 +23,7 @@ export interface MapLayoutState {
   onCheckedStopsList?: Stop[];
   stopsCollapsed: boolean;
   uploading: boolean;
-};
+}
 
 const { Content, Sider } = Layout;
 const SubMenu = Menu.SubMenu;
@@ -42,7 +41,7 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
     uploading: false,
   };
 
-  map: google.maps.Map | undefined
+  map: google.maps.Map | undefined;
 
   constructor(props: MapLayoutProps) {
     super(props);
@@ -70,33 +69,36 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
     this.setState({ stopsCollapsed });
   };
 
-  mapLoaded = (
-    map: google.maps.Map,
-    center: google.maps.LatLng,
-    ) => {
-      this.setState({
+  mapLoaded = (map: google.maps.Map, center: google.maps.LatLng) => {
+    this.setState(
+      {
         map: map,
         center: center,
-      }, () => {
-        this.map = this.state.map
-      })
-    };
+      },
+      () => {
+        this.map = this.state.map;
+      }
+    );
+  };
 
   setCenter = () => {
-    const { center } = this.state
-    if(this.map && center) {
-      this.map.setCenter(center)
+    const { center } = this.state;
+    if (this.map && center) {
+      this.map.setCenter(center);
     }
-  }
+  };
 
   setBounds = (markersArray: google.maps.Marker[]) => {
-    const emptyBounds = new google.maps.LatLngBounds()
-    markersArray.forEach((m: google.maps.Marker) => emptyBounds.extend(m.getPosition()))
-    this.setState({
-      bounds: emptyBounds,
-    }, () => {
-      this.fitBounds()
-    })
+    const emptyBounds = new google.maps.LatLngBounds();
+    markersArray.forEach((m: google.maps.Marker) => emptyBounds.extend(m.getPosition()));
+    this.setState(
+      {
+        bounds: emptyBounds,
+      },
+      () => {
+        this.fitBounds();
+      }
+    );
   };
 
   fitBounds() {
@@ -105,48 +107,75 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
     }
   }
 
-  onSelectGTFSFile = (onSelectFile: any) => {
+  loadGTFSFilesAsync = async (onSelectFile: { [key: string]: string }) => {
+    const CalendarFile = this.selectFile(onSelectFile, 'calendar');
+    const CalendarDatesFile = this.selectFile(onSelectFile, 'calendarDates');
+    const StopsFile = this.selectFile(onSelectFile, 'stops');
+
+    const decompressedCalendarFile = CalendarFile ? await this.LoadFile(CalendarFile) : undefined;
+    const decompressedCalendarDatesFile = CalendarDatesFile
+      ? await this.LoadFile(CalendarDatesFile)
+      : undefined;
+    const decompressedStopsFile = StopsFile ? await this.LoadFile(StopsFile) : undefined;
+
+    return {
+      calendar: decompressedCalendarFile,
+      calendarDates: decompressedCalendarDatesFile,
+      stops: decompressedStopsFile,
+    };
+  };
+
+  onSelectGTFSFile = (onSelectFile: { [key: string]: string }) => {
     this.setState({
       uploading: true,
-    })
-    this.LoadData(onSelectFile);
-  }
-
-  LoadData = (onSelectFile: any) => {
-    this.setState({
       calendarInfo: undefined,
       onLoadedStopsList: undefined,
       onCheckedStopsList: undefined,
     });
-    Object.keys(onSelectFile)
-      .filter((key: string) => CalendarFiles.includes(key))
-      .map((key: string) => {
-        csv()
-          .fromString(onSelectFile[key])
-          .then((json: object) => {
-            this.setState({
-              calendarInfo: {
-                ...this.state.calendarInfo,
-                [key]: json,
-              },
-            });
-          });
-      });
 
-    const stopsFile = Object.keys(onSelectFile)
-      .filter((key: string) => key === 'stops')
-      .map((key: string) => onSelectFile[key])[0];
-
-    csv()
-      .fromString(stopsFile)
-      .then((json: Stop[]) => {
+    this.loadGTFSFilesAsync(onSelectFile)
+      .then((decompressedFiles: { calendar: any; calendarDates: any; stops: any }) => {
         this.setState({
-          onLoadedStopsList: json,
-          onCheckedStopsList: json,
-          uploading: false,
+          calendarInfo: {
+            calendar: decompressedFiles.calendar,
+            calendar_dates: decompressedFiles.calendarDates,
+          },
         });
+        return decompressedFiles.stops;
+      })
+      .then(decompressedStops => {
+        this.setState(
+          {
+            onLoadedStopsList: decompressedStops,
+          },
+          () => {
+            this.setState(
+              {
+                onCheckedStopsList: decompressedStops,
+              },
+              () => {
+                this.setState(
+                  {
+                    uploading: false,
+                  },
+                  () => {}
+                );
+              }
+            );
+          }
+        );
+        return decompressedStops;
       });
-  }
+  };
+
+  selectFile = (onSelectFile: { [key: string]: string }, fileName: string) => {
+    const fileKey = Object.keys(onSelectFile).find((key: string) => key === fileName);
+    return fileKey ? onSelectFile[fileKey] : undefined;
+  };
+
+  LoadFile = async (compressedFile: string) => {
+    return await csv().fromString(compressedFile);
+  };
 
   renderChildren() {
     const { children } = this.props;
@@ -166,7 +195,7 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
         setBounds: this.setBounds,
         mapLoaded: this.mapLoaded,
         onCheckedStopsList: this.state.onCheckedStopsList,
-        onCheckStops:this.onCheckStops,
+        onCheckStops: this.onCheckStops,
       });
     });
   }
@@ -185,9 +214,7 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
 
     return (
       <Layout className="layout">
-        <Content className="content">
-          {this.renderChildren()}
-        </Content>
+        <Content className="content">{this.renderChildren()}</Content>
         <Sider
           theme="light"
           className="sider"
@@ -281,10 +308,7 @@ export default class MapLayout extends React.Component<MapLayoutProps, MapLayout
           {...this.props}
         >
           {onLoadedStopsList ? (
-            <StopsList
-              onLoadedStopsList={onLoadedStopsList}
-              onCheckStops={this.onCheckStops}
-            />
+            <StopsList onLoadedStopsList={onLoadedStopsList} onCheckStops={this.onCheckStops} />
           ) : null}
         </Sider>
       </Layout>

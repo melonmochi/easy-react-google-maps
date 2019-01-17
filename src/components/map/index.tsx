@@ -3,22 +3,17 @@ import { camelCase } from '../utils';
 import { mapEvents } from 'utils';
 import { MapTypeId, GestureHandlingType, Stop } from 'typings';
 import './style';
-import { Marker,
-  InfoWindow,
-  MarkerContextMenu } from 'components';
+import { Marker, InfoWindow, MarkerContextMenu } from 'components';
 import { Spin } from 'antd';
 
-const MarkerClusterer = require('@google/markerclustererplus')
+const MarkerClusterer = require('@google/markerclustererplus');
 
 export interface MapProps {
   google?: typeof google;
   onCheckedStopsList?: Stop[];
-  mapLoaded?: (
-    loadedmap: google.maps.Map,
-    center: google.maps.LatLng,
-  ) => void;
-  setBounds?: (markersArray: google.maps.Marker[]) => void
-  resetBounds?: () => void
+  mapLoaded?: (loadedmap: google.maps.Map, center: google.maps.LatLng) => void;
+  setBounds?: (markersArray: google.maps.Marker[]) => void;
+  resetBounds?: () => void;
   onCheckStops?: (newShownStopsList: Stop[]) => void;
   type?: MapTypeId;
   zoom?: number;
@@ -29,7 +24,7 @@ export interface MapProps {
   markerClustering?: boolean;
   mapEvtHandlers?: {
     [evtName: string]: (evtName: string, e: google.maps.event, map: google.maps.Map) => void;
-  }
+  };
 }
 
 export interface MapState {
@@ -45,7 +40,7 @@ export default class Map extends React.Component<MapProps, MapState> {
   };
 
   map: google.maps.Map;
-  markersClusterer: MarkerClusterer
+  markersClusterer: MarkerClusterer;
 
   private mapRef = React.createRef<HTMLDivElement>();
 
@@ -55,17 +50,17 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.handleEvent = this.handleEvent.bind(this);
     this.addThisMarkerToClusterer = this.addThisMarkerToClusterer.bind(this);
     this.removeThisMarkerToClusterer = this.removeThisMarkerToClusterer.bind(this);
-    this.resetBounds = this.resetBounds.bind(this)
+    this.resetBounds = this.resetBounds.bind(this);
 
-    const { initialCenter } = this.props
+    const { initialCenter } = this.props;
 
     this.state = {
       center: initialCenter
         ? new google.maps.LatLng(
-          initialCenter.lat,
-          initialCenter.lng,
-          initialCenter.noWrap ? initialCenter.noWrap : true,
-        )
+            initialCenter.lat,
+            initialCenter.lng,
+            initialCenter.noWrap ? initialCenter.noWrap : true
+          )
         : new google.maps.LatLng(40.416778, -3.703778),
       selectedMarker: undefined,
     };
@@ -73,52 +68,51 @@ export default class Map extends React.Component<MapProps, MapState> {
 
   componentDidMount() {
     this.loadMap();
-    const { map, markersClusterer} = this
-    const { mapLoaded } = this.props
-    if ( map && mapLoaded ) {
+    const { map, markersClusterer } = this;
+    const { mapLoaded, onCheckedStopsList } = this.props;
+
+    console.log('im in didmount map, onCheckedStopsList is', onCheckedStopsList);
+    if (map && mapLoaded) {
       mapLoaded(map, this.state.center);
     }
-    if( map && !markersClusterer) {
-      this.markersClusterer = new MarkerClusterer(
-        map,
-        [],
-      )
+    if (map && !markersClusterer) {
+      this.markersClusterer = new MarkerClusterer(map, []);
     }
   }
 
   addThisMarkerToClusterer(marker: google.maps.Marker) {
-    const { setBounds } = this.props
-    this.markersClusterer.addMarker(marker)
-    if(setBounds) {
-      setBounds(this.markersClusterer.getMarkers())
+    const { setBounds } = this.props;
+    this.markersClusterer.addMarker(marker);
+    if (setBounds) {
+      setBounds(this.markersClusterer.getMarkers());
     }
   }
 
   removeThisMarkerToClusterer(marker: google.maps.Marker) {
-    const { setBounds } = this.props
-    this.markersClusterer.removeMarker(marker)
-    if(setBounds) {
-      setBounds(this.markersClusterer.getMarkers())
+    const { setBounds } = this.props;
+    this.markersClusterer.removeMarker(marker);
+    if (setBounds) {
+      setBounds(this.markersClusterer.getMarkers());
     }
   }
 
   resetBounds = () => {
-    const { setBounds } = this.props
-    if(setBounds) {
-      setBounds(this.markersClusterer.getMarkers())
+    const { setBounds } = this.props;
+    if (setBounds) {
+      setBounds(this.markersClusterer.getMarkers());
     }
-  }
+  };
 
   selectThisMarker = (marker: google.maps.Marker) => {
     this.setState({
       selectedMarker: marker,
     });
-  }
+  };
 
   handleEvent(evt: string) {
     return (e: google.maps.MouseEvent) => {
-      const evtName = `on${camelCase(evt)}`
-      const { mapEvtHandlers } = this.props
+      const evtName = `on${camelCase(evt)}`;
+      const { mapEvtHandlers } = this.props;
       if (mapEvtHandlers && mapEvtHandlers[evtName]) {
         mapEvtHandlers[evtName](evtName, e, this.map);
       } else {
@@ -164,7 +158,7 @@ export default class Map extends React.Component<MapProps, MapState> {
           fullscreenControlOptions: {
             position: google.maps.ControlPosition.RIGHT_TOP,
           },
-        },
+        }
       );
 
       this.map = new maps.Map(node, mapConfig); // creates a new Google map on the specified node (ref='map') with the specified configuration set above.
@@ -181,9 +175,7 @@ export default class Map extends React.Component<MapProps, MapState> {
       return;
     }
 
-    return React.Children
-      .map(children, c => {
-
+    return React.Children.map(children, c => {
       if (!c) {
         return;
       }
@@ -200,28 +192,31 @@ export default class Map extends React.Component<MapProps, MapState> {
     });
   }
 
-  renderMarkers() {
-    const { onCheckedStopsList } = this.props
-    return onCheckedStopsList?
-      onCheckedStopsList.map((stop: Stop) => (
-        <Marker
-          google={this.props.google}
-          map={this.map}
-          key={stop.stop_id}
-          title={stop.stop_name}
-          position={{lat: parseFloat(stop.stop_lat), lng: parseFloat(stop.stop_lon)}}
-          withLabel
-          selectThisMarker={this.selectThisMarker}
-          selectedMarker={this.state.selectedMarker}
-          addThisMarkerToClusterer={this.addThisMarkerToClusterer}
-          removeThisMarkerToClusterer={this.removeThisMarkerToClusterer}
-          resetBounds={this.resetBounds}
-        >
-          <InfoWindow />
-          <MarkerContextMenu />
-        </Marker>
-    )): [] as React.ReactChildren[]
-  }
+  renderMarker = (stop: Stop) => {
+    return (
+      <Marker
+        google={this.props.google}
+        map={this.map}
+        key={stop.stop_id}
+        title={stop.stop_name}
+        position={{ lat: parseFloat(stop.stop_lat), lng: parseFloat(stop.stop_lon) }}
+        withLabel
+        selectThisMarker={this.selectThisMarker}
+        selectedMarker={this.state.selectedMarker}
+        addThisMarkerToClusterer={this.addThisMarkerToClusterer}
+        removeThisMarkerToClusterer={this.removeThisMarkerToClusterer}
+        resetBounds={this.resetBounds}
+      >
+        <InfoWindow />
+        <MarkerContextMenu />
+      </Marker>
+    );
+  };
+
+  renderMarkers = (onCheckedStopsList: Stop[]) => {
+    const markerArray = onCheckedStopsList.map((stop: Stop) => this.renderMarker(stop));
+    return markerArray;
+  };
 
   public render() {
     let classNameContainer = 'defaultContainer';
@@ -235,16 +230,16 @@ export default class Map extends React.Component<MapProps, MapState> {
       <div className={classNameContainer}>
         <div ref={this.mapRef} className={classNameMap} />
         <Spin
-              tip="Loading Map..."
-              spinning={this.map? false: true}
-              size='large'
-              style={{ minHeight: 800 }}
-            >
-          <div
-            style={{ height: '100%' }}
-          >
+          tip="Loading Map..."
+          spinning={this.map ? false : true}
+          size="large"
+          style={{ minHeight: 800 }}
+        >
+          <div style={{ height: '100%' }}>
             {this.map ? this.renderChildren() : null}
-            {this.map ? this.renderMarkers() : null}
+            {this.map && this.props.onCheckedStopsList
+              ? this.renderMarkers(this.props.onCheckedStopsList)
+              : null}
           </div>
         </Spin>
       </div>

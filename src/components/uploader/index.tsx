@@ -6,7 +6,7 @@ import { zipLoader } from './ziploader';
 const Option = Select.Option;
 
 interface UploaderProps {
-  onSelectGTFSFile: any;
+  onSelectGTFSFile: (onSelectFile: { [key: string]: string }) => void;
 }
 
 export declare type UploadFileStatus = 'error' | 'success' | 'done' | 'uploading' | 'removed';
@@ -54,10 +54,15 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
   };
 
   handleLoadSelect = () => {
-    const { fileList, onSelectKey } = this.state;
-    const onSelectGTFS = fileList.filter((file: UploadFile) => file.uid === onSelectKey)[0];
-
-    this.props.onSelectGTFSFile(onSelectGTFS.decompressed);
+    const { fileList, onSelectKey, uploading } = this.state;
+    if (!uploading) {
+      const onSelectGTFS: UploadFile = fileList.filter(
+        (file: UploadFile) => file.uid === onSelectKey
+      )[0];
+      if (onSelectGTFS.decompressed) {
+        this.props.onSelectGTFSFile(onSelectGTFS.decompressed);
+      }
+    }
   };
 
   handleUpload = () => {
@@ -74,14 +79,21 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
     const uploadPromises = zipLoader(loadingList);
 
     Promise.all(uploadPromises).then((lastUploadList: FileList) => {
+      console.log('im in uploader, after promiseall, lastUploadList is', lastUploadList);
       const lastSuccessFiles = lastUploadList.filter((file: UploadFile) => file.status === 'done');
       const newFileList = doneList.concat(lastUploadList);
       const uploadStatus: boolean = loadingList.length === lastSuccessFiles.length;
 
-      this.setState({
-        uploading: false,
-        fileList: newFileList,
-      });
+      this.setState(
+        {
+          fileList: newFileList,
+        },
+        () => {
+          this.setState({
+            uploading: false,
+          });
+        }
+      );
 
       if (lastSuccessFiles.length !== 0) {
         if (!this.state.onSelectKey) {
@@ -123,7 +135,7 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
         }
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isLt2M) {
-          message.warn('File size is better to be isZIP: booleasmaller than 2MB!', 10);
+          message.warn('File size is better to be smaller than 2MB!', 10);
         }
         this.setState((state: any) => ({
           fileList: [...state.fileList, file],
@@ -193,7 +205,7 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
               shape="circle"
               icon="reload"
               onClick={this.handleLoadSelect}
-              disabled={!onSelectKey}
+              disabled={!onSelectKey || uploading}
               style={{ marginLeft: 6 }}
             />
           </Tooltip>

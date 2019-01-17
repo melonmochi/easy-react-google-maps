@@ -72,7 +72,7 @@ export default class MarkerContextMenu extends React.Component<
   onAdd = () => {
     this.containerElement = document.createElement('div');
     this.containerElement.style.position = 'absolute';
-    const cmComponent = this.contextMenuRef.current;;
+    const cmComponent = this.contextMenuRef.current;
     this.containerElement.appendChild(cmComponent as HTMLDivElement);
   };
 
@@ -105,22 +105,22 @@ export default class MarkerContextMenu extends React.Component<
   render() {
     return (
       <div ref={this.contextMenuRef}>
-        {this.props.contextMenuVisible?
+        {this.props.contextMenuVisible ? (
           <ul className="popup">
-          <li>
-            <Icon type="user" />
-            Name
+            <li>
+              <Icon type="user" />
+              Name
             </li>
-          <li>
-            <Icon type="heart-o" />
-            Like it
+            <li>
+              <Icon type="heart-o" />
+              Like it
             </li>
-          <li>
-            <Icon type="star-o" />
-            Bookmark
+            <li>
+              <Icon type="star-o" />
+              Bookmark
             </li>
-        </ul>: null
-        }
+          </ul>
+        ) : null}
       </div>
     );
   }
