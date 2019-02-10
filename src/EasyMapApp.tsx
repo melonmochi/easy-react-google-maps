@@ -19,13 +19,6 @@ export const EasyMapApp: FunctionComponent = () => {
             withLabel
             draggable
           />
-          <Marker
-            title="Point B"
-            position={[35.773972, -129.431297]}
-            withLabel
-            label="J"
-            animation="DROP"
-          />
         </Map>
       </Layout>
     </div>

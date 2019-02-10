@@ -1,7 +1,6 @@
 import React, { FunctionComponent, createContext, useReducer } from 'react';
 import {
   GlobalContextInterface,
-  Action,
   GlobalContextState as State,
 } from 'typings';
 import { reducers } from 'utils';
@@ -23,7 +22,7 @@ export const GlobalContext = createContext<GlobalContextInterface>({
 
 export const GlobalContextProvider: FunctionComponent = (props) => {
 
-  const [state, dispatch] = useReducer<State, Action>(reducers, initialState);
+  const [state, dispatch] = useReducer(reducers, initialState);
 
   return (
     <GlobalContext.Provider

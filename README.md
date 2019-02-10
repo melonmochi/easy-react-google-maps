@@ -1,63 +1,52 @@
-A library of Google Maps components with React-based implementation.
+A library of responsive maps visualization components with React-based implementation.
 
 English | [Español](./README-es_ES.md)
 
 ## ✨ Features
 
-- Supported the lastest versions of Google Maps JavaScript Api
-- A set of high-quality React components out of the box.
-- Written in TypeScript with predictable static types.
+- 📦 **Out of box** with built-in map api: google, leaflet and mapboxgl.
+- 🚀 **High performance**, a set of high-quality React components out of the box.
+- 🍁 **TypeScript**, written in TypeScript with predictable static types.
+- 🚄 **Less code**, 40% less codes due to use of new React Hooks + Functional Components
 
 ## 🖥 Environment Support
 
 * Modern browsers and Internet Explorer 9+
 
-## 📦 Install
+## 🏈 Install
 
-```bash
-npm install easy-react-google-maps --save
-```
-or
-```bash
-yarn add easy-react-google-maps
-```
+*not published yet on NPM*
 
 ## 🔨 Usage
 
 ```jsx
-import * as React from 'react';
+import React, { FunctionComponent } from 'react';
 import {
-  GoogleMapsApiLoader,
+  Layout,
   Map,
-  Marker,
-  SearchBox,
-  InfoWindow,
-  RecenterButton,
-  FitBoundsButton,
-} from 'easy-react-google-maps';
+  Marker
+} from 'components';
 
-export class MapContainer extends React.Component {
-  render() {
-    return (
-      <div>
+export const EasyMapApp: FunctionComponent = () => {
+  return (
+    <div className="easyMapApp" style={{ height: '100%' }}>
+      <Layout>
         <Map
+          language='ja'
+          region='JP'
         >
           <Marker
-          >
-            <InfoWindow />
-          </Marker>
-          <SearchBox />
-          <RecenterButton />
-          <FitBoundsButton />
+            title="Point A"
+            position={[40.416778, -3.703778]}
+            draggable
+          />
         </Map>
-      </div>
-    );
-  }
-}
+      </Layout>
+    </div>
+  );
+};
 
-export default GoogleMapsApiLoader({
-  apiKey: LOAD_YOUR_GOOGLE_API_KEY_FROM_A_PRIVATE_FILE,
-})(MapContainer);
+export default EasyMapApp;
 ```
 
 ## ⌨️ Development
@@ -72,7 +61,11 @@ Create your own config.ts file in the root directory:
 
 ```ts
 export const config = {
-    apiKey: YOUR_GOOGLE_API_KEY,
+    apiKey: "YOUR_GOOGLE_API_KEY",
+}
+
+export const mapboxConfig = {
+    token: "YOUR_MAPBOX_API_TOKEN",
 }
 
 ```
@@ -82,10 +75,22 @@ Add this config.ts in .gitignore
 # GoogleApi
 /config.ts
 ```
-
-
 Open your browser and visit http://127.0.0.1:8080
+
+## 🐠 Preview
+![Preview](/public/preview_ergm.png)
+
+## 🗺️ RoadMap
+- 🏓 **Interactive mode design** to cover at least basics needs
+- 🛵 **RxJS** as general solution for events handling https://rxjs-dev.firebaseapp.com/api.
+- 🚞 **GeoJSON Support**, http://geojson.org/.
+- 🎨 **Charts**, visualization tools.
+- (Optional) Add routing solution like React Router https://github.com/ReactTraining/react-router if it is needed
 
 ## 🤝 Contributing [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 We welcome all contributions. 
+
+## 🌍 License
+
+[MIT](https://github.com/umijs/umi/blob/master/LICENSE)
