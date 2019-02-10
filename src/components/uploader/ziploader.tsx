@@ -1,41 +1,8 @@
 import JSZip from 'jszip';
 
-export declare type UploadFileStatus = 'error' | 'success' | 'done' | 'uploading' | 'removed';
+import { DecompressedGTFSFile, UploadFile } from 'typings'
 
-type UploadFile = {
-  uid: string;
-  size: number;
-  name: string;
-  fileName?: string;
-  lastModified?: number;
-  lastModifiedDate?: Date;
-  url?: string;
-  status?: UploadFileStatus;
-  percent?: number;
-  thumbUrl?: string;
-  originFileObj?: File;
-  response?: any;
-  error?: any;
-  linkProps?: any;
-  type: string;
-  decompressed?: { [key: string]: string };
-};
-
-const GTFSFiles = [
-  'agency',
-  'stops',
-  'routes',
-  // 'trips',
-  // 'stop_times',
-  'calendar',
-  'calendar_dates',
-  'fare_attributes',
-  'fare_rules',
-  // 'shapes',
-  'frequencies',
-  'transfers',
-  'feed_info',
-];
+import { GTFSFileNamesArray } from 'utils'
 
 export type FileList = Array<UploadFile>;
 
@@ -57,11 +24,11 @@ const loadAsyncZipFiles = async (zipFile: JSZip) => {
   const zipFiles = Object.keys(zipFile.files)
     .map((k: string) => zipFile.files[k])
     .filter((compressedFile: JSZip.JSZipObject) =>
-      GTFSFiles.includes(compressedFile.name.split('.')[0])
+      GTFSFileNamesArray.includes(compressedFile.name.split('.')[0])
     );
 
   const unZipGTFSFilesPromises = zipFiles.map(async (compressedGTFSFile: JSZip.JSZipObject) => {
-    const GTFSFileName = compressedGTFSFile.name.split('.')[0];
+    const GTFSFileName: string = compressedGTFSFile.name.split('.')[0];
     const decompressedGTFSFile = await compressedGTFSFile.async('text', metadata => {
       console.log(
         'progression of ' + compressedGTFSFile.name + ' is ' + metadata.percent.toFixed(2) + ' %'
@@ -77,9 +44,9 @@ const loadAsyncZipFiles = async (zipFile: JSZip) => {
   return decompressed;
 };
 
-export const zipLoader = (uploadList: FileList) => {
+export const zipLoader = async (uploadList: FileList) => {
   const uploadPromises = uploadList.map(async (file: any) => {
-    file.decompressed = new Object();
+    file.decompressed = new Object() as DecompressedGTFSFile;
     const zip = new JSZip();
     const zipPromise = await ifLoadZipSuccess(zip.loadAsync(file));
 
@@ -95,13 +62,14 @@ export const zipLoader = (uploadList: FileList) => {
       file.decompressed = unzipped;
     };
 
-    const newFilePromise = Promise.all([
-      setFileStatus(uploadingStatus),
-      setDecompressed(decompressed),
+    const newFilePromise = await Promise.all([
+      await setFileStatus(uploadingStatus),
+      await setDecompressed(decompressed),
     ]).then(() => {
       return file;
     });
     return await newFilePromise;
   });
-  return uploadPromises;
+  const uploadPromisesArray = await Promise.all(uploadPromises)
+  return uploadPromisesArray;
 };

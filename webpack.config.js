@@ -1,12 +1,13 @@
 const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+// const WebpackBundleAnalyzer = require('webpack-bundle-analyzer');
 
 /*
-const WebpackBundleAnalyzer = require('webpack-bundle-analyzer');
 const {
   BundleAnalyzerPlugin,
-} = WebpackBundleAnalyzer; */
+} = WebpackBundleAnalyzer;
+*/
 
 module.exports = {
   // 入口文件
@@ -40,8 +41,9 @@ module.exports = {
           options: {
             sourceMap: true,
             modifyVars: {
-              'primary-color': '#0c4842', //  ONANDO
-              'link-color': '#0c4842', //  ONANDO
+              'primary-color': '#005CAF', // RURI
+              'link-color': '#005CAF', // RURI
+              // 'link-color': '#0c4842', // ONANDO
             },
             javascriptEnabled: true,
           },
@@ -58,12 +60,29 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options:
+              {
+                name: 'img/[name]_[hash:7].[ext]',
+              },
+          }],
+      },
     ],
   },
   resolve: {
     alias: {
-      components: path.resolve(__dirname, './src/components'),
       config: path.resolve(__dirname, './config'),
+      components: path.resolve(__dirname, './src/components'),
+      gm: path.resolve(__dirname, './src/components/google-maps'),
+      mapbox: path.resolve(__dirname, 'src/components/mapbox'),
+      maplayout: path.resolve(__dirname, './src/components/layout/map-layout'),
+      osm: path.resolve(__dirname, './src/components/osm'),
+      reducers: path.resolve(__dirname, './src/components/utils/reducers'),
+      src: path.resolve(__dirname, './src'),
       typings: path.resolve(__dirname, './typings'),
       utils: path.resolve(__dirname, './src/components/utils'),
     },
@@ -87,7 +106,8 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: 'Easy React Google Maps',
       template: 'src/assets/index.html',
+      favicon: 'public/favicon.png',
     }),
-    // new BundleAnalyzerPlugin()
+    // new BundleAnalyzerPlugin(),
   ],
 };

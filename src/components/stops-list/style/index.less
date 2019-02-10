@@ -1,0 +1,96 @@
+@import '~antd/dist/antd.less';
+
+.listItemExtra {
+  width: 272px;
+  height: 1px;
+}
+
+.ant-list-item {
+  background: aliceblue;
+  display: inline;
+}
+
+.listItem {
+  position: relative;
+  background: inherit;
+  &:hover {
+    content: '';
+    // transform: scaleY(0.0001);
+    opacity: 0.8;
+    background: aliceblue;
+    transition: transform 3s @ease-out, opacity 3s @ease-out;
+  }
+  &:after {
+    content: '';
+    background: aliceblue;
+    border-left: @menu-item-active-border-width solid @menu-highlight-color;
+    transform: scaleY(0.0001);
+    opacity: 1;
+    transition: transform 3s @ease-out, opacity 3s @ease-out;
+  }
+}
+
+.ant-list-item > a {
+  display: block;
+  color: @menu-item-color;
+  &:hover {
+    color: @menu-highlight-color;
+  }
+  &:focus {
+    text-decoration: none;
+  }
+  &:before {
+    position: absolute;
+    background-color: transparent;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    content: '';
+  }
+}
+
+.listItemSelected {
+  position: relative;
+  background: @primary-1;
+  // border-left: @menu-item-active-border-width solid @menu-highlight-color;
+  &:after {
+    content: '';
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-left: @menu-item-active-border-width solid @menu-highlight-color;
+    transform: scaleY(0.0001);
+    opacity: 0;
+    transition: transform 3s @ease-out, opacity 3s @ease-out;
+  }
+}
+
+.ant-list-item-meta {
+  align-items: center;
+}
+
+a.listItemMetaTitle {
+  color: @heading-color;
+}
+
+.ant-list-item-meta-title {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  height: 22px;
+  min-width: 100px;
+  max-width: 200px;
+}
+
+.ant-list-item-meta-content {
+  min-width: 200px;
+}
+
+.ant-list-item-meta-avatar {
+  vertical-align: middle;
+}
+
+.ReactVirtualized__Grid {
+  outline: none;
+}

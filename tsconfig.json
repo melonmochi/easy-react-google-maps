@@ -9,18 +9,23 @@
     "lib": ["es7", "dom"],
     "module": "esnext",
     "target": "es6",
-    "jsx": "preserve",
-    "allowJs": false,
+    "jsx": "react",
     "moduleResolution": "node",
     "importHelpers": true,
-    "sourceMap": true,
-    "allowSyntheticDefaultImports":true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
     "paths": {
       "components": ["src/components"],
       "config": ["config"],
+      "gm": ["src/components/google-maps"],
+      "mapbox": ["src/components/mapbox"],
+      "maplayout": ["src/components/layout/map-layout"],
+      "osm": ["src/components/osm"],
+      "reducers": ["src/components/utils/reducers"],
+      "src": ["src"],
       "typings": ["typings"],
-      "utils": ["src/components/utils"]
-    },
+      "utils": ["src/components/utils"],
+    }
   },
   "exclude": [
     "node_modules"

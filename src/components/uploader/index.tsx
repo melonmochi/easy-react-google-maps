@@ -2,33 +2,13 @@
 import React from 'react';
 import { Upload, Icon, message, Button, Select, Row, Tooltip, Col } from 'antd';
 import { zipLoader } from './ziploader';
+import { UploadFile, DecompressedGTFSFile } from 'typings'
 
 const Option = Select.Option;
 
 interface UploaderProps {
-  onSelectGTFSFile: (onSelectFile: { [key: string]: string }) => void;
+  onSelectGTFSFile: (onSelectFile: DecompressedGTFSFile) => void;
 }
-
-export declare type UploadFileStatus = 'error' | 'success' | 'done' | 'uploading' | 'removed';
-
-type UploadFile = {
-  uid: string;
-  size: number;
-  name: string;
-  fileName?: string;
-  lastModified?: number;
-  lastModifiedDate?: Date;
-  url?: string;
-  status?: UploadFileStatus;
-  percent?: number;
-  thumbUrl?: string;
-  originFileObj?: File;
-  response?: any;
-  error?: any;
-  linkProps?: any;
-  type: string;
-  decompressed?: { [key: string]: string };
-};
 
 export type FileList = Array<UploadFile>;
 
@@ -41,7 +21,7 @@ interface UploaderState {
 
 export default class Uploader extends React.Component<UploaderProps, UploaderState> {
   state = {
-    fileList: new Array(),
+    fileList: [] as FileList,
     onSelectKey: undefined,
     onLoadedFiles: undefined,
     uploading: false,
@@ -54,18 +34,16 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
   };
 
   handleLoadSelect = () => {
-    const { fileList, onSelectKey, uploading } = this.state;
-    if (!uploading) {
-      const onSelectGTFS: UploadFile = fileList.filter(
-        (file: UploadFile) => file.uid === onSelectKey
-      )[0];
-      if (onSelectGTFS.decompressed) {
-        this.props.onSelectGTFSFile(onSelectGTFS.decompressed);
-      }
+    const { fileList, onSelectKey } = this.state;
+    const onSelectGTFS: UploadFile = fileList.filter(
+      (file: UploadFile) => file.uid === onSelectKey)[0];
+    const decompressedFiles: DecompressedGTFSFile | undefined = onSelectGTFS.decompressed
+    if (decompressedFiles) {
+      this.props.onSelectGTFSFile(decompressedFiles);
     }
   };
 
-  handleUpload = () => {
+  handleUpload = async () => {
     const { fileList } = this.state;
 
     this.setState({
@@ -76,39 +54,35 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
 
     const loadingList = fileList.filter((file: UploadFile) => !file.status);
 
-    const uploadPromises = zipLoader(loadingList);
+    const lastUploadList = await zipLoader(loadingList);
 
-    Promise.all(uploadPromises).then((lastUploadList: FileList) => {
-      console.log('im in uploader, after promiseall, lastUploadList is', lastUploadList);
-      const lastSuccessFiles = lastUploadList.filter((file: UploadFile) => file.status === 'done');
-      const newFileList = doneList.concat(lastUploadList);
-      const uploadStatus: boolean = loadingList.length === lastSuccessFiles.length;
+    const lastSuccessFiles = lastUploadList.filter((file: UploadFile) => file.status === 'done');
+    const newFileList = doneList.concat(lastUploadList);
+    const uploadStatus: boolean = loadingList.length === lastSuccessFiles.length;
 
-      this.setState(
-        {
-          fileList: newFileList,
-        },
-        () => {
-          this.setState({
-            uploading: false,
-          });
-        }
-      );
-
-      if (lastSuccessFiles.length !== 0) {
-        if (!this.state.onSelectKey) {
-          const newKey = lastSuccessFiles[0].uid;
-          this.handleChangeSelect(newKey);
-        }
-        if (uploadStatus) {
-          message.success('files uploaded successfully.', 10);
-        } else {
-          message.error('some file had not uploaded.', 10);
-        }
-      } else {
-        message.warn('no files uploaded', 10);
+    if (lastSuccessFiles.length !== 0) {
+      if (!this.state.onSelectKey) {
+        const newKey = lastSuccessFiles[0].uid;
+        this.handleChangeSelect(newKey);
       }
-    });
+      if (uploadStatus) {
+        message.success('files uploaded successfully.', 10);
+      } else {
+        message.error('some file had not uploaded.', 10);
+      }
+    } else {
+      message.warn('no files uploaded', 10);
+    }
+
+    this.setState(
+      {
+        fileList: newFileList,
+      }, () => {
+        this.setState({
+          uploading: false,
+        })
+      }
+    );
   };
 
   render() {

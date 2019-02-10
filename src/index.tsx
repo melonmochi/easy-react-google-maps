@@ -1,11 +1,9 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import App from './App';
+import EasyMapApp from './EasyMapApp';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(<EasyMapApp />, document.getElementById('root'));
 
 if ((module as any).hot) {
   (module as any).hot.accept();
 }
-
-export * from 'components';

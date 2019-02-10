@@ -1,4 +1,3 @@
-/* eslint no-console:0 */
 export function camelCase(name: string) {
   return (
     name.charAt(0).toUpperCase() +
@@ -9,7 +8,38 @@ export function camelCase(name: string) {
   );
 }
 
-export const mapEvents = [
+export const stringToColour = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    // tslint:disable-next-line:no-bitwise
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let colour = '#';
+  for (let i = 0; i < 3; i++) {
+    // tslint:disable-next-line:no-bitwise
+    const value = (hash >> (i * 8)) & 0xFF;
+    colour += ('00' + value.toString(16)).substr(-2);
+  }
+  return colour;
+}
+
+export const GTFSFileNamesArray = [
+  'agency',
+  'stops',
+  'routes',
+  // 'trips',
+  // 'stop_times',
+  'calendar',
+  'calendar_dates',
+  'fare_attributes',
+  'fare_rules',
+  // 'shapes',
+  'frequencies',
+  'transfers',
+  'feed_info',
+];
+
+export const gmMapEvents = [
   'bounds_changed',
   'center_changed',
   'click',
@@ -30,26 +60,34 @@ export const mapEvents = [
   'zoom_changed',
 ];
 
-export const markerEvents = [
-  'animation_changed',
+export const MarkerEvents = [
   'click',
-  'clickable_changed',
-  'cursor_changed',
   'dblclick',
   'drag',
   'dragend',
   'draggable_changed',
   'dragstart',
-  'flat_changed',
-  'icon_changed',
   'mousedown',
   'mouseout',
   'mouseover',
   'mouseup',
-  'position_changed',
   'rightclick',
-  'shape_changed',
-  'title_changed',
-  'visible_changed',
-  'zindex_changed',
 ];
+
+export const weekDay = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+export const dateFormat = 'YYYYMMDD'
+
+export { googleMapsURLStringify } from './google-maps-url-stringify'
+
+export { googleMapsScriptLoader } from './google-maps-script-loader'
+
+export { googleMapsApiLoader } from './google-maps-api-loader'
+
+export { childrenMarkerToObject } from './children-marker-to-object'
+
+export { CheckboxWithLabel } from './checkbox-with-label'
+
+export { extendBounds } from './extend-bounds'
+
+export { reducers } from './reducers'

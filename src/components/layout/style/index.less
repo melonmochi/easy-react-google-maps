@@ -1,0 +1,35 @@
+@import '~antd/dist/antd.less';
+
+.ant-layout-header {
+  background: #FFFFFF;
+}
+
+.layout {
+  height: 100%;
+  .header {
+    position: relative; // !important
+    display: flex;
+    height: 52px;
+    width: 100%;
+    padding: 0 16px;
+    margin: 0 auto;
+    align-items: center;
+    background-color: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.1);
+  }
+  .content {
+    height: 100%;
+    width: 100%;
+    padding: 0 16px;
+    margin: 10px auto;
+    .contentLayout {
+      height: 100%;
+      display: flex;
+      .mainColumn {
+        min-height: 0;
+        height: 100%;
+        display: flex;
+      }
+    }
+  }
+}

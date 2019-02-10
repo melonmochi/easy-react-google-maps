@@ -3,6 +3,8 @@ import { Card, Select, Row, Switch } from 'antd';
 import { Calendar, CalendarDate } from 'typings';
 import CalendarInfo from './calendar-info';
 import moment from 'moment';
+import { calculateDaysFromCalendar } from './calculateDaysFromCalendar';
+import { calculateDaysFromCalendarDates } from './calculateDaysFromCalendarDates';
 
 export type CalendarInfoType = {
   calendar?: Calendar[];
@@ -21,47 +23,6 @@ interface CalendarListState {
 const Option = Select.Option;
 
 const dateFormat = 'YYYYMMDD';
-const weekDay = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const calendarInNumber = (calendar: Calendar) => {
-  return Object.keys(calendar)
-    .filter(k => weekDay.includes(k))
-    .reduce((obj: any, d) => {
-      switch (d) {
-        case 'monday': {
-          obj['1'] = calendar[d];
-          break;
-        }
-        case 'tuesday': {
-          obj['2'] = calendar[d];
-          break;
-        }
-        case 'wednesday': {
-          obj['3'] = calendar[d];
-          break;
-        }
-        case 'thursday': {
-          obj['4'] = calendar[d];
-          break;
-        }
-        case 'friday': {
-          obj['5'] = calendar[d];
-          break;
-        }
-        case 'saturday': {
-          obj['6'] = calendar[d];
-          break;
-        }
-        case 'sunday': {
-          obj['7'] = calendar[d];
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-      return obj;
-    }, {});
-};
 
 const setDefaultkey = (calendarInfo: CalendarInfoType) => {
   const { calendar, calendar_dates } = calendarInfo;
@@ -105,41 +66,22 @@ export default class CalendarList extends React.Component<CalendarListProps, Cal
       ? calendar_dates.filter(cd => cd.service_id === key)
       : undefined;
 
-    const days: string[] = [];
-    const disabledDays: string[] = [];
-    if (cal) {
-      const calNumber = calendarInNumber(cal);
-      const startDate = moment(cal.start_date, dateFormat);
-      const endDate = moment(cal.end_date, dateFormat);
-      const dateInterval = endDate.diff(startDate, 'days') + 1;
-      let day = startDate;
-      for (let d = 0; d < dateInterval; d++) {
-        days.push(day.format('YYYYMMDD'));
-        const weekday = day.isoWeekday();
-        if (calNumber[weekday] === '0') {
-          disabledDays.push(day.format('YYYYMMDD'));
-        }
-        day = day.add(1, 'days');
-      }
-    }
-    if (filtered) {
-      filtered
-        .map(calDate => {
-          days.push(calDate.date);
-          if (calDate.exception_type === '2') {
-            disabledDays.push(calDate.date);
-          }
-          return calDate;
-        })
-        .filter(calDate => calDate.exception_type === '1')
-        .forEach(enabledCalDate => {
-          if (disabledDays.includes(enabledCalDate.date)) {
-            disabledDays.filter(d => d !== enabledCalDate.date);
-          }
-        });
-    }
+    const daysFromCalendar = cal? calculateDaysFromCalendar(cal).days: [];
+    const daysFromCalendarDates = filtered? calculateDaysFromCalendarDates(filtered).days: [];
+    const disabledDaysFromCalendar = cal? calculateDaysFromCalendar(cal).disabledDays: [];
+    const disabledDaysFromCalendarDates = filtered? calculateDaysFromCalendarDates(filtered).disabledDays: [];
 
-    const enabledDays = disabledDays ? days.filter(d => !disabledDays.includes(d)) : days;
+    const days = [...new Set([...daysFromCalendar, ...daysFromCalendarDates])]
+    const disabledDays = [
+      ...new Set(
+        [
+          ...disabledDaysFromCalendar.filter(
+            (d: string) => !disabledDaysFromCalendarDates.includes(d)
+          ),
+          ...disabledDaysFromCalendarDates,
+        ])]
+    const enabledDays = days.filter( (d: string) => !disabledDays.includes(d))
+
     const selectDates = enabledDays.map(d => moment(d, dateFormat));
     const firstDay = moment.min(selectDates).format('YYYYMMDD');
     const lastDay = moment.max(selectDates).format('YYYYMMDD');
@@ -211,7 +153,7 @@ export default class CalendarList extends React.Component<CalendarListProps, Cal
           style={{ marginLeft: 0, marginRight: 0 }}
         >
           {calInfoExpand && calInfo ? (
-            <CalendarInfo onLoadedCalendar={onSelectCalendar} calInfo={calInfo} />
+            <CalendarInfo onLoadedCalendar={onSelectCalendar} calInfo={calInfo} onSelectCalendarKey={onSelectCalendarKey} />
           ) : null}
         </Row>
       </Card>
