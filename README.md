@@ -78,7 +78,7 @@ Add this config.ts in .gitignore
 Open your browser and visit http://127.0.0.1:8080
 
 ## 🐠 Preview
-![Preview](/public/preview_ergm.png)
+![Preview](../assets/preview_ergm.png?raw=true)
 
 ## 🗺️ RoadMap
 - 🏓 **Interactive mode design** to cover at least basics needs
