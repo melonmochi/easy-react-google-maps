@@ -4,7 +4,6 @@ import { GlobalContext } from 'src/components/global-context';
 import { Spin } from 'antd';
 import { Marker, handleMapEvent } from 'gm';
 import { AddMarkerToListInputType } from 'typings';
-import 'components/style';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -12,7 +11,7 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { mapProps } = state;
+  const { mapProps, gmMap, currentCenter } = state;
   const { google } = props;
 
   const { gestureHandling, gmMaptype, gmMapEvtHandlers } = mapProps;
@@ -20,7 +19,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const mapConfig: object = Object.assign(
     {},
     {
-      center: {lat: state.center[0], lng: state.center[1]},
+      center: {lat: currentCenter[0], lng: currentCenter[1]},
       gestureHandling,
       mapTypeId: gmMaptype, // optional main map layer. Terrain, satellite, hybrid or roadmap--if unspecified, defaults to roadmap.
       zoom: state.zoom, // sets zoom. Lower numbers are zoomed further out.
@@ -34,7 +33,9 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   );
 
   useEffect(() => {
-    initMap();
+    if(!gmMap) {
+      initMap();
+    }
     return () => {
       clearMap();
     };
@@ -44,13 +45,13 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
 
   const initMap = () => {
     const newMap = new google.maps.Map(gmMapRef.current, mapConfig);
-    dispatch({ type: 'SET_GM_MAP', payload: newMap });
     addMapListeners(newMap);
+    dispatch({type:'SET_GM_MAP', payload: newMap})
   };
 
   const clearMap = () => {
-    if (state.gmMap) {
-      removeMapListeners(state.gmMap);
+    if (gmMap) {
+      removeMapListeners(gmMap);
     }
   };
 
@@ -64,20 +65,20 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     google.maps.event.clearInstanceListeners(m);
   };
 
-  const Markers = (gmMap: google.maps.Map) => state.markersList.map(
-    (m: AddMarkerToListInputType) => <Marker key={m.id} id={m.id} map={gmMap} props={m.props} />
+  const Markers = (gmap: google.maps.Map) => state.markersList.map(
+    (m: AddMarkerToListInputType) => <Marker key={m.id} id={m.id} map={gmap} props={m.props} />
   )
 
   return (
-    <div className="defaultContainer">
-      <div ref={gmMapRef} className="defaultMap" />
+    <div className='defaultContainer'>
+      <div className='defaultMap' ref={gmMapRef} />
       <Spin
         tip="Loading Map..."
-        spinning={state.gmMap ? false : true}
+        spinning={gmMap ? false : true}
         size="large"
-        style={{ width: '100%', marginTop: 'auto', marginBottom: 'auto', zIndex: 11 }}
+        style={{ width: '100%', margin: 'auto', zIndex: 11 }}
       />
-      {state.gmMap? Markers(state.gmMap): null}
+      {gmMap? Markers(gmMap): null}
     </div>
   );
 };

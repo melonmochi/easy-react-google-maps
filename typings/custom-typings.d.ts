@@ -209,9 +209,9 @@ declare module 'typings' {
 
   type gmMapEvtHandlersType = { [evtName: string]: (map: google.maps.Map) => void; };
 
-  type osmMapEvtHandlersType = { [evtName: string]: (e: Event, map: L.Map) => void; };
+  type osmMapEvtHandlersType = { [evtName: string]: (map: L.Map) => void; };
 
-  type mapboxMapEvtHandlersType = { [evtName: string]: (e: Event, map: mapboxgl.Map) => void; };
+  type mapboxMapEvtHandlersType = { [evtName: string]: (map: mapboxgl.Map) => void; };
 
   type MarkersListType = Array<AddMarkerToListInputType>;
 
@@ -253,14 +253,17 @@ declare module 'typings' {
     bounds: Bounds
     center: LatLng
     currentCenter: LatLng
+    fitBounds: boolean
+    gmBounds?: google.maps.LatLngBounds
     gmMap?: google.maps.Map
     google?: typeof google
+    mapboxMap?: mapboxgl.Map
     mapCardWidth?: number
     mapProps: AllInOneMapProps,
     mapProvider: 'google' | 'osm' | 'mapbox'
-    mapboxMap?: mapboxgl.Map
     markersList: MarkersListType
     osmMap?: L.Map
+    recenterMap: boolean
     zoom: number
   }
 
@@ -270,6 +273,7 @@ declare module 'typings' {
     Action.ADD_MARKER |
     Action.ADD_MARKERS |
     Action.CHANGE_CURRENT_CENTER |
+    Action.CHANGE_GM_BOUNDS |
     Action.CHANGE_MAP_CARD_WIDTH |
     Action.CHANGE_MAP_PROVIDER |
     Action.CHANGE_MARKER_POSITION |
@@ -277,6 +281,10 @@ declare module 'typings' {
     Action.FIT_BOUNDS |
     Action.LOAD_GM_API |
     Action.LOAD_MAPS_PROPS |
+    Action.ON_FIT_BOUNDS |
+    Action.ON_RECENTER_MAP |
+    Action.RESIZE_MAPBOX_MAP |
+    Action.RESIZE_OSM_MAP |
     Action.RECENTER_MAP |
     Action.REMOVE_MARKER |
     Action.SET_DEFAULT_CENTER |
@@ -289,6 +297,7 @@ declare module 'typings' {
     export type ADD_MARKER = { type: 'ADD_MARKER', payload: AddMarkerToListInputType }
     export type ADD_MARKERS = { type: 'ADD_MARKERS', payload: MarkersListType }
     export type CHANGE_CURRENT_CENTER = { type: 'CHANGE_CURRENT_CENTER', payload: LatLng }
+    export type CHANGE_GM_BOUNDS = { type: 'CHANGE_GM_BOUNDS', payload: google.maps.LatLngBounds }
     export type CHANGE_MAP_CARD_WIDTH = { type: 'CHANGE_MAP_CARD_WIDTH', payload: number }
     export type CHANGE_MAP_PROVIDER = { type: 'CHANGE_MAP_PROVIDER', payload: MapProvider }
     export type CHANGE_MARKER_POSITION = { type: 'CHANGE_MARKER_POSITION', payload: { id: string, newPosition: LatLng } }
@@ -296,13 +305,18 @@ declare module 'typings' {
     export type FIT_BOUNDS = { type: 'FIT_BOUNDS' }
     export type LOAD_GM_API = { type: 'LOAD_GM_API', payload: typeof google }
     export type LOAD_MAPS_PROPS = { type: 'LOAD_MAPS_PROPS', payload: AllInOneMapProps }
+    export type ON_FIT_BOUNDS = { type: 'ON_FIT_BOUNDS' }
+    export type ON_RECENTER_MAP = { type: 'ON_RECENTER_MAP' }
     export type RECENTER_MAP = { type: 'RECENTER_MAP' }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
+    export type RESIZE_MAPBOX_MAP= { type: 'RESIZE_MAPBOX_MAP' }
+    export type RESIZE_OSM_MAP= { type: 'RESIZE_OSM_MAP' }
     export type SET_DEFAULT_CENTER= { type: 'SET_DEFAULT_CENTER', payload: LatLng }
     export type SET_DEFAULT_ZOOM = { type: 'SET_DEFAULT_ZOOM', payload: number }
     export type SET_GM_MAP = { type: 'SET_GM_MAP', payload: google.maps.Map }
     export type SET_MAPBOX_MAP = { type: 'SET_MAPBOX_MAP', payload: mapboxgl.Map }
-    export type SET_OSM_MAP= { type: 'SET_OSM_MAP', payload: L.Map }
+    export type SET_OSM_MAP = { type: 'SET_OSM_MAP', payload: L.Map }
+
   }
 }
 

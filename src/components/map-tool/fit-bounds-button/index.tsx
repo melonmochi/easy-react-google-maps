@@ -5,7 +5,7 @@ import { GlobalContext } from 'src/components/global-context';
 export const FitBoundsButton: React.FunctionComponent = () => {
   const { dispatch } = React.useContext(GlobalContext)
   const handleClick = () => {
-    dispatch({type:'FIT_BOUNDS'})
+      dispatch({type:'FIT_BOUNDS' })
   };
 
   return (

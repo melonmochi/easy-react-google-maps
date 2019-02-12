@@ -1,1 +1,1 @@
-import './index.less'
+import './default-map-style'

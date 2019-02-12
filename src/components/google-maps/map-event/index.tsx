@@ -3,6 +3,8 @@ import { gmMapEvtHandlersType, GlobalContextDispatch, LatLng } from 'typings'
 
 const defaultMapEventHandler = (evtName: string, dispatch: GlobalContextDispatch, map: google.maps.Map) => {
   switch (evtName) {
+    case 'onBounds_changed':
+      break;
     case 'onClick':
       break;
     case 'onDblclick':

@@ -1,19 +1,19 @@
 import React, { FunctionComponent, useEffect, useContext, useRef } from 'react'
-import { GlobalContext } from 'src/components/global-context';
+import { GlobalContext } from 'components';
 import { mapboxConfig } from 'config'
 import mapboxgl from 'mapbox-gl'
-import 'components/style'
-import 'mapbox-gl/src/css/mapbox-gl.css'
 import { Spin } from 'antd';
 import { AddMarkerToListInputType } from 'typings';
-import { Marker } from 'mapbox';
+import { Marker, handleMapEvent } from 'mapbox';
+import { mapboxMapEvents } from 'utils';
+import 'mapbox-gl/src/css/mapbox-gl.css';
+import 'components/style'
 
 export const MapboxMap: FunctionComponent = () => {
-
   const { state, dispatch } = useContext(GlobalContext)
-  const { markersList, mapProps, mapboxMap, mapCardWidth, mapProvider, zoom } = state
+  const { mapboxMap, markersList, mapProps, mapCardWidth, mapProvider } = state
 
-  const { mapboxToken,  mapboxStyle } = mapProps
+  const { mapboxToken,  mapboxStyle, mapboxMapEvtHandlers } = mapProps
 
   mapboxgl.accessToken = mapboxToken? mapboxToken: mapboxConfig.token
 
@@ -21,18 +21,16 @@ export const MapboxMap: FunctionComponent = () => {
     if(!mapboxMap){
       initMap();
     } else {
-      if(mapboxMap.getZoom() !== zoom) {
-        mapboxMap.setZoom(zoom)
-      }
-      mapboxMap.resize()
+      dispatch({type:'RESIZE_MAPBOX_MAP'})
     }
-  }, [mapCardWidth, mapProvider, markersList, zoom])
+    return clearMap
+  }, [ mapProvider, mapCardWidth ])
 
   const mapConfig: object = Object.assign(
     {},
     {
-      center: new mapboxgl.LngLat(state.center[1], state.center[0]),
-      zoom: state.zoom,
+      center: new mapboxgl.LngLat(state.currentCenter[1], state.currentCenter[0]),
+      zoom: state.zoom - 1,
       style: mapboxStyle ? mapboxStyle : 'mapbox://styles/mapbox/streets-v9',
     }
   );
@@ -46,11 +44,30 @@ export const MapboxMap: FunctionComponent = () => {
         ...mapConfig,
       })
       dispatch({type: 'SET_MAPBOX_MAP', payload: newMap})
+      addMapListeners(newMap)
     }
   }
 
-  const Markers = (map: mapboxgl.Map) => markersList.map(
-    (m: AddMarkerToListInputType) => <Marker key={m.id} map={map} {...m.props} />
+  const addMapListeners = (m: mapboxgl.Map) => {
+    mapboxMapEvents.forEach(e => {
+      m.on(e, handleMapEvent(m, e, dispatch, mapboxMapEvtHandlers));
+    });
+  };
+
+  const clearMap = () => {
+    if(mapboxMap) {
+      removeMapListeners(mapboxMap)
+    }
+  };
+
+  const removeMapListeners = (m: mapboxgl.Map) => {
+    mapboxMapEvents.forEach(e => {
+      m.off(e, handleMapEvent(m, e, dispatch, mapboxMapEvtHandlers))
+    })
+  };
+
+  const Markers = (mmap: mapboxgl.Map) => markersList.map(
+    (m: AddMarkerToListInputType) => <Marker key={m.id} map={mmap} {...m.props} />
   )
 
   return (
@@ -58,9 +75,9 @@ export const MapboxMap: FunctionComponent = () => {
       <div className='defaultMap' ref={mapboxMapRef} />
       <Spin
         tip="Loading Map..."
-        spinning={false}
+        spinning={!mapboxMap}
         size="large"
-        style={{ width: "auto", marginTop: "auto", marginBottom: "auto", zIndex: 11 }}
+        style={{ width: "auto", margin: "auto", zIndex: 11 }}
       />
       {mapboxMap ? Markers(mapboxMap) : null}
     </div>

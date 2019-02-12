@@ -60,6 +60,28 @@ export const gmMapEvents = [
   'zoom_changed',
 ];
 
+export const osmMapEvents = [
+  'click',
+  'contextmenu',
+  'dblclick',
+  'mousemove',
+  'mouseout',
+  'mouseover',
+  'moveend',
+  'zoomend',
+];
+
+export const mapboxMapEvents = [
+  'click',
+  'contextmenu',
+  'dblclick',
+  'mousemove',
+  'mouseout',
+  'mouseover',
+  'moveend',
+  'zoomend',
+];
+
 export const MarkerEvents = [
   'click',
   'dblclick',
@@ -88,6 +110,10 @@ export { childrenMarkerToObject } from './children-marker-to-object'
 
 export { CheckboxWithLabel } from './checkbox-with-label'
 
+export { reducers } from './reducers'
+
+export { calculateBounds } from './calculate-bounds'
+
 export { extendBounds } from './extend-bounds'
 
-export { reducers } from './reducers'
+export { boundsToGmbounds } from './bounds-to-gmbounds'
