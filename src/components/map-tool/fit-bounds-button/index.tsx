@@ -3,9 +3,9 @@ import { Button, Tooltip } from 'antd';
 import { GlobalContext } from 'src/components/global-context';
 
 export const FitBoundsButton: React.FunctionComponent = () => {
-  const { dispatch } = React.useContext(GlobalContext)
+  const { dispatch } = React.useContext(GlobalContext);
   const handleClick = () => {
-      dispatch({type:'FIT_BOUNDS' })
+    dispatch({ type: 'FIT_BOUNDS' });
   };
 
   return (
@@ -13,4 +13,4 @@ export const FitBoundsButton: React.FunctionComponent = () => {
       <Button onClick={handleClick} style={{ margin: '12px 12px' }} icon="arrows-alt" />
     </Tooltip>
   );
-}
+};

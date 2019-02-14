@@ -3,10 +3,10 @@ import { Button, Tooltip } from 'antd';
 import { GlobalContext } from 'src/components/global-context';
 
 export const RecenterButton: React.FunctionComponent = () => {
-  const { dispatch } = React.useContext(GlobalContext)
+  const { dispatch } = React.useContext(GlobalContext);
 
   const handleClick = () => {
-    dispatch({type: 'RECENTER_MAP'})
+    dispatch({ type: 'RECENTER_MAP' });
   };
 
   return (
@@ -14,4 +14,4 @@ export const RecenterButton: React.FunctionComponent = () => {
       <Button onClick={handleClick} style={{ margin: '12px 12px' }} icon="undo" />
     </Tooltip>
   );
-}
+};

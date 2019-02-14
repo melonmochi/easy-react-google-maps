@@ -1,17 +1,9 @@
 import React from 'react';
 import { Stop } from 'typings';
-import {
-  Avatar,
-  Card,
-  List,
-  Tag
-} from 'antd';
-import {
-  List as VList, ListRowProps,
-  AutoSizer
-} from 'react-virtualized';
-import { stringToColour } from 'utils'
-import './style'
+import { Avatar, Card, List, Tag } from 'antd';
+import { List as VList, ListRowProps, AutoSizer } from 'react-virtualized';
+import { stringToColour } from 'utils';
+import './style';
 
 interface StopsListProps {
   onLoadedStopsList: Stop[];
@@ -19,14 +11,13 @@ interface StopsListProps {
 }
 
 interface StopsListState {
-  onSelectedStopKey?: string,
+  onSelectedStopKey?: string;
 }
 
 export default class StopsList extends React.PureComponent<StopsListProps, StopsListState> {
-
   state = {
     onSelectedStopKey: undefined,
-  }
+  };
 
   handleOnCheck = (keys: string[]) => {
     const { onLoadedStopsList, onCheckStops } = this.props;
@@ -37,11 +28,11 @@ export default class StopsList extends React.PureComponent<StopsListProps, Stops
   handleOnClickListItem = (_e: any, key: string) => {
     this.setState({
       onSelectedStopKey: key,
-    })
-  }
+    });
+  };
 
   rowRenderer = (props: ListRowProps) => {
-    const { onSelectedStopKey } = this.state
+    const { onSelectedStopKey } = this.state;
     const { onLoadedStopsList } = this.props;
     const stopItem = onLoadedStopsList[props.index];
     const stopFirstChar = stopItem.stop_name.substring(0, 3);
@@ -51,23 +42,19 @@ export default class StopsList extends React.PureComponent<StopsListProps, Stops
         {stopFirstChar}
       </Avatar>
     );
-    const itemClassName = props.key === onSelectedStopKey? 'listItemSelected': 'listItem'
+    const itemClassName = props.key === onSelectedStopKey ? 'listItemSelected' : 'listItem';
     return (
       <List.Item
         key={props.key}
         className={itemClassName}
-        onClick={(e) => this.handleOnClickListItem(e, props.key)}
-        extra={<div className='listItemExtra' />}
-        style={{ ...props.style, padding: 0}}
-        actions={[<a key='edit'>edit</a>, <a key='more'>more</a>]}
+        onClick={e => this.handleOnClickListItem(e, props.key)}
+        extra={<div className="listItemExtra" />}
+        style={{ ...props.style, padding: 0 }}
+        actions={[<a key="edit">edit</a>, <a key="more">more</a>]}
       >
         <List.Item.Meta
           avatar={randomavatar}
-          title={
-            <a className='listItemMetaTitle'>
-              {stopItem.stop_name}
-            </a>
-          }
+          title={<a className="listItemMetaTitle">{stopItem.stop_name}</a>}
           description={
             <span>
               <Tag>{stopItem.stop_id}</Tag>
@@ -76,8 +63,8 @@ export default class StopsList extends React.PureComponent<StopsListProps, Stops
           }
         />
       </List.Item>
-    )
-  }
+    );
+  };
 
   render() {
     /*const defaultCheckedKeys = this.props.onLoadedStopsList.map( (stop: Stop) => {
@@ -85,11 +72,11 @@ export default class StopsList extends React.PureComponent<StopsListProps, Stops
     });*/
 
     const { onLoadedStopsList } = this.props;
-    const { onSelectedStopKey } = this.state
+    const { onSelectedStopKey } = this.state;
 
     const autoSize = (
       <AutoSizer>
-        {({ height, width }: { height: number, width: number }) => (
+        {({ height, width }: { height: number; width: number }) => (
           <VList
             // autoHeight
             height={height}
@@ -103,11 +90,10 @@ export default class StopsList extends React.PureComponent<StopsListProps, Stops
       </AutoSizer>
     );
 
-    return <Card
-      style={{ height: '100%' }}
-      bodyStyle={{ height: '100%', padding: 8, paddingRight: 0 }}
-    >
-      {autoSize}
-    </Card>
+    return (
+      <Card style={{ height: '100%' }} bodyStyle={{ height: '100%', padding: 8, paddingRight: 0 }}>
+        {autoSize}
+      </Card>
+    );
   }
 }

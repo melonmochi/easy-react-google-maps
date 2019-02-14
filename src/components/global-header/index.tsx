@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from 'react';
-import logo from 'src/assets/logo.svg'
-import './style'
+import logo from 'src/assets/logo.svg';
+import './style';
 
 export const GlobalHeader: FunctionComponent = () => {
   return (
@@ -13,4 +13,4 @@ export const GlobalHeader: FunctionComponent = () => {
       </nav>
     </div>
   );
-}
+};

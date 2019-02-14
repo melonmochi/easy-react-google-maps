@@ -1,22 +1,21 @@
 import React, { FunctionComponent, useState, useEffect, useContext } from 'react';
-import { labelInTwoString } from './label-in-two-string'
+import { labelInTwoString } from './label-in-two-string';
 import { MarkerEvents, camelCase } from 'utils';
-import { AllInOneMarkerProps, MarkerEvtHandlersType, MarkerEvtNameType } from 'typings'
+import { AllInOneMarkerProps, MarkerEvtHandlersType, MarkerEvtNameType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 
 interface GmMarkerProps {
-  map: google.maps.Map
-  id: string
-  props: AllInOneMarkerProps
+  map: google.maps.Map;
+  id: string;
+  props: AllInOneMarkerProps;
 }
 
-export const Marker: FunctionComponent<GmMarkerProps> = (props) => {
+export const Marker: FunctionComponent<GmMarkerProps> = props => {
+  const { map, id, props: mProps } = props;
 
-  const { map, id, props:mProps } = props
+  const { title, position, label, withLabel, draggable, animation, markerEvtHandlers } = mProps;
 
-  const { title, position, label, withLabel, draggable, animation, markerEvtHandlers } = mProps
-
-  const gmlabel = label ? labelInTwoString(label) : labelInTwoString(title)
+  const gmlabel = label ? labelInTwoString(label) : labelInTwoString(title);
 
   const markerOpt = {
     map,
@@ -24,45 +23,49 @@ export const Marker: FunctionComponent<GmMarkerProps> = (props) => {
     position: new google.maps.LatLng(position[0], position[1]),
     label: withLabel ? gmlabel : undefined,
     draggable,
-    animation: animation? google.maps.Animation[animation]: undefined,
+    animation: animation ? google.maps.Animation[animation] : undefined,
   };
 
-  const { dispatch } = useContext(GlobalContext)
+  const { dispatch } = useContext(GlobalContext);
 
-  const [marker, setMarker] = useState<google.maps.Marker | undefined>(undefined)
+  const [marker, setMarker] = useState<google.maps.Marker | undefined>(undefined);
 
   useEffect(() => {
-    renderMarker()
+    renderMarker();
     return () => {
-      clearMarker()
-    }
-  }, [props])
+      clearMarker();
+    };
+  }, [props]);
 
   const renderMarker = () => {
     const newMarker = new google.maps.Marker(markerOpt);
-    setMarker(newMarker)
+    setMarker(newMarker);
     addMarkerListeners(newMarker);
-  }
+  };
 
   const addMarkerListeners = (mar: google.maps.Marker) => {
     MarkerEvents.forEach(e => {
       mar.addListener(e, handleMarkerEvent(mar, e, markerEvtHandlers));
     });
-  }
+  };
 
   const clearMarker = () => {
     if (marker) {
       marker.setMap(null);
     }
-  }
+  };
 
-  const handleMarkerEvent = (m: google.maps.Marker, evt: string, marEvtHnds?: MarkerEvtHandlersType) => {
+  const handleMarkerEvent = (
+    m: google.maps.Marker,
+    evt: string,
+    marEvtHnds?: MarkerEvtHandlersType
+  ) => {
     return () => {
       const evtName = `on${camelCase(evt)}` as MarkerEvtNameType;
       if (marEvtHnds) {
-        const customMarkerEvtHnd = marEvtHnds[evtName]
-        if(customMarkerEvtHnd) {
-          customMarkerEvtHnd(m)
+        const customMarkerEvtHnd = marEvtHnds[evtName];
+        if (customMarkerEvtHnd) {
+          customMarkerEvtHnd(m);
         } else {
           defaultMarkerEvtHnds(evtName, m);
         }
@@ -72,10 +75,7 @@ export const Marker: FunctionComponent<GmMarkerProps> = (props) => {
     };
   };
 
-  const defaultMarkerEvtHnds = (
-    evtName: string,
-    m: google.maps.Marker
-  ) => {
+  const defaultMarkerEvtHnds = (evtName: string, m: google.maps.Marker) => {
     switch (evtName) {
       case 'onClick':
         break;
@@ -86,25 +86,22 @@ export const Marker: FunctionComponent<GmMarkerProps> = (props) => {
       case 'onDrag':
         break;
       case 'onDragstart':
-        clearMarker()
+        clearMarker();
         break;
       case 'onDragend':
         dispatch({
           type: 'CHANGE_MARKER_POSITION',
           payload: {
             id: id,
-            newPosition: [
-              m.getPosition().lat(),
-              m.getPosition().lng(),
-            ],
+            newPosition: [m.getPosition().lat(), m.getPosition().lng()],
           },
-        })
+        });
         break;
       default:
         break;
       // throw new Error('No corresponding event')
     }
-  }
+  };
 
   const renderChildren = () => {
     const { children } = props;
@@ -121,6 +118,6 @@ export const Marker: FunctionComponent<GmMarkerProps> = (props) => {
         marker,
       });
     });
-  }
+  };
   return <div>{marker ? renderChildren() : null}</div>;
-}
+};

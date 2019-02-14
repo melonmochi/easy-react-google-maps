@@ -1,19 +1,17 @@
-import React, { FunctionComponent,
-  useState } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 import { Layout, Menu, Icon } from 'antd';
-const { Sider } = Layout
+const { Sider } = Layout;
 import './style';
 import { MapTool } from 'components';
 
 const SubMenu = Menu.SubMenu;
 
 export const EasySideBar: FunctionComponent = () => {
-
-  const [ collapse, onCollapse ] = useState(false)
+  const [collapse, onCollapse] = useState(false);
 
   return (
     <Sider
-      theme='light'
+      theme="light"
       className="sideBar"
       collapsible
       collapsed={collapse}

@@ -1,4 +1,3 @@
-
 export const labelInTwoString = (label: string) => {
   const splitedLabel = label.split(' ');
   switch (splitedLabel.length) {
@@ -9,4 +8,4 @@ export const labelInTwoString = (label: string) => {
       return splitedLabel[0].charAt(0) + splitedLabel[1].charAt(0);
       break;
   }
-}
+};

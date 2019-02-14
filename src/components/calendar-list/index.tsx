@@ -66,21 +66,23 @@ export default class CalendarList extends React.Component<CalendarListProps, Cal
       ? calendar_dates.filter(cd => cd.service_id === key)
       : undefined;
 
-    const daysFromCalendar = cal? calculateDaysFromCalendar(cal).days: [];
-    const daysFromCalendarDates = filtered? calculateDaysFromCalendarDates(filtered).days: [];
-    const disabledDaysFromCalendar = cal? calculateDaysFromCalendar(cal).disabledDays: [];
-    const disabledDaysFromCalendarDates = filtered? calculateDaysFromCalendarDates(filtered).disabledDays: [];
+    const daysFromCalendar = cal ? calculateDaysFromCalendar(cal).days : [];
+    const daysFromCalendarDates = filtered ? calculateDaysFromCalendarDates(filtered).days : [];
+    const disabledDaysFromCalendar = cal ? calculateDaysFromCalendar(cal).disabledDays : [];
+    const disabledDaysFromCalendarDates = filtered
+      ? calculateDaysFromCalendarDates(filtered).disabledDays
+      : [];
 
-    const days = [...new Set([...daysFromCalendar, ...daysFromCalendarDates])]
+    const days = [...new Set([...daysFromCalendar, ...daysFromCalendarDates])];
     const disabledDays = [
-      ...new Set(
-        [
-          ...disabledDaysFromCalendar.filter(
-            (d: string) => !disabledDaysFromCalendarDates.includes(d)
-          ),
-          ...disabledDaysFromCalendarDates,
-        ])]
-    const enabledDays = days.filter( (d: string) => !disabledDays.includes(d))
+      ...new Set([
+        ...disabledDaysFromCalendar.filter(
+          (d: string) => !disabledDaysFromCalendarDates.includes(d)
+        ),
+        ...disabledDaysFromCalendarDates,
+      ]),
+    ];
+    const enabledDays = days.filter((d: string) => !disabledDays.includes(d));
 
     const selectDates = enabledDays.map(d => moment(d, dateFormat));
     const firstDay = moment.min(selectDates).format('YYYYMMDD');
@@ -153,7 +155,11 @@ export default class CalendarList extends React.Component<CalendarListProps, Cal
           style={{ marginLeft: 0, marginRight: 0 }}
         >
           {calInfoExpand && calInfo ? (
-            <CalendarInfo onLoadedCalendar={onSelectCalendar} calInfo={calInfo} onSelectCalendarKey={onSelectCalendarKey} />
+            <CalendarInfo
+              onLoadedCalendar={onSelectCalendar}
+              calInfo={calInfo}
+              onSelectCalendarKey={onSelectCalendarKey}
+            />
           ) : null}
         </Row>
       </Card>

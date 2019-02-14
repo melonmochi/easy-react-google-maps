@@ -1,3 +1,5 @@
+import { LatLng } from 'typings';
+
 export function camelCase(name: string) {
   return (
     name.charAt(0).toUpperCase() +
@@ -17,11 +19,14 @@ export const stringToColour = (str: string) => {
   let colour = '#';
   for (let i = 0; i < 3; i++) {
     // tslint:disable-next-line:no-bitwise
-    const value = (hash >> (i * 8)) & 0xFF;
+    const value = (hash >> (i * 8)) & 0xff;
     colour += ('00' + value.toString(16)).substr(-2);
   }
   return colour;
-}
+};
+
+export const defaultPosition: LatLng = [40.416778, -3.703778];
+export const defaultZoom: number = 14;
 
 export const GTFSFileNamesArray = [
   'agency',
@@ -60,6 +65,10 @@ export const gmMapEvents = [
   'zoom_changed',
 ];
 
+export const gmMapEventsNew = ['idle'];
+
+export const osmMapEventsNew = ['moveend'];
+
 export const osmMapEvents = [
   'click',
   'contextmenu',
@@ -70,6 +79,8 @@ export const osmMapEvents = [
   'moveend',
   'zoomend',
 ];
+
+export const mapboxMapEventsNew = ['moveend'];
 
 export const mapboxMapEvents = [
   'click',
@@ -96,24 +107,39 @@ export const MarkerEvents = [
   'rightclick',
 ];
 
-export const weekDay = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+export const weekDay = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+];
 
-export const dateFormat = 'YYYYMMDD'
+export const dateFormat = 'YYYYMMDD';
 
-export { googleMapsURLStringify } from './google-maps-url-stringify'
+export { googleMapsURLStringify } from './google-maps-url-stringify';
 
-export { googleMapsScriptLoader } from './google-maps-script-loader'
+export { googleMapsScriptLoader } from './google-maps-script-loader';
 
-export { googleMapsApiLoader } from './google-maps-api-loader'
+export { googleMapsApiLoader } from './google-maps-api-loader';
 
-export { childrenMarkerToObject } from './children-marker-to-object'
+export { childrenMarkerToObject } from './children-marker-to-object';
 
-export { CheckboxWithLabel } from './checkbox-with-label'
+export { CheckboxWithLabel } from './checkbox-with-label';
 
-export { reducers } from './reducers'
+export { reducers } from './reducers';
 
-export { calculateBounds } from './calculate-bounds'
+export { calculateBounds } from './calculate-bounds';
 
-export { extendBounds } from './extend-bounds'
+export { extendBounds } from './extend-bounds';
 
-export { boundsToGmbounds } from './bounds-to-gmbounds'
+export {
+  boundsToGmbounds,
+  gmBoundsToBounds,
+  boundsToOSMBounds,
+  OSMBoundsToBounds,
+  boundsToMapboxBounds,
+  mapboxBoundsToBounds,
+} from './bounds-converter';

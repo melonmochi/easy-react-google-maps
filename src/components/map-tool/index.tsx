@@ -9,5 +9,5 @@ export const MapTool: React.FunctionComponent = () => {
       <RecenterButton />
       <FitBoundsButton />
     </Card>
-  )
-}
+  );
+};

@@ -1,9 +1,7 @@
-import { GoogleMapsLoaderInputProps } from 'typings'
+import { GoogleMapsLoaderInputProps } from 'typings';
 
 export const googleMapsURLStringify = (loaderInput: GoogleMapsLoaderInputProps) => {
-  if (
-    !loaderInput.apiKey && loaderInput.clientID
-  ) {
+  if (!loaderInput.apiKey && loaderInput.clientID) {
     throw new Error('You must pass an apiKey or an clientID to use GoogleApi');
   }
 

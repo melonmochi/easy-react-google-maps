@@ -1,5 +1,5 @@
 import { Calendar } from 'typings';
-import { weekDay, dateFormat } from 'utils'
+import { weekDay, dateFormat } from 'utils';
 import moment from 'moment';
 import { extendMoment } from 'moment-range';
 
@@ -44,22 +44,20 @@ const calendarInNumber = (calendar: Calendar) => {
       }
       return obj;
     }, {});
-  }
+};
 
 export const calculateDaysFromCalendar = (calendar: Calendar) => {
   const calNumber = calendarInNumber(calendar);
   const startDate = moment(calendar.start_date, dateFormat);
   const endDate = moment(calendar.end_date, dateFormat);
   const daysArray = Array.from(Moment.range(startDate, endDate).by('days'));
-  const disabledDays = [] as string[]
-  const days = daysArray.map(
-    (d: moment.Moment) => {
-      const isDisabled = calNumber[d.isoWeekday()] === '0'
-      if(isDisabled) {
-        disabledDays.push(d.format('YYYYMMDD'))
-      }
-      return d.format('YYYYMMDD')
+  const disabledDays = [] as string[];
+  const days = daysArray.map((d: moment.Moment) => {
+    const isDisabled = calNumber[d.isoWeekday()] === '0';
+    if (isDisabled) {
+      disabledDays.push(d.format('YYYYMMDD'));
     }
-  )
-  return {days: days, disabledDays: disabledDays}
-}
+    return d.format('YYYYMMDD');
+  });
+  return { days: days, disabledDays: disabledDays };
+};

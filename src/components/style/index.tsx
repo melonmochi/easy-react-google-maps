@@ -1,1 +1,1 @@
-import './default-map-style'
+import './default-map-style';

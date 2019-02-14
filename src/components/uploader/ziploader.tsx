@@ -1,8 +1,8 @@
 import JSZip from 'jszip';
 
-import { DecompressedGTFSFile, UploadFile } from 'typings'
+import { DecompressedGTFSFile, UploadFile } from 'typings';
 
-import { GTFSFileNamesArray } from 'utils'
+import { GTFSFileNamesArray } from 'utils';
 
 export type FileList = Array<UploadFile>;
 
@@ -70,6 +70,6 @@ export const zipLoader = async (uploadList: FileList) => {
     });
     return await newFilePromise;
   });
-  const uploadPromisesArray = await Promise.all(uploadPromises)
+  const uploadPromisesArray = await Promise.all(uploadPromises);
   return uploadPromisesArray;
 };

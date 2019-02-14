@@ -1,9 +1,11 @@
-import React, { FunctionComponent, useEffect, useContext, useRef } from 'react';
-import { gmMapEvents } from 'utils';
+import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
+import { gmMapEventsNew, boundsToGmbounds } from 'utils';
 import { GlobalContext } from 'src/components/global-context';
 import { Spin } from 'antd';
 import { Marker, handleMapEvent } from 'gm';
-import { AddMarkerToListInputType } from 'typings';
+import { AddMarkerToListInputType, Bounds } from 'typings';
+import { fromEventPattern, merge, of } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -11,7 +13,7 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { mapProps, gmMap, currentCenter } = state;
+  const { mapProps, mapView, mapProvider, fitBounds, markersBounds } = state;
   const { google } = props;
 
   const { gestureHandling, gmMaptype, gmMapEvtHandlers } = mapProps;
@@ -19,10 +21,10 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const mapConfig: object = Object.assign(
     {},
     {
-      center: {lat: currentCenter[0], lng: currentCenter[1]},
+      center: { lat: mapView.center[0], lng: mapView.center[1] },
       gestureHandling,
       mapTypeId: gmMaptype, // optional main map layer. Terrain, satellite, hybrid or roadmap--if unspecified, defaults to roadmap.
-      zoom: state.zoom, // sets zoom. Lower numbers are zoomed further out.
+      zoom: mapView.zoom, // sets zoom. Lower numbers are zoomed further out.
       mapTypeControlOptions: {
         position: google.maps.ControlPosition.TOP_RIGHT,
       },
@@ -32,53 +34,65 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     }
   );
 
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
   useEffect(() => {
-    if(!gmMap) {
-      initMap();
+    if (mapProvider === 'google') {
+      if (!map) {
+        initMap();
+      } else {
+        map.setOptions({
+          center: new google.maps.LatLng(mapView.center[0], mapView.center[1]),
+          zoom: mapView.zoom,
+        });
+      }
     }
-    return () => {
-      clearMap();
-    };
-  }, []);
+  }, [mapProvider]);
 
   const gmMapRef = useRef<HTMLDivElement>(null);
 
   const initMap = () => {
     const newMap = new google.maps.Map(gmMapRef.current, mapConfig);
-    addMapListeners(newMap);
-    dispatch({type:'SET_GM_MAP', payload: newMap})
+    setEventStream(newMap);
+    setMap(newMap);
   };
 
-  const clearMap = () => {
-    if (gmMap) {
-      removeMapListeners(gmMap);
-    }
+  const setEventStream = (m: google.maps.Map) => {
+    const events$ = gmMapEventsNew.map(e => ({
+      e: e,
+      e$: fromEventPattern(
+        handler => m.addListener(e, handler),
+        (_handler, listener) => google.maps.event.removeListener(listener)
+      ),
+    }));
+    merge(events$.map(s => s.e$.subscribe(handleMapEvent(m, s.e, dispatch, gmMapEvtHandlers))));
   };
 
-  const addMapListeners = (m: google.maps.Map) => {
-    gmMapEvents.forEach(e => {
-      m.addListener(e, handleMapEvent(m, e, dispatch, gmMapEvtHandlers));
-    });
+  const fitGmBounds = (m: google.maps.Map, mb: Bounds) => {
+    const gmBounds = boundsToGmbounds(mb);
+    m.fitBounds(gmBounds);
+    dispatch({ type: 'ON_FIT_BOUNDS' });
   };
 
-  const removeMapListeners = (m: google.maps.Map) => {
-    google.maps.event.clearInstanceListeners(m);
-  };
+  of(fitBounds)
+    .pipe(filter(() => fitBounds && mapProvider === 'google'))
+    .subscribe(() => (markersBounds && map ? fitGmBounds(map, markersBounds) : {}));
 
-  const Markers = (gmap: google.maps.Map) => state.markersList.map(
-    (m: AddMarkerToListInputType) => <Marker key={m.id} id={m.id} map={gmap} props={m.props} />
-  )
+  const Markers = (gmap: google.maps.Map) =>
+    state.markersList.map((m: AddMarkerToListInputType) => (
+      <Marker key={m.id} id={m.id} map={gmap} props={m.props} />
+    ));
 
   return (
-    <div className='defaultContainer'>
-      <div className='defaultMap' ref={gmMapRef} />
+    <div className="defaultContainer">
+      <div className="defaultMap" ref={gmMapRef} />
       <Spin
         tip="Loading Map..."
-        spinning={gmMap ? false : true}
+        spinning={map ? false : true}
         size="large"
-        style={{ width: '100%', margin: 'auto', zIndex: 11 }}
+        style={{ width: 0, margin: 'auto', zIndex: 11 }}
       />
-      {gmMap? Markers(gmMap): null}
+      {map ? Markers(map) : null}
     </div>
   );
 };

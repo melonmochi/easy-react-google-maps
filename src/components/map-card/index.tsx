@@ -2,7 +2,7 @@ import React, { FunctionComponent, useContext } from 'react';
 import { Card } from 'antd';
 import ResizeDetector from 'react-resize-detector';
 import { GlobalContext } from '../global-context';
-import './style'
+import './style';
 
 const MapOptionsList = [
   {
@@ -19,9 +19,8 @@ const MapOptionsList = [
   },
 ];
 
-export const MapCard: FunctionComponent = (props) => {
-
-  const { state, dispatch } = useContext(GlobalContext)
+export const MapCard: FunctionComponent = props => {
+  const { state, dispatch } = useContext(GlobalContext);
 
   const renderChildren = () => {
     const { children } = props;
@@ -38,25 +37,27 @@ export const MapCard: FunctionComponent = (props) => {
         mapProvider: state.mapProvider,
       });
     });
-  }
+  };
 
   const onResize = (w: number) => {
-    dispatch({ type: 'CHANGE_MAP_CARD_WIDTH', payload: w })
-  }
+    dispatch({ type: 'CHANGE_MAP_CARD_WIDTH', payload: w });
+  };
 
   const onTabChange = (mp: typeof state['mapProvider']) => {
-    dispatch({ type: 'CHANGE_MAP_PROVIDER', payload: mp })
-  }
+    dispatch({ type: 'CHANGE_MAP_PROVIDER', payload: mp });
+  };
 
-  return <Card
-    className='mapCard'
-    tabList={MapOptionsList}
-    activeTabKey={state.mapProvider}
-    onTabChange={onTabChange}
-    bordered={false}
-    bodyStyle= {{ padding: '0', marginTop: '1px' }}
-  >
-    <ResizeDetector handleWidth onResize={onResize} />
-    {renderChildren()}
-  </Card>
+  return (
+    <Card
+      className="mapCard"
+      tabList={MapOptionsList}
+      activeTabKey={state.mapProvider}
+      onTabChange={onTabChange}
+      bordered={false}
+      bodyStyle={{ padding: '0', marginTop: '1px' }}
+    >
+      <ResizeDetector handleWidth onResize={onResize} />
+      {renderChildren()}
+    </Card>
+  );
 };

@@ -1,5 +1,5 @@
 import { camelCase } from 'utils';
-import { GlobalContextDispatch, LatLng, osmMapEvtHandlersType } from 'typings'
+import { GlobalContextDispatch, LatLng, osmMapEvtHandlersType } from 'typings';
 
 const defaultMapEventHandler = (evtName: string, dispatch: GlobalContextDispatch, map: L.Map) => {
   switch (evtName) {
@@ -7,30 +7,33 @@ const defaultMapEventHandler = (evtName: string, dispatch: GlobalContextDispatch
       break;
     case 'onDblclick':
       break;
-    case 'onMousemove':
-      break;
-    case 'onMouseout':
-      break;
-    case 'onMouseover':
-      break;
     case 'onMoveend':
-      const center = map.getCenter()
-      const newCenter: LatLng = [center.lat, center.lng]
-      dispatch({ type: 'CHANGE_CURRENT_CENTER', payload: newCenter  })
+      const newCenter = [map.getCenter().lat, map.getCenter().lng] as LatLng;
+      const newZoom = map.getZoom();
+      dispatch({
+        type: 'SET_VIEW',
+        payload: {
+          center: newCenter,
+          zoom: newZoom,
+        },
+      });
       break;
     case 'onContextmenu':
       break;
-    case 'onZoomend':
-      dispatch({ type: 'CHANGE_ZOOM', payload: map.getZoom() })
-      break;
     default:
-    // throw new Error('No corresponding event')
+      // throw new Error('No corresponding event')
       break;
   }
-}
+};
 
-export const handleMapEvent = (m: L.Map, evt: string, dispatch: GlobalContextDispatch, osmMapEvtHandlers?: osmMapEvtHandlersType) => {
+export const handleMapEvent = (
+  m: L.Map,
+  evt: string,
+  dispatch: GlobalContextDispatch,
+  osmMapEvtHandlers?: osmMapEvtHandlersType
+) => {
   return () => {
+    console.log('im doing osm evt handle');
     const evtName = `on${camelCase(evt)}`;
     if (osmMapEvtHandlers && osmMapEvtHandlers[evtName]) {
       osmMapEvtHandlers[evtName](m);
@@ -38,4 +41,4 @@ export const handleMapEvent = (m: L.Map, evt: string, dispatch: GlobalContextDis
       defaultMapEventHandler(evtName, dispatch, m);
     }
   };
-}
+};

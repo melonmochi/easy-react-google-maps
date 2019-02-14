@@ -15,9 +15,7 @@ export const EasyLayout: FunctionComponent = props => {
         <Content className="content">
           <Layout className="contentLayout">
             <Content className="mainColumn">
-              <MapCard>
-                {props.children}
-              </MapCard>
+              <MapCard>{props.children}</MapCard>
             </Content>
             <SideBar />
           </Layout>

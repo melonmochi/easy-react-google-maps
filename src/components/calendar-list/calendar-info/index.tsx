@@ -3,7 +3,7 @@ import { Card, DatePicker, Tag, Tooltip } from 'antd';
 import { Calendar } from 'typings';
 import moment from 'moment';
 import { camelCase } from 'utils';
-import './style'
+import './style';
 
 interface CalendarInfoProps {
   onLoadedCalendar?: Calendar;
@@ -19,7 +19,7 @@ interface CalendarInfoProps {
 
 const weekDay = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const dateFormat = 'YYYYMMDD';
-const { RangePicker } = DatePicker
+const { RangePicker } = DatePicker;
 
 const isSelectDate = (date: moment.Moment, disableDays: string[]) => {
   const dateString = date.format('YYYYMMDD');
@@ -63,9 +63,7 @@ export default class CalendarInfo extends React.Component<CalendarInfoProps> {
 
     return (
       <Card bordered={false} bodyStyle={{ marginTop: 6, padding: 0 }}>
-        <Tooltip
-          title={`Range of dates`}
-        >
+        <Tooltip title={`Range of dates`}>
           <RangePicker
             value={[moment(firstDay, dateFormat), moment(lastDay, dateFormat)]}
             dateRender={this.dateRender}
@@ -75,7 +73,7 @@ export default class CalendarInfo extends React.Component<CalendarInfoProps> {
             disabled={!days}
             disabledDate={this.disabledDate}
             // ranges={{"defaultRange": [moment(firstDay, dateFormat), moment(lastDay, dateFormat)]}}
-            renderExtraFooter={() => onSelectCalendarKey ? onSelectCalendarKey : null}
+            renderExtraFooter={() => (onSelectCalendarKey ? onSelectCalendarKey : null)}
           />
         </Tooltip>
         {onLoadedCalendar ? (
@@ -83,21 +81,23 @@ export default class CalendarInfo extends React.Component<CalendarInfoProps> {
             {Object.keys(onLoadedCalendar)
               .filter((key: keyof Calendar) => weekDay.includes(key))
               .map((wd: keyof Calendar) => {
-                const ifAvailable = onLoadedCalendar[wd] === '1' ? true : false
-                const ifAvailableMessage = ifAvailable ? 'available' : 'not available'
+                const ifAvailable = onLoadedCalendar[wd] === '1' ? true : false;
+                const ifAvailableMessage = ifAvailable ? 'available' : 'not available';
                 return (
                   <Tooltip
-                    title={wd.charAt(0).toUpperCase() + wd.substr(1) + `s is ${ifAvailableMessage} for this calendar`}
+                    title={
+                      wd.charAt(0).toUpperCase() +
+                      wd.substr(1) +
+                      `s is ${ifAvailableMessage} for this calendar`
+                    }
                     key={wd}
                   >
-                    <Tag
-                      style={{ marginRight: 4 }}
-                      color={ifAvailable ? 'blue' : 'red'}
-                    >
+                    <Tag style={{ marginRight: 4 }} color={ifAvailable ? 'blue' : 'red'}>
                       {camelCase(wd.substring(0, 3))}
                     </Tag>
                   </Tooltip>
-                )})}
+                );
+              })}
           </Card>
         ) : null}
       </Card>

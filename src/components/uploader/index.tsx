@@ -2,7 +2,7 @@
 import React from 'react';
 import { Upload, Icon, message, Button, Select, Row, Tooltip, Col } from 'antd';
 import { zipLoader } from './ziploader';
-import { UploadFile, DecompressedGTFSFile } from 'typings'
+import { UploadFile, DecompressedGTFSFile } from 'typings';
 
 const Option = Select.Option;
 
@@ -36,8 +36,9 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
   handleLoadSelect = () => {
     const { fileList, onSelectKey } = this.state;
     const onSelectGTFS: UploadFile = fileList.filter(
-      (file: UploadFile) => file.uid === onSelectKey)[0];
-    const decompressedFiles: DecompressedGTFSFile | undefined = onSelectGTFS.decompressed
+      (file: UploadFile) => file.uid === onSelectKey
+    )[0];
+    const decompressedFiles: DecompressedGTFSFile | undefined = onSelectGTFS.decompressed;
     if (decompressedFiles) {
       this.props.onSelectGTFSFile(decompressedFiles);
     }
@@ -77,10 +78,11 @@ export default class Uploader extends React.Component<UploaderProps, UploaderSta
     this.setState(
       {
         fileList: newFileList,
-      }, () => {
+      },
+      () => {
         this.setState({
           uploading: false,
-        })
+        });
       }
     );
   };

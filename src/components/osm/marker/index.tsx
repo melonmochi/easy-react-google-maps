@@ -1,52 +1,51 @@
 import React, { FunctionComponent, useState, useEffect } from 'react';
 import L from 'leaflet';
-import { handleMarkerEvent } from './marker-event'
+import { handleMarkerEvent } from './marker-event';
 import { MarkerEvents } from 'utils';
-import { AllInOneMarkerProps } from 'typings'
+import { AllInOneMarkerProps } from 'typings';
 
 interface OSMMarkerProps extends AllInOneMarkerProps {
   map: L.Map;
   id: string;
 }
 
-export const Marker: FunctionComponent<OSMMarkerProps> = (props) => {
-
-  const { map, title, draggable } = props
+export const Marker: FunctionComponent<OSMMarkerProps> = props => {
+  const { map, title, draggable } = props;
 
   const markerOpt = {
     title,
-    draggable: draggable? draggable: false,
+    draggable: draggable ? draggable : false,
   };
 
-  const [marker, setMarker] = useState<L.Marker | undefined>(undefined)
+  const [marker, setMarker] = useState<L.Marker | undefined>(undefined);
 
   useEffect(() => {
-    renderMarker()
+    renderMarker();
     return () => {
-      clearMarker()
-    }
-  }, [props])
+      clearMarker();
+    };
+  }, [props]);
 
   const renderMarker = () => {
-    if(map) {
-      const { position } = props
+    if (map) {
+      const { position } = props;
       const newMarker = L.marker(position, markerOpt).addTo(map);
-      setMarker(newMarker)
+      setMarker(newMarker);
       addMarkerListeners(newMarker);
     }
-  }
+  };
 
   const addMarkerListeners = (mar: L.Marker) => {
     MarkerEvents.forEach(e => {
       mar.on(e, handleMarkerEvent(mar, e, props.markerEvtHandlers));
     });
-  }
+  };
 
   const clearMarker = () => {
-    if(map && marker) {
+    if (map && marker) {
       map.removeLayer(marker);
     }
-  }
+  };
 
   const renderChildren = () => {
     const { children } = props;
@@ -64,6 +63,6 @@ export const Marker: FunctionComponent<OSMMarkerProps> = (props) => {
         marker,
       });
     });
-  }
-  return <div>{marker? renderChildren(): null}</div>;
-}
+  };
+  return <div>{marker ? renderChildren() : null}</div>;
+};

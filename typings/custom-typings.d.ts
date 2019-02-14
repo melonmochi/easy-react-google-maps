@@ -13,9 +13,6 @@ declare module 'typings' {
     | 'BOTTOM_CENTER'
     | 'BOTTOM_RIGHT';
 
-  type MapTypeId = 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
-  type GestureHandlingType = 'cooperative' | 'greedy' | 'none' | 'auto';
-
   type Calendar = {
     service_id: string;
     start_date: string;
@@ -29,19 +26,15 @@ declare module 'typings' {
     sunday: string;
   };
 
-  type Calendars = {
-    [key: string]: Calendar;
-  };
-
+  type Calendars = { [key: string]: Calendar };
   type CalendarDate = {
     service_id: string;
     date: string;
     exception_type: string;
   };
-
-  type CalendarDates = {
-    [key: string]: CalendarDate;
-  };
+  type CalendarDates = { [key: string]: CalendarDate };
+  type MapTypeId = 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
+  type GestureHandlingType = 'cooperative' | 'greedy' | 'none' | 'auto';
 
   type Stop = {
     stop_id: string;
@@ -58,9 +51,7 @@ declare module 'typings' {
     wheelchair_boarding?: string;
   };
 
-  type Stops = {
-    [key: string]: Stop;
-  };
+  type Stops = {[key: string]: Stop};
 
   type RouteShort = {
     route_id: string;
@@ -88,13 +79,8 @@ declare module 'typings' {
     route_sort_order?: string;
   };
 
-  type RoutesShort = {
-    [key: string]: RouteShort;
-  };
-
-  type RoutesLong = {
-    [key: string]: RouteLong;
-  };
+  type RoutesShort = { [key: string]: RouteShort };
+  type RoutesLong = { [key: string]: RouteLong };
 
   type UploadFile = {
     uid: string;
@@ -162,12 +148,17 @@ declare module 'typings' {
     feed_info?: string;
   };
 
-  type UploadFileStatus = 'error' | 'success' | 'done' | 'uploading' | 'removed';
-
-  type MapProvider = 'google' | 'osm' | 'mapbox';
-
-  type LatLng = [ number, number ]
+  type AddMarkerToListInputType = { id: string; props: AllInOneMarkerProps };
   type Bounds = [ LatLng, LatLng ]
+  type LatLng = [ number, number ]
+  type MapProvider = 'google' | 'osm' | 'mapbox';
+  type MapView = { center: LatLng, zoom: number }
+  type Marker = google.maps.Marker | L.Marker | mapboxgl.Marker
+  type MarkersListType = Array<AddMarkerToListInputType>;
+  type UploadFileStatus = 'error' | 'success' | 'done' | 'uploading' | 'removed';
+  type gmMapEvtHandlersType = { [evtName: string]: (map: google.maps.Map) => void; };
+  type mapboxMapEvtHandlersType = { [evtName: string]: (map: mapboxgl.Map) => void; };
+  type osmMapEvtHandlersType = { [evtName: string]: (map: L.Map) => void; };
 
   interface AllInOneMarkerProps {
     title: string;
@@ -207,18 +198,6 @@ declare module 'typings' {
     zoom?: number;
   }
 
-  type gmMapEvtHandlersType = { [evtName: string]: (map: google.maps.Map) => void; };
-
-  type osmMapEvtHandlersType = { [evtName: string]: (map: L.Map) => void; };
-
-  type mapboxMapEvtHandlersType = { [evtName: string]: (map: mapboxgl.Map) => void; };
-
-  type MarkersListType = Array<AddMarkerToListInputType>;
-
-  type AddMarkerToListInputType = { id: string; props: AllInOneMarkerProps };
-
-  type Marker = google.maps.Marker | L.Marker | mapboxgl.Marker
-
   type MarkerEvtNameType =
     'onClick' |
     'onDblclick' |
@@ -250,21 +229,14 @@ declare module 'typings' {
   }
 
   type GlobalContextState = {
-    bounds: Bounds
-    center: LatLng
-    currentCenter: LatLng
+    markersBounds?: Bounds
+    mapView: MapView
     fitBounds: boolean
-    gmBounds?: google.maps.LatLngBounds
-    gmMap?: google.maps.Map
     google?: typeof google
-    mapboxMap?: mapboxgl.Map
     mapCardWidth?: number
-    mapProps: AllInOneMapProps,
+    mapProps: AllInOneMapProps
     mapProvider: 'google' | 'osm' | 'mapbox'
     markersList: MarkersListType
-    osmMap?: L.Map
-    recenterMap: boolean
-    zoom: number
   }
 
   type GlobalContextDispatch = (a: Action) => void
@@ -272,51 +244,30 @@ declare module 'typings' {
   type Action =
     Action.ADD_MARKER |
     Action.ADD_MARKERS |
-    Action.CHANGE_CURRENT_CENTER |
-    Action.CHANGE_GM_BOUNDS |
     Action.CHANGE_MAP_CARD_WIDTH |
     Action.CHANGE_MAP_PROVIDER |
     Action.CHANGE_MARKER_POSITION |
-    Action.CHANGE_ZOOM |
     Action.FIT_BOUNDS |
     Action.LOAD_GM_API |
     Action.LOAD_MAPS_PROPS |
     Action.ON_FIT_BOUNDS |
-    Action.ON_RECENTER_MAP |
-    Action.RESIZE_MAPBOX_MAP |
-    Action.RESIZE_OSM_MAP |
     Action.RECENTER_MAP |
     Action.REMOVE_MARKER |
-    Action.SET_DEFAULT_CENTER |
-    Action.SET_DEFAULT_ZOOM |
-    Action.SET_GM_MAP |
-    Action.SET_MAPBOX_MAP |
-    Action.SET_OSM_MAP
+    Action.SET_VIEW
 
   namespace Action {
     export type ADD_MARKER = { type: 'ADD_MARKER', payload: AddMarkerToListInputType }
     export type ADD_MARKERS = { type: 'ADD_MARKERS', payload: MarkersListType }
-    export type CHANGE_CURRENT_CENTER = { type: 'CHANGE_CURRENT_CENTER', payload: LatLng }
-    export type CHANGE_GM_BOUNDS = { type: 'CHANGE_GM_BOUNDS', payload: google.maps.LatLngBounds }
     export type CHANGE_MAP_CARD_WIDTH = { type: 'CHANGE_MAP_CARD_WIDTH', payload: number }
     export type CHANGE_MAP_PROVIDER = { type: 'CHANGE_MAP_PROVIDER', payload: MapProvider }
     export type CHANGE_MARKER_POSITION = { type: 'CHANGE_MARKER_POSITION', payload: { id: string, newPosition: LatLng } }
-    export type CHANGE_ZOOM = { type: 'CHANGE_ZOOM', payload: number }
     export type FIT_BOUNDS = { type: 'FIT_BOUNDS' }
     export type LOAD_GM_API = { type: 'LOAD_GM_API', payload: typeof google }
     export type LOAD_MAPS_PROPS = { type: 'LOAD_MAPS_PROPS', payload: AllInOneMapProps }
     export type ON_FIT_BOUNDS = { type: 'ON_FIT_BOUNDS' }
-    export type ON_RECENTER_MAP = { type: 'ON_RECENTER_MAP' }
     export type RECENTER_MAP = { type: 'RECENTER_MAP' }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
-    export type RESIZE_MAPBOX_MAP= { type: 'RESIZE_MAPBOX_MAP' }
-    export type RESIZE_OSM_MAP= { type: 'RESIZE_OSM_MAP' }
-    export type SET_DEFAULT_CENTER= { type: 'SET_DEFAULT_CENTER', payload: LatLng }
-    export type SET_DEFAULT_ZOOM = { type: 'SET_DEFAULT_ZOOM', payload: number }
-    export type SET_GM_MAP = { type: 'SET_GM_MAP', payload: google.maps.Map }
-    export type SET_MAPBOX_MAP = { type: 'SET_MAPBOX_MAP', payload: mapboxgl.Map }
-    export type SET_OSM_MAP = { type: 'SET_OSM_MAP', payload: L.Map }
-
+    export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }
   }
 }
 
