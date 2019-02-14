@@ -21,6 +21,10 @@ export const reducers = (state: State, action: Action) => {
       return LOAD_MAPS_PROPS(state, action);
     case 'ON_FIT_BOUNDS':
       return ON_FIT_BOUNDS(state, action);
+    case 'ON_RECENTER_MAP':
+      return ON_RECENTER_MAP(state, action);
+    case 'RECENTER_MAP':
+      return RECENTER_MAP(state, action);
     case 'REMOVE_MARKER':
       return REMOVE_MARKER(state, action);
     case 'SET_VIEW':
@@ -71,7 +75,12 @@ export const CHANGE_MARKER_POSITION = (state: State, action: Action.CHANGE_MARKE
           },
         }
   );
-  return { ...state, markersList: newMarkersList } as State;
+  const initialLatLng = newMarkersList[0].props.position;
+  const initialBounds = [initialLatLng, initialLatLng];
+  const newBounds = newMarkersList
+    .map(m => m.props.position)
+    .reduce((bounds: Bounds, p) => extendBounds(bounds, p), initialBounds);
+  return { ...state, markersList: newMarkersList, markersBounds: newBounds } as State;
 };
 export const CHANGE_MAP_CARD_WIDTH = (state: State, action: Action.CHANGE_MAP_CARD_WIDTH) => {
   return { ...state, mapCardWidth: action.payload } as State;
@@ -98,14 +107,11 @@ export const LOAD_MAPS_PROPS = (state: State, action: Action.LOAD_MAPS_PROPS) =>
 export const ON_FIT_BOUNDS = (state: State, _action: Action.ON_FIT_BOUNDS) => {
   return { ...state, fitBounds: false };
 };
+export const ON_RECENTER_MAP = (state: State, _action: Action.ON_RECENTER_MAP) => {
+  return { ...state, recenterMap: false };
+};
 export const RECENTER_MAP = (state: State, _action: Action.RECENTER_MAP) => {
-  const { mapProps } = state;
-  const { center } = mapProps;
-  if (center) {
-    return { ...state, center: center };
-  } else {
-    return { ...state, center: [40.416778, -3.703778] };
-  }
+  return { ...state, recenterMap: true };
 };
 export const REMOVE_MARKER = (state: State, action: Action.REMOVE_MARKER) => {
   return {

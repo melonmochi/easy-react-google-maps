@@ -1,68 +1,58 @@
-import React, { FunctionComponent, useState, useEffect } from 'react';
 import L from 'leaflet';
-import { handleMarkerEvent } from './marker-event';
-import { MarkerEvents } from 'utils';
 import { AllInOneMarkerProps } from 'typings';
+import { FunctionComponent, useState, useEffect, useContext } from 'react';
+import { GlobalContext } from 'src/components/global-context';
+import { fromEventPattern, merge } from 'rxjs';
+import { handleMarkerEvt } from 'osm';
+import { osmMarkerEvents } from 'utils';
+import { filter } from 'rxjs/operators';
 
-interface OSMMarkerProps extends AllInOneMarkerProps {
+interface OSMMarkerProps {
   map: L.Map;
   id: string;
+  props: AllInOneMarkerProps;
 }
 
 export const Marker: FunctionComponent<OSMMarkerProps> = props => {
-  const { map, title, draggable } = props;
-
+  const { map, id, props: mProps } = props;
+  const { title, draggable, position, markerEvtHandlers } = mProps;
+  const { state, dispatch } = useContext(GlobalContext);
+  const { mapProvider } = state;
+  const [marker, setMarker] = useState<L.Marker | undefined>(undefined);
   const markerOpt = {
     title,
     draggable: draggable ? draggable : false,
   };
 
-  const [marker, setMarker] = useState<L.Marker | undefined>(undefined);
-
   useEffect(() => {
-    renderMarker();
-    return () => {
-      clearMarker();
-    };
-  }, [props]);
+    if (!marker) {
+      renderMarker();
+    } else {
+      marker.setLatLng(position);
+    }
+  }, [position]);
 
   const renderMarker = () => {
     if (map) {
-      const { position } = props;
       const newMarker = L.marker(position, markerOpt).addTo(map);
       setMarker(newMarker);
-      addMarkerListeners(newMarker);
+      setEventStream(newMarker);
     }
   };
 
-  const addMarkerListeners = (mar: L.Marker) => {
-    MarkerEvents.forEach(e => {
-      mar.on(e, handleMarkerEvent(mar, e, props.markerEvtHandlers));
-    });
+  const setEventStream = (m: L.Marker) => {
+    const events$ = osmMarkerEvents.map(e => ({
+      e: e,
+      e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
+    }));
+    merge(
+      events$.map(s =>
+        s.e$
+          .pipe(filter(() => mapProvider === 'osm'))
+          .subscribe(handleMarkerEvt(s.e, id, m, dispatch, markerEvtHandlers))
+      )
+    );
   };
 
-  const clearMarker = () => {
-    if (map && marker) {
-      map.removeLayer(marker);
-    }
-  };
-
-  const renderChildren = () => {
-    const { children } = props;
-
-    if (!children) {
-      return;
-    }
-
-    return React.Children.map(children, c => {
-      if (!c) {
-        return;
-      }
-      return React.cloneElement(c as React.ReactElement<any>, {
-        mapProvider: 'osm',
-        marker,
-      });
-    });
-  };
-  return <div>{marker ? renderChildren() : null}</div>;
+  return null;
 };

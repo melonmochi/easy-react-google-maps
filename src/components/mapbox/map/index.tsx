@@ -1,27 +1,29 @@
-import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
-import { GlobalContext } from 'components';
-import { mapboxConfig } from 'config';
-import mapboxgl from 'mapbox-gl';
-import { Spin } from 'antd';
-import { AddMarkerToListInputType, Bounds } from 'typings';
-import { Marker, handleMapEvent } from 'mapbox';
-import { mapboxMapEventsNew } from 'utils';
-import 'mapbox-gl/src/css/mapbox-gl.css';
 import 'components/style';
-import { fromEventPattern, merge, of } from 'rxjs';
+import 'mapbox-gl/src/css/mapbox-gl.css';
+import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import { AddMarkerToListInputType, Bounds } from 'typings';
+import { GlobalContext } from 'components';
+import { Marker, handleMapEvent } from 'mapbox';
+import { Spin } from 'antd';
 import { filter, take } from 'rxjs/operators';
+import { fromEventPattern, merge, of } from 'rxjs';
+import { mapboxConfig } from 'config';
+import { mapboxMapEvents } from 'utils';
 
 export const MapboxMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
-    markersList,
-    mapProps,
-    mapView,
     fitBounds,
-    mapProvider,
     mapCardWidth,
+    mapProps,
+    mapProvider,
+    mapView,
     markersBounds,
+    markersList,
+    recenterMap,
   } = state;
+  const { center: defaultCenter } = mapProps;
 
   const { mapboxToken, mapboxStyle, mapboxMapEvtHandlers } = mapProps;
 
@@ -67,7 +69,7 @@ export const MapboxMap: FunctionComponent = () => {
   };
 
   const setEventStream = (m: mapboxgl.Map) => {
-    const events$ = mapboxMapEventsNew.map(e => ({
+    const events$ = mapboxMapEvents.map(e => ({
       e: e,
       e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
     }));
@@ -83,13 +85,29 @@ export const MapboxMap: FunctionComponent = () => {
       .pipe(take(1))
       .subscribe(() => (map ? map.jumpTo({ zoom: Math.floor(map.getZoom()) }) : {}));
   };
+  const recenterMapboxMap = (m: mapboxgl.Map) => {
+    const c = defaultCenter ? defaultCenter : null;
+    if (c) {
+      m.panTo([c[1], c[0]]);
+    } else {
+      if (markersBounds) {
+        fitMapboxBounds(m, markersBounds);
+      }
+    }
+    dispatch({ type: 'ON_RECENTER_MAP' });
+  };
 
   of(fitBounds)
     .pipe(filter(() => fitBounds && mapProvider === 'mapbox'))
     .subscribe(() => (map && markersBounds ? fitMapboxBounds(map, markersBounds) : {}));
+  of(recenterMap)
+    .pipe(filter(() => recenterMap && mapProvider === 'mapbox'))
+    .subscribe(() => (map ? recenterMapboxMap(map) : {}));
 
   const Markers = (mmap: mapboxgl.Map) =>
-    markersList.map((m: AddMarkerToListInputType) => <Marker key={m.id} map={mmap} {...m.props} />);
+    markersList.map((m: AddMarkerToListInputType) => (
+      <Marker key={m.id} id={m.id} props={m.props} map={mmap} />
+    ));
 
   return (
     <div className="defaultContainer">

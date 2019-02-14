@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
-import { gmMapEventsNew, boundsToGmbounds } from 'utils';
+import { gmMapEvents, boundsToGmbounds } from 'utils';
 import { GlobalContext } from 'src/components/global-context';
 import { Spin } from 'antd';
 import { Marker, handleMapEvent } from 'gm';
@@ -13,7 +13,8 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { mapProps, mapView, mapProvider, fitBounds, markersBounds } = state;
+  const { mapProps, mapView, mapProvider, fitBounds, markersBounds, recenterMap } = state;
+  const { center: defaultCenter } = mapProps;
   const { google } = props;
 
   const { gestureHandling, gmMaptype, gmMapEvtHandlers } = mapProps;
@@ -58,7 +59,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   };
 
   const setEventStream = (m: google.maps.Map) => {
-    const events$ = gmMapEventsNew.map(e => ({
+    const events$ = gmMapEvents.map(e => ({
       e: e,
       e$: fromEventPattern(
         handler => m.addListener(e, handler),
@@ -73,10 +74,25 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     m.fitBounds(gmBounds);
     dispatch({ type: 'ON_FIT_BOUNDS' });
   };
+  const recenterGmMap = (m: google.maps.Map) => {
+    const c = defaultCenter ? defaultCenter : null;
+    if (c) {
+      m.panTo(new google.maps.LatLng(c[0], c[1]));
+    } else {
+      if (markersBounds) {
+        const gmBounds = boundsToGmbounds(markersBounds);
+        m.fitBounds(gmBounds);
+      }
+    }
+    dispatch({ type: 'ON_RECENTER_MAP' });
+  };
 
   of(fitBounds)
     .pipe(filter(() => fitBounds && mapProvider === 'google'))
     .subscribe(() => (markersBounds && map ? fitGmBounds(map, markersBounds) : {}));
+  of(recenterMap)
+    .pipe(filter(() => recenterMap && mapProvider === 'google'))
+    .subscribe(() => (map ? recenterGmMap(map) : {}));
 
   const Markers = (gmap: google.maps.Map) =>
     state.markersList.map((m: AddMarkerToListInputType) => (

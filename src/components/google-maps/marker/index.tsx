@@ -1,8 +1,11 @@
-import React, { FunctionComponent, useState, useEffect, useContext } from 'react';
+import { FunctionComponent, useEffect, useContext, useState } from 'react';
 import { labelInTwoString } from './label-in-two-string';
-import { MarkerEvents, camelCase } from 'utils';
-import { AllInOneMarkerProps, MarkerEvtHandlersType, MarkerEvtNameType } from 'typings';
+import { gmMarkerEvents } from 'utils';
+import { AllInOneMarkerProps } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
+import { fromEventPattern, merge } from 'rxjs';
+import { handleMarkerEvt } from 'gm';
+import { filter } from 'rxjs/operators';
 
 interface GmMarkerProps {
   map: google.maps.Map;
@@ -12,11 +15,10 @@ interface GmMarkerProps {
 
 export const Marker: FunctionComponent<GmMarkerProps> = props => {
   const { map, id, props: mProps } = props;
-
   const { title, position, label, withLabel, draggable, animation, markerEvtHandlers } = mProps;
-
+  const { state, dispatch } = useContext(GlobalContext);
+  const { mapProvider } = state;
   const gmlabel = label ? labelInTwoString(label) : labelInTwoString(title);
-
   const markerOpt = {
     map,
     title,
@@ -26,98 +28,38 @@ export const Marker: FunctionComponent<GmMarkerProps> = props => {
     animation: animation ? google.maps.Animation[animation] : undefined,
   };
 
-  const { dispatch } = useContext(GlobalContext);
-
-  const [marker, setMarker] = useState<google.maps.Marker | undefined>(undefined);
+  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
 
   useEffect(() => {
-    renderMarker();
-    return () => {
-      clearMarker();
-    };
-  }, [props]);
+    if (!marker) {
+      renderMarker();
+    } else {
+      marker.setPosition(new google.maps.LatLng(position[0], position[1]));
+    }
+  }, [position]);
 
   const renderMarker = () => {
     const newMarker = new google.maps.Marker(markerOpt);
     setMarker(newMarker);
-    addMarkerListeners(newMarker);
+    setEventStream(newMarker);
   };
 
-  const addMarkerListeners = (mar: google.maps.Marker) => {
-    MarkerEvents.forEach(e => {
-      mar.addListener(e, handleMarkerEvent(mar, e, markerEvtHandlers));
-    });
+  const setEventStream = (m: google.maps.Marker) => {
+    const events$ = gmMarkerEvents.map(e => ({
+      e: e,
+      e$: fromEventPattern(
+        handler => m.addListener(e, handler),
+        (_handler, listener) => google.maps.event.removeListener(listener)
+      ),
+    }));
+    merge(
+      events$.map(s =>
+        s.e$
+          .pipe(filter(() => mapProvider === 'google'))
+          .subscribe(handleMarkerEvt(s.e, id, m, dispatch, markerEvtHandlers))
+      )
+    );
   };
 
-  const clearMarker = () => {
-    if (marker) {
-      marker.setMap(null);
-    }
-  };
-
-  const handleMarkerEvent = (
-    m: google.maps.Marker,
-    evt: string,
-    marEvtHnds?: MarkerEvtHandlersType
-  ) => {
-    return () => {
-      const evtName = `on${camelCase(evt)}` as MarkerEvtNameType;
-      if (marEvtHnds) {
-        const customMarkerEvtHnd = marEvtHnds[evtName];
-        if (customMarkerEvtHnd) {
-          customMarkerEvtHnd(m);
-        } else {
-          defaultMarkerEvtHnds(evtName, m);
-        }
-      } else {
-        defaultMarkerEvtHnds(evtName, m);
-      }
-    };
-  };
-
-  const defaultMarkerEvtHnds = (evtName: string, m: google.maps.Marker) => {
-    switch (evtName) {
-      case 'onClick':
-        break;
-      case 'onDblclick':
-        break;
-      case 'onRightclick':
-        break;
-      case 'onDrag':
-        break;
-      case 'onDragstart':
-        clearMarker();
-        break;
-      case 'onDragend':
-        dispatch({
-          type: 'CHANGE_MARKER_POSITION',
-          payload: {
-            id: id,
-            newPosition: [m.getPosition().lat(), m.getPosition().lng()],
-          },
-        });
-        break;
-      default:
-        break;
-      // throw new Error('No corresponding event')
-    }
-  };
-
-  const renderChildren = () => {
-    const { children } = props;
-
-    if (!children) {
-      return;
-    }
-
-    return React.Children.map(children, c => {
-      if (!c) {
-        return;
-      }
-      return React.cloneElement(c as React.ReactElement<any>, {
-        marker,
-      });
-    });
-  };
-  return <div>{marker ? renderChildren() : null}</div>;
+  return null;
 };

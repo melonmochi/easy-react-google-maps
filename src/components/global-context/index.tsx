@@ -8,6 +8,7 @@ const initialState: State = {
   mapProps: {},
   markersList: [],
   mapProvider: 'google',
+  recenterMap: false,
 };
 
 export const GlobalContext = createContext<GlobalContextInterface>({
@@ -17,8 +18,6 @@ export const GlobalContext = createContext<GlobalContextInterface>({
 
 export const GlobalContextProvider: FunctionComponent = props => {
   const [state, dispatch] = useReducer(reducers, initialState);
-
-  console.log(state);
 
   return (
     <GlobalContext.Provider value={{ state, dispatch }}>{props.children}</GlobalContext.Provider>

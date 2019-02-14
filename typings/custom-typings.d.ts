@@ -237,6 +237,7 @@ declare module 'typings' {
     mapProps: AllInOneMapProps
     mapProvider: 'google' | 'osm' | 'mapbox'
     markersList: MarkersListType
+    recenterMap: boolean
   }
 
   type GlobalContextDispatch = (a: Action) => void
@@ -251,6 +252,7 @@ declare module 'typings' {
     Action.LOAD_GM_API |
     Action.LOAD_MAPS_PROPS |
     Action.ON_FIT_BOUNDS |
+    Action.ON_RECENTER_MAP |
     Action.RECENTER_MAP |
     Action.REMOVE_MARKER |
     Action.SET_VIEW
@@ -265,6 +267,7 @@ declare module 'typings' {
     export type LOAD_GM_API = { type: 'LOAD_GM_API', payload: typeof google }
     export type LOAD_MAPS_PROPS = { type: 'LOAD_MAPS_PROPS', payload: AllInOneMapProps }
     export type ON_FIT_BOUNDS = { type: 'ON_FIT_BOUNDS' }
+    export type ON_RECENTER_MAP = { type: 'ON_RECENTER_MAP' }
     export type RECENTER_MAP = { type: 'RECENTER_MAP' }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
     export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }

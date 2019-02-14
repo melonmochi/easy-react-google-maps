@@ -44,68 +44,17 @@ export const GTFSFileNamesArray = [
   'feed_info',
 ];
 
-export const gmMapEvents = [
-  'bounds_changed',
-  'center_changed',
-  'click',
-  'dblclick',
-  'drag',
-  'dragend',
-  'dragstart',
-  'heading_changed',
-  'idle',
-  'maptypeid_changed',
-  'mousemove',
-  'mouseout',
-  'mouseover',
-  'projection_changed',
-  'rightclick',
-  'tilesloaded',
-  'tilt_changed',
-  'zoom_changed',
-];
+export const gmMapEvents = ['idle'];
 
-export const gmMapEventsNew = ['idle'];
+export const osmMapEvents = ['moveend'];
 
-export const osmMapEventsNew = ['moveend'];
+export const mapboxMapEvents = ['moveend'];
 
-export const osmMapEvents = [
-  'click',
-  'contextmenu',
-  'dblclick',
-  'mousemove',
-  'mouseout',
-  'mouseover',
-  'moveend',
-  'zoomend',
-];
+export const gmMarkerEvents = ['dragend'];
 
-export const mapboxMapEventsNew = ['moveend'];
+export const osmMarkerEvents = ['dragend'];
 
-export const mapboxMapEvents = [
-  'click',
-  'contextmenu',
-  'dblclick',
-  'mousemove',
-  'mouseout',
-  'mouseover',
-  'moveend',
-  'zoomend',
-];
-
-export const MarkerEvents = [
-  'click',
-  'dblclick',
-  'drag',
-  'dragend',
-  'draggable_changed',
-  'dragstart',
-  'mousedown',
-  'mouseout',
-  'mouseover',
-  'mouseup',
-  'rightclick',
-];
+export const mapboxMarkerEvents = ['dragend'];
 
 export const weekDay = [
   'monday',
@@ -134,6 +83,8 @@ export { reducers } from './reducers';
 export { calculateBounds } from './calculate-bounds';
 
 export { extendBounds } from './extend-bounds';
+
+export { boundsToCenters } from './bounds-to-center';
 
 export {
   boundsToGmbounds,

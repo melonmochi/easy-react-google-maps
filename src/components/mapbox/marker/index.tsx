@@ -1,102 +1,76 @@
-import React, { FunctionComponent, useState, useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import { MarkerEvents, camelCase } from 'utils';
-import { AllInOneMarkerProps, MarkerEvtHandlersType } from 'typings';
 import './style';
+import React, { FunctionComponent, useState, useEffect, useRef, useContext } from 'react';
+import mapboxgl from 'mapbox-gl';
+import { AllInOneMarkerProps } from 'typings';
+import { GlobalContext } from 'src/components/global-context';
 import { Tooltip } from 'antd';
+import { fromEventPattern, merge } from 'rxjs';
+import { handleMarkerEvt } from 'mapbox';
+import { mapboxMarkerEvents } from 'utils';
+import { filter } from 'rxjs/operators';
 
-interface MapboxMarkerProps extends AllInOneMarkerProps {
+interface MapboxMarkerProps {
   map: mapboxgl.Map;
+  id: string;
+  props: AllInOneMarkerProps;
 }
 
 export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
-  const { map, draggable } = props;
+  const { map, id, props: mProps } = props;
+  const { draggable, position, title, markerEvtHandlers } = mProps;
 
   const markerOpt = {
     color: '#0c4842',
     draggable,
   };
 
+  const { state, dispatch } = useContext(GlobalContext);
+  const { mapProvider } = state;
   const [marker, setMarker] = useState<mapboxgl.Marker | undefined>(undefined);
-
+  const [hover, setHover] = useState<boolean>(false);
   const el = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    renderMarker();
-    return () => {
-      clearMarker();
-    };
-  }, [props]);
+    if (!marker) {
+      renderMarker();
+    } else {
+      marker.setLngLat([position[1], position[0]]);
+    }
+  }, [position]);
 
   const renderMarker = () => {
     if (map) {
       if (el && el.current) {
         const newMarker = new mapboxgl.Marker(el.current, markerOpt)
-          .setLngLat([props.position[1], props.position[0]])
+          .setLngLat([position[1], position[0]])
           .addTo(map);
         setMarker(newMarker);
-        addMarkerListeners(el.current, newMarker);
+        setEventStream(newMarker);
       }
     }
   };
 
-  const addMarkerListeners = (div: HTMLDivElement, mar: mapboxgl.Marker) => {
-    MarkerEvents.forEach(e => {
-      div.addEventListener(e, handleMarkerEvent(mar, e, props.markerEvtHandlers));
-    });
+  const setEventStream = (m: mapboxgl.Marker) => {
+    const events$ = mapboxMarkerEvents.map(e => ({
+      e: e,
+      e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
+    }));
+    merge(
+      events$.map(s =>
+        s.e$
+          .pipe(filter(() => mapProvider === 'mapbox'))
+          .subscribe(handleMarkerEvt(s.e, id, m, dispatch, markerEvtHandlers))
+      )
+    );
   };
 
-  const handleMarkerEvent = (
-    m: mapboxgl.Marker,
-    evt: string,
-    markerEvtHandlers?: MarkerEvtHandlersType | any
-  ) => {
-    return (e: Event) => {
-      const evtName = `on${camelCase(evt)}`;
-      if (markerEvtHandlers && markerEvtHandlers[evtName]) {
-        markerEvtHandlers[evtName](marker);
-      } else {
-        defaultMapboxMarkerEventHandler(evtName, e, m);
-      }
-    };
-  };
-
-  const [hover, setHover] = useState<boolean>(false);
-
-  const defaultMapboxMarkerEventHandler = (
-    evtName: string,
-    _e: Event,
-    _marker: mapboxgl.Marker
-  ) => {
-    switch (evtName) {
-      case 'onMouseover':
-        setHover(true);
-        break;
-      case 'onMouseout':
-        setHover(false);
-        break;
-      case 'onClick':
-        break;
-      case 'onDblclick':
-        break;
-      case 'onRightclick':
-        break;
-      case 'onDrag':
-      case 'onDragend':
-      default:
-      // throw new Error('No corresponding event')
-    }
-  };
-
-  const clearMarker = () => {
-    if (marker) {
-      marker.remove();
-    }
+  const handleOnHover = (h: boolean) => {
+    setHover(h);
   };
 
   return (
     <div>
-      <Tooltip title={props.title} mouseLeaveDelay={0}>
+      <Tooltip title={title} mouseLeaveDelay={0} onVisibleChange={handleOnHover}>
         <div ref={el} className={hover ? 'bigMarker' : 'marker'} />
       </Tooltip>
     </div>

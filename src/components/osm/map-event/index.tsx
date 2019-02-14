@@ -33,7 +33,6 @@ export const handleMapEvent = (
   osmMapEvtHandlers?: osmMapEvtHandlersType
 ) => {
   return () => {
-    console.log('im doing osm evt handle');
     const evtName = `on${camelCase(evt)}`;
     if (osmMapEvtHandlers && osmMapEvtHandlers[evtName]) {
       osmMapEvtHandlers[evtName](m);

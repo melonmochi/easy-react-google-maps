@@ -37,7 +37,6 @@ export const handleMapEvent = (
   osmMapEvtHandlers?: mapboxMapEvtHandlersType
 ) => {
   return () => {
-    console.log('im doing mapbox evt handle');
     const evtName = `on${camelCase(evt)}`;
     if (osmMapEvtHandlers && osmMapEvtHandlers[evtName]) {
       osmMapEvtHandlers[evtName](m);

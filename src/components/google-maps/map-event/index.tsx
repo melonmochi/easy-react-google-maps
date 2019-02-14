@@ -8,7 +8,6 @@ const defaultMapEventHandler = (
 ) => {
   switch (evtName) {
     case 'onIdle':
-      console.log('im doing onIdle handler');
       const gCenter = map.getCenter();
       const newCenter = [gCenter.lat(), gCenter.lng()] as LatLng;
       const newZoom = map.getZoom();
