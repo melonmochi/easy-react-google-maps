@@ -41,10 +41,13 @@ export const MapboxMap: FunctionComponent = () => {
             center: [mapView.center[1], mapView.center[0]],
             zoom: mapView.zoom - 1,
           })
-          .resize();
+          .resize()
       }
     }
-  }, [mapProvider, mapCardWidth]);
+  }, [
+    mapProvider,
+    mapCardWidth,
+  ]);
 
   const mapConfig: object = Object.assign(
     {},

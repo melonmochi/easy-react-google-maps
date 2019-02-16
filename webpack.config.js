@@ -75,6 +75,7 @@ module.exports = {
   },
   resolve: {
     alias: {
+      assets: path.resolve(__dirname, './src/assets'),
       config: path.resolve(__dirname, './config'),
       components: path.resolve(__dirname, './src/components'),
       gm: path.resolve(__dirname, './src/components/google-maps'),

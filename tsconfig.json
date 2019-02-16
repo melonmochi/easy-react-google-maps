@@ -15,6 +15,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "paths": {
+      "assets": ["src/assets"],
       "components": ["src/components"],
       "config": ["config"],
       "gm": ["src/components/google-maps"],

@@ -229,15 +229,16 @@ declare module 'typings' {
   }
 
   type GlobalContextState = {
-    markersBounds?: Bounds
-    mapView: MapView
     fitBounds: boolean
     google?: typeof google
     mapCardWidth?: number
     mapProps: AllInOneMapProps
     mapProvider: 'google' | 'osm' | 'mapbox'
+    mapView: MapView
+    markersBounds?: Bounds
     markersList: MarkersListType
     recenterMap: boolean
+    selectedMarker?: AddMarkerToListInputType
   }
 
   type GlobalContextDispatch = (a: Action) => void
@@ -255,6 +256,7 @@ declare module 'typings' {
     Action.ON_RECENTER_MAP |
     Action.RECENTER_MAP |
     Action.REMOVE_MARKER |
+    Action.SELECT_MARKER |
     Action.SET_VIEW
 
   namespace Action {
@@ -270,6 +272,7 @@ declare module 'typings' {
     export type ON_RECENTER_MAP = { type: 'ON_RECENTER_MAP' }
     export type RECENTER_MAP = { type: 'RECENTER_MAP' }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
+    export type SELECT_MARKER = { type: 'SELECT_MARKER', payload: string }
     export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }
   }
 }

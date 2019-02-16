@@ -50,7 +50,14 @@ export const osmMapEvents = ['moveend'];
 
 export const mapboxMapEvents = ['moveend'];
 
-export const gmMarkerEvents = ['dragend'];
+export const gmMarkerEvents = [
+  'click',
+  'drag',
+  'dragend',
+  'dragstart',
+  'mouseout',
+  'mouseover',
+];
 
 export const osmMarkerEvents = ['dragend'];
 

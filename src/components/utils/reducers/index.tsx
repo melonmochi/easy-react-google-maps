@@ -27,6 +27,8 @@ export const reducers = (state: State, action: Action) => {
       return RECENTER_MAP(state, action);
     case 'REMOVE_MARKER':
       return REMOVE_MARKER(state, action);
+    case 'SELECT_MARKER':
+      return SELECT_MARKER(state, action);
     case 'SET_VIEW':
       return SET_VIEW(state, action);
     default:
@@ -118,6 +120,9 @@ export const REMOVE_MARKER = (state: State, action: Action.REMOVE_MARKER) => {
     ...state,
     markersList: state.markersList.filter(m => m.id !== action.payload),
   } as State;
+};
+export const SELECT_MARKER = (state: State, action: Action.SELECT_MARKER) => {
+  return { ...state, selectedMarker: state.markersList.find(m => m.id === action.payload) } as State;
 };
 export const SET_VIEW = (state: State, action: Action.SET_VIEW) => {
   return { ...state, mapView: action.payload } as State;

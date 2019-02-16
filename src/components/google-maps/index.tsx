@@ -4,4 +4,4 @@ export { default as InfoWindow } from './info-window';
 export { default as MarkerContextMenu } from './marker-context-menu';
 export { default as SearchBox } from './search-box';
 export { handleMapEvent } from './map-event';
-export { handleMarkerEvt } from './marker-event';
+export { handleMarkerEvt, setDefaultIcon, setBlueIcon, setOrangeIcon } from './marker-event';
