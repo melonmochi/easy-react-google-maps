@@ -4,13 +4,6 @@ import { camelCase } from 'utils';
 import blueIconURL from 'assets/images/marker-blue.svg'
 import orangeIconURL from 'assets/images/marker-orange.svg'
 
-type defaultMarkerEvtHnds = {
-  evtName: string,
-  id: string,
-  m: google.maps.Marker
-  dispatch: GlobalContextDispatch
-}
-
 export const setDefaultIcon = (m: google.maps.Marker) => {
   m.setIcon('')
 }
@@ -29,50 +22,58 @@ export const setOrangeIcon = (m: google.maps.Marker) => m.setIcon({
   scaledSize: new google.maps.Size(50, 50),
 })
 
+type defaultMarkerEvtHnds = {
+  evtName: string,
+  id: string,
+  marker: google.maps.Marker,
+  ifselected: boolean,
+  dispatch: GlobalContextDispatch
+}
+
+type handleMarkerEvt = {
+  evt: string,
+  id: string,
+  marker: google.maps.Marker,
+  ifselected: boolean,
+  dispatch: GlobalContextDispatch
+  markerEvtHandlers?: MarkerEvtHandlersType | any
+}
+
 export const defaultMarkerEvtHnds = (input: defaultMarkerEvtHnds)  => {
-  const { evtName, id, m, dispatch } = input
+  const { evtName, id, marker, ifselected, dispatch } = input
   switch (evtName) {
     case 'onClick':
       dispatch({type: 'SELECT_MARKER', payload: id})
       break;
     case 'onDragend':
-      console.log('im dragging')
       dispatch({
         type: 'CHANGE_MARKER_POSITION',
         payload: {
           id: id,
-          newPosition: [m.getPosition().lat(), m.getPosition().lng()],
+          newPosition: [marker.getPosition().lat(), marker.getPosition().lng()],
         },
       });
       break;
     case 'onMouseout':
-      setDefaultIcon(m)
-      break;
+      return !ifselected && setDefaultIcon(marker)
     case 'onMouseover':
-      setBlueIcon(m)
+      return !ifselected && setBlueIcon(marker)
     default:
     // throw new Error('No corresponding event')
   }
 };
 
-type handleMarkerEvt = {
-  evt: string,
-  id: string,
-  m: google.maps.Marker,
-  dispatch: GlobalContextDispatch
-  markerEvtHandlers?: MarkerEvtHandlersType | any
-}
 export const handleMarkerEvt = (input: handleMarkerEvt)  => {
-  const { evt, id, m, markerEvtHandlers, dispatch } = input
+  const { evt, id, marker, markerEvtHandlers, ifselected, dispatch } = input
   const evtName = `on${camelCase(evt)}`;
   if (markerEvtHandlers) {
     const customMarkerEvtHnd = markerEvtHandlers[evtName];
     if (customMarkerEvtHnd) {
-      customMarkerEvtHnd(m);
+      customMarkerEvtHnd(marker);
     } else {
-      defaultMarkerEvtHnds({ evtName, id, m, dispatch });
+      defaultMarkerEvtHnds({ evtName, id, marker, ifselected, dispatch });
     }
   } else {
-    defaultMarkerEvtHnds({ evtName, id, m, dispatch })
+    defaultMarkerEvtHnds({ evtName, id, marker, ifselected, dispatch })
   }
 };

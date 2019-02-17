@@ -4,10 +4,9 @@ import mapboxgl from 'mapbox-gl';
 import { AllInOneMarkerProps } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Tooltip } from 'antd';
-import { fromEventPattern, merge } from 'rxjs';
-import { handleMarkerEvt } from 'mapbox';
-import { mapboxMarkerEvents } from 'utils';
-import { filter } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { loadStream, handleMarkerEvt } from 'mapbox';
+import { ifSelected, mapboxMarkerEvents } from 'utils';
 
 interface MapboxMarkerProps {
   map: mapboxgl.Map;
@@ -25,53 +24,48 @@ export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
   };
 
   const { state, dispatch } = useContext(GlobalContext);
-  const { mapProvider } = state;
-  const [marker, setMarker] = useState<mapboxgl.Marker | undefined>(undefined);
-  const [hover, setHover] = useState<boolean>(false);
+  const { selectedMarker } = state;
+  const [markerStyle, setMarkerStyle] = useState<'greenMarker'|'blueBigMarker'|'redBigMarker'>('greenMarker');
   const el = useRef<HTMLDivElement>(null);
 
+  const [marker, setMarker] = useState<mapboxgl.Marker | undefined>(undefined);
+  const [event$, setEvent$] = useState<Array<{ evt: string, e$: Observable<{}> }>>([])
+
+  const createMarker = (node: HTMLDivElement) => new mapboxgl.Marker(node, markerOpt)
+    .setLngLat([position[1], position[0]])
+    .addTo(map);
+
+  const setEventStream = (node: HTMLDivElement, m: mapboxgl.Marker) => mapboxMarkerEvents
+    .map(e => ({
+      evt: e,
+      e$: loadStream(e, node, m),
+    }))
+
   useEffect(() => {
-    if (!marker) {
-      renderMarker();
-    } else {
-      marker.setLngLat([position[1], position[0]]);
-    }
-  }, [position]);
-
-  const renderMarker = () => {
-    if (map) {
-      if (el && el.current) {
-        const newMarker = new mapboxgl.Marker(el.current, markerOpt)
-          .setLngLat([position[1], position[0]])
-          .addTo(map);
-        setMarker(newMarker);
-        setEventStream(newMarker);
+    let evtSubcrpts: Array<Subscription> = []
+    if(!marker) {
+      const node = el.current
+      if(node) {
+        const m = createMarker(node)
+        setMarker(m)
+        setEvent$(setEventStream(node, m))
       }
-    }
-  };
-
-  const setEventStream = (m: mapboxgl.Marker) => {
-    const events$ = mapboxMarkerEvents.map(e => ({
-      e: e,
-      e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
-    }));
-    merge(
-      events$.map(s =>
-        s.e$
-          .pipe(filter(() => mapProvider === 'mapbox'))
-          .subscribe(handleMarkerEvt(s.e, id, m, dispatch, markerEvtHandlers))
-      )
-    );
-  };
-
-  const handleOnHover = (h: boolean) => {
-    setHover(h);
-  };
+    } else {
+      const ifselected = ifSelected(id, selectedMarker)
+      ifselected? setMarkerStyle('redBigMarker'): setMarkerStyle('greenMarker')
+      marker.setLngLat([position[1], position[0]])
+      evtSubcrpts = event$.map( e =>
+        e.e$.subscribe(() => handleMarkerEvt(
+          { evt: e.evt, id, marker, ifselected, dispatch, markerEvtHandlers, setMarkerStyle }
+        )))
+    };
+    return () => evtSubcrpts.map(es => es.unsubscribe())
+  }, [position, selectedMarker, event$])
 
   return (
     <div>
-      <Tooltip title={title} mouseLeaveDelay={0} onVisibleChange={handleOnHover}>
-        <div ref={el} className={hover ? 'bigMarker' : 'marker'} />
+      <Tooltip title={title} mouseLeaveDelay={0}>
+        <div ref={el} className={markerStyle} />
       </Tooltip>
     </div>
   );

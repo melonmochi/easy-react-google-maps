@@ -12,7 +12,6 @@ const defaultMapEventHandler = (
     case 'onDblclick':
       break;
     case 'onMoveend':
-      console.log(map.getBounds())
       const newCenter = [map.getCenter().lat, map.getCenter().lng] as LatLng;
       const newZoom = Math.floor(map.getZoom() + 1);
       dispatch({

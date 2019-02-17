@@ -1,4 +1,5 @@
 export { Marker } from './marker';
-export { OSMMap } from './map';
+export { OSMMap, osmGreenIcon } from './map';
 export { handleMapEvent } from './map-event';
-export { handleMarkerEvt } from './marker-event';
+export { handleMarkerEvt, setOrangeIcon, setDefaultIcon } from './marker-event';
+export { loadStream } from './marker-listener'

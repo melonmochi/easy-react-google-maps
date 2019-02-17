@@ -2,8 +2,7 @@ import 'components/style';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
-import icon from 'src/assets/images/marker-icon.png';
-import iconShadow from 'src/assets/images/marker-shadow.png';
+import greenIconURL from 'assets/images/marker-green.svg';
 import { AddMarkerToListInputType, Bounds } from 'typings';
 import { GlobalContext } from 'components';
 import { Marker, handleMapEvent } from 'osm';
@@ -12,14 +11,13 @@ import { filter } from 'rxjs/operators';
 import { fromEventPattern, merge, of } from 'rxjs';
 import { osmMapEvents } from 'utils';
 
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  iconSize: [25, 41],
-  iconAnchor: [12.5, 41],
-  shadowUrl: iconShadow,
+export const osmGreenIcon = L.icon({
+  iconUrl: greenIconURL,
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+L.Marker.prototype.options.icon = osmGreenIcon;
 
 export const OSMMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);

@@ -2,10 +2,9 @@ import L from 'leaflet';
 import { AllInOneMarkerProps } from 'typings';
 import { FunctionComponent, useState, useEffect, useContext } from 'react';
 import { GlobalContext } from 'src/components/global-context';
-import { fromEventPattern, merge } from 'rxjs';
-import { handleMarkerEvt } from 'osm';
-import { osmMarkerEvents } from 'utils';
-import { filter } from 'rxjs/operators';
+import { Observable, Subscription } from 'rxjs';
+import { handleMarkerEvt, loadStream, setDefaultIcon, setOrangeIcon } from 'osm';
+import { ifSelected, osmMarkerEvents } from 'utils';
 
 interface OSMMarkerProps {
   map: L.Map;
@@ -17,42 +16,40 @@ export const Marker: FunctionComponent<OSMMarkerProps> = props => {
   const { map, id, props: mProps } = props;
   const { title, draggable, position, markerEvtHandlers } = mProps;
   const { state, dispatch } = useContext(GlobalContext);
-  const { mapProvider } = state;
-  const [marker, setMarker] = useState<L.Marker | undefined>(undefined);
+  const { selectedMarker } = state;
   const markerOpt = {
     title,
     draggable: draggable ? draggable : false,
   };
 
+  const [marker, setMarker] = useState<L.Marker | undefined>(undefined);
+  const [event$, setEvent$] = useState<Array<{evt: string, e$: Observable<{}>}>>([])
+
+  const createMarker = () => L.marker(position, markerOpt).addTo(map)
+
+  const setEventStream = (m: L.Marker) => osmMarkerEvents
+    .map( e => ({
+      evt: e,
+      e$: loadStream(e, m),
+    }))
+
   useEffect(() => {
-    if (!marker) {
-      renderMarker();
+    let evtSubcrpts: Array<Subscription> = []
+    if(!marker) {
+      const m = createMarker()
+      setMarker(m)
+      setEvent$(setEventStream(m))
     } else {
-      marker.setLatLng(position);
-    }
-  }, [position]);
-
-  const renderMarker = () => {
-    if (map) {
-      const newMarker = L.marker(position, markerOpt).addTo(map);
-      setMarker(newMarker);
-      setEventStream(newMarker);
-    }
-  };
-
-  const setEventStream = (m: L.Marker) => {
-    const events$ = osmMarkerEvents.map(e => ({
-      e: e,
-      e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
-    }));
-    merge(
-      events$.map(s =>
-        s.e$
-          .pipe(filter(() => mapProvider === 'osm'))
-          .subscribe(handleMarkerEvt(s.e, id, m, dispatch, markerEvtHandlers))
-      )
-    );
-  };
+      const ifselected = ifSelected(id, selectedMarker)
+      ifselected? setOrangeIcon(marker): setDefaultIcon(marker)
+      marker.setLatLng([position[0], position[1]])
+      evtSubcrpts = event$.map( e =>
+        e.e$.subscribe(() => handleMarkerEvt(
+          { evt: e.evt, id, marker, ifselected, dispatch, markerEvtHandlers }
+        )))
+    };
+    return () => evtSubcrpts.map(es => es.unsubscribe())
+  }, [position, selectedMarker, event$])
 
   return null;
 };

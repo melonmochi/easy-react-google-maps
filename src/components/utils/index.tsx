@@ -52,16 +52,24 @@ export const mapboxMapEvents = ['moveend'];
 
 export const gmMarkerEvents = [
   'click',
-  'drag',
   'dragend',
-  'dragstart',
   'mouseout',
   'mouseover',
-];
+]
 
-export const osmMarkerEvents = ['dragend'];
+export const osmMarkerEvents = [
+  'click',
+  'moveend',
+  'mouseout',
+  'mouseover',
+]
 
-export const mapboxMarkerEvents = ['dragend'];
+export const mapboxMarkerEvents = [
+  'click',
+  'dragend',
+  'mouseout',
+  'mouseover',
+]
 
 export const weekDay = [
   'monday',
@@ -92,6 +100,8 @@ export { calculateBounds } from './calculate-bounds';
 export { extendBounds } from './extend-bounds';
 
 export { boundsToCenters } from './bounds-to-center';
+
+export { ifSelected } from './if-selected';
 
 export {
   boundsToGmbounds,
