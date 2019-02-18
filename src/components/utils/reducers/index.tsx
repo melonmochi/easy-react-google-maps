@@ -13,22 +13,18 @@ export const reducers = (state: State, action: Action) => {
       return CHANGE_MAP_PROVIDER(state, action);
     case 'CHANGE_MARKER_POSITION':
       return CHANGE_MARKER_POSITION(state, action);
-    case 'FIT_BOUNDS':
-      return FIT_BOUNDS(state, action);
     case 'LOAD_GM_API':
       return LOAD_GM_API(state, action);
     case 'LOAD_MAPS_PROPS':
       return LOAD_MAPS_PROPS(state, action);
-    case 'ON_FIT_BOUNDS':
-      return ON_FIT_BOUNDS(state, action);
-    case 'ON_RECENTER_MAP':
-      return ON_RECENTER_MAP(state, action);
-    case 'RECENTER_MAP':
-      return RECENTER_MAP(state, action);
     case 'REMOVE_MARKER':
       return REMOVE_MARKER(state, action);
     case 'SELECT_MARKER':
       return SELECT_MARKER(state, action);
+    case 'SET_FIT_BOUNDS_STREAM':
+      return SET_FIT_BOUNDS_STREAM(state, action);
+    case 'SET_RECENTER_MAP_STREAM':
+      return SET_RECENTER_MAP_STREAM(state, action);
     case 'SET_VIEW':
       return SET_VIEW(state, action);
     default:
@@ -90,9 +86,6 @@ export const CHANGE_MAP_CARD_WIDTH = (state: State, action: Action.CHANGE_MAP_CA
 export const CHANGE_MAP_PROVIDER = (state: State, action: Action.CHANGE_MAP_PROVIDER) => {
   return { ...state, mapProvider: action.payload } as State;
 };
-export const FIT_BOUNDS = (state: State, _action: Action.FIT_BOUNDS) => {
-  return { ...state, fitBounds: true };
-};
 export const LOAD_GM_API = (state: State, action: Action.LOAD_GM_API) => {
   return { ...state, google: action.payload } as State;
 };
@@ -102,18 +95,11 @@ export const LOAD_MAPS_PROPS = (state: State, action: Action.LOAD_MAPS_PROPS) =>
   const propZoom = zoom ? zoom : state.mapView.zoom;
   return {
     ...state,
+    center: propCenter,
     mapView: { center: propCenter, zoom: propZoom },
     mapProps: action.payload,
+    zoom: propZoom,
   } as State;
-};
-export const ON_FIT_BOUNDS = (state: State, _action: Action.ON_FIT_BOUNDS) => {
-  return { ...state, fitBounds: false };
-};
-export const ON_RECENTER_MAP = (state: State, _action: Action.ON_RECENTER_MAP) => {
-  return { ...state, recenterMap: false };
-};
-export const RECENTER_MAP = (state: State, _action: Action.RECENTER_MAP) => {
-  return { ...state, recenterMap: true };
 };
 export const REMOVE_MARKER = (state: State, action: Action.REMOVE_MARKER) => {
   return {
@@ -122,7 +108,16 @@ export const REMOVE_MARKER = (state: State, action: Action.REMOVE_MARKER) => {
   } as State;
 };
 export const SELECT_MARKER = (state: State, action: Action.SELECT_MARKER) => {
-  return { ...state, selectedMarker: state.markersList.find(m => m.id === action.payload) } as State;
+  return {
+    ...state,
+    selectedMarker: state.markersList.find(m => m.id === action.payload),
+  } as State;
+};
+export const SET_FIT_BOUNDS_STREAM = (state: State, action: Action.SET_FIT_BOUNDS_STREAM) => {
+  return { ...state, mapTools$: { ...state.mapTools$, fitBounds$: action.payload } } as State;
+};
+export const SET_RECENTER_MAP_STREAM = (state: State, action: Action.SET_RECENTER_MAP_STREAM) => {
+  return { ...state, mapTools$: { ...state.mapTools$, recenterMap$: action.payload } } as State;
 };
 export const SET_VIEW = (state: State, action: Action.SET_VIEW) => {
   return { ...state, mapView: action.payload } as State;

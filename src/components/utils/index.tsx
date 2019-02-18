@@ -25,8 +25,8 @@ export const stringToColour = (str: string) => {
   return colour;
 };
 
-export const defaultPosition: LatLng = [40.416778, -3.703778];
-export const defaultZoom: number = 14;
+export const defaultCenter: LatLng = [0, 0];
+export const defaultZoom: number = 2;
 
 export const GTFSFileNamesArray = [
   'agency',
@@ -48,28 +48,9 @@ export const gmMapEvents = ['idle'];
 
 export const osmMapEvents = ['moveend'];
 
-export const mapboxMapEvents = ['moveend'];
+export const mapboxMapEvents = ['moveend', 'dblclick'];
 
-export const gmMarkerEvents = [
-  'click',
-  'dragend',
-  'mouseout',
-  'mouseover',
-]
-
-export const osmMarkerEvents = [
-  'click',
-  'moveend',
-  'mouseout',
-  'mouseover',
-]
-
-export const mapboxMarkerEvents = [
-  'click',
-  'dragend',
-  'mouseout',
-  'mouseover',
-]
+export const markerEvents = ['click', 'dblclick', 'dragend', 'mouseout', 'mouseover'];
 
 export const weekDay = [
   'monday',
@@ -111,3 +92,11 @@ export {
   boundsToMapboxBounds,
   mapboxBoundsToBounds,
 } from './bounds-converter';
+
+export const city = {
+  London: [51.5072, -0.1275] as LatLng,
+  Madrid: [40.4165, -3.70256] as LatLng,
+  NewYork: [40.6643, -73.9385] as LatLng,
+  Shanghai: [31.22222, 121.45806] as LatLng,
+  Tokyo: [35.6895, 139.69171] as LatLng,
+};

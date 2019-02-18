@@ -1,47 +1,52 @@
 import { camelCase } from 'utils';
 import { MarkerEvtHandlersType, GlobalContextDispatch } from 'typings';
 import L from 'leaflet';
-import blueIconURL from 'assets/images/marker-blue.svg'
-import orangeIconURL from 'assets/images/marker-orange.svg'
-import { osmGreenIcon } from 'osm'
+import blueIconURL from 'assets/images/marker-blue.svg';
+import orangeIconURL from 'assets/images/marker-orange.svg';
+import { osmGreenIcon } from 'osm';
 
-const osmBlueIcon = L.icon({iconUrl: blueIconURL});
-const osmOrangeIcon = L.icon({iconUrl: orangeIconURL});
+const osmBlueIcon = L.icon({ iconUrl: blueIconURL });
+const osmOrangeIcon = L.icon({ iconUrl: orangeIconURL });
 
 export const setDefaultIcon = (m: L.Marker) => {
-  m.setIcon(osmGreenIcon)
-}
+  m.setIcon(osmGreenIcon);
+};
 export const setBlueIcon = (m: L.Marker) => {
-  m.setIcon(osmBlueIcon)
-}
+  m.setIcon(osmBlueIcon);
+};
 export const setOrangeIcon = (m: L.Marker) => {
-  m.setIcon(osmOrangeIcon)
-}
+  m.setIcon(osmOrangeIcon);
+};
 
 type defaultMarkerEvtHndsType = {
-  evtName: string,
-  id: string,
-  marker: L.Marker
-  ifselected: boolean,
-  dispatch: GlobalContextDispatch
-}
+  map: L.Map;
+  evtName: string;
+  id: string;
+  marker: L.Marker;
+  ifselected: boolean;
+  dispatch: GlobalContextDispatch;
+};
 
 type handleMarkerEvtType = {
-  evt: string,
-  id: string,
-  marker: L.Marker,
-  ifselected: boolean,
-  dispatch: GlobalContextDispatch,
-  markerEvtHandlers?: MarkerEvtHandlersType | any
-}
+  map: L.Map;
+  evt: string;
+  id: string;
+  marker: L.Marker;
+  ifselected: boolean;
+  dispatch: GlobalContextDispatch;
+  markerEvtHandlers?: MarkerEvtHandlersType | any;
+};
 
 const defaultOSMMarkerEvtHnds = (input: defaultMarkerEvtHndsType) => {
-  const { evtName, id, marker, ifselected, dispatch } = input
+  const { map, evtName, id, marker, ifselected, dispatch } = input;
   switch (evtName) {
     case 'onClick':
-      dispatch({ type: 'SELECT_MARKER', payload: id })
+      dispatch({ type: 'SELECT_MARKER', payload: id });
       break;
-    case 'onMoveend':
+    case 'onDblclick':
+      map.setView([marker.getLatLng().lat, marker.getLatLng().lng], map.getZoom());
+      break;
+    case 'onDragend':
       dispatch({
         type: 'CHANGE_MARKER_POSITION',
         payload: {
@@ -51,25 +56,25 @@ const defaultOSMMarkerEvtHnds = (input: defaultMarkerEvtHndsType) => {
       });
       break;
     case 'onMouseout':
-      return !ifselected && setDefaultIcon(marker)
+      return !ifselected && setDefaultIcon(marker);
     case 'onMouseover':
-      return !ifselected && setBlueIcon(marker)
+      return !ifselected && setBlueIcon(marker);
     default:
     // throw new Error('No corresponding event')
   }
 };
 
 export const handleMarkerEvt = (input: handleMarkerEvtType) => {
-  const { evt, id, marker, ifselected, dispatch, markerEvtHandlers } = input
+  const { map, evt, id, marker, ifselected, dispatch, markerEvtHandlers } = input;
   const evtName = `on${camelCase(evt)}`;
   if (markerEvtHandlers) {
     const customMarkerEvtHnd = markerEvtHandlers[evtName];
     if (customMarkerEvtHnd) {
       customMarkerEvtHnd(marker);
     } else {
-      defaultOSMMarkerEvtHnds({ evtName, id, marker, ifselected, dispatch });
+      defaultOSMMarkerEvtHnds({ map, evtName, id, marker, ifselected, dispatch });
     }
   } else {
-    defaultOSMMarkerEvtHnds({ evtName, id, marker, ifselected, dispatch });
+    defaultOSMMarkerEvtHnds({ map, evtName, id, marker, ifselected, dispatch });
   }
 };

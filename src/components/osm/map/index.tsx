@@ -3,42 +3,40 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import greenIconURL from 'assets/images/marker-green.svg';
-import { AddMarkerToListInputType, Bounds } from 'typings';
+import { AddMarkerToListInputType, LatLng } from 'typings';
 import { GlobalContext } from 'components';
-import { Marker, handleMapEvent } from 'osm';
+import { Marker, handleMapEvent, handleMapTool } from 'osm';
 import { Spin } from 'antd';
-import { filter } from 'rxjs/operators';
-import { fromEventPattern, merge, of } from 'rxjs';
+import { fromEventPattern, Observable, Subscription } from 'rxjs';
 import { osmMapEvents } from 'utils';
+import { filter } from 'rxjs/operators';
 
 export const osmGreenIcon = L.icon({
   iconUrl: greenIconURL,
   iconSize: [40, 40],
   iconAnchor: [20, 40],
 });
-
 L.Marker.prototype.options.icon = osmGreenIcon;
 
 export const OSMMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
-    fitBounds,
+    center,
     mapCardWidth,
     mapProps,
     mapProvider,
+    mapTools$,
     mapView,
     markersBounds,
     markersList,
-    recenterMap,
+    zoom,
   } = state;
-  const { center: defaultCenter } = mapProps;
   const { osmTileLayerServer, osmMapEvtHandlers } = mapProps;
-
   const mapConfig: object = Object.assign(
     {},
     {
-      center: mapView.center,
-      zoom: mapView.zoom,
+      center,
+      zoom,
       layers: [
         new L.TileLayer(
           osmTileLayerServer ? osmTileLayerServer : 'http://{s}.tile.osm.org/{z}/{x}/{y}.png'
@@ -47,63 +45,55 @@ export const OSMMap: FunctionComponent = () => {
     }
   );
 
-  const [map, setMap] = useState<L.Map | null>(null);
-
-  useEffect(() => {
-    if (mapProvider === 'osm') {
-      if (!map) {
-        initMap();
-      } else {
-        map.setView(mapView.center, mapView.zoom).invalidateSize();
-      }
-    }
-  }, [mapProvider, mapCardWidth]);
-
   const osmMapRef = useRef<HTMLDivElement>(null);
+  const [map, setMap] = useState<L.Map | null>(null);
+  const [event$, setEvent$] = useState<Array<{ evt: string; e$: Observable<{}> }>>([]);
 
-  const initMap = () => {
-    if (osmMapRef.current) {
-      const newMap = L.map(osmMapRef.current, mapConfig);
-      setMap(newMap);
-      setEventStream(newMap);
-    }
-  };
+  const initMap = (node: HTMLDivElement) => L.map(node, mapConfig);
 
-  const setEventStream = (m: L.Map) => {
-    const events$ = osmMapEvents.map(e => ({
-      e: e,
+  const setEventStream = (m: L.Map) =>
+    osmMapEvents.map(e => ({
+      evt: e,
       e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
     }));
-    merge(events$.map(s => s.e$.subscribe(handleMapEvent(m, s.e, dispatch, osmMapEvtHandlers))));
-  };
-
-  const fitOSMBounds = (m: L.Map, mb: Bounds) => {
-    m.fitBounds(mb);
-    dispatch({ type: 'ON_FIT_BOUNDS' });
-  };
-  const recenterOSMMap = (m: L.Map) => {
-    const c = defaultCenter ? defaultCenter : null;
-    if (c) {
-      m.panTo(c);
-    } else {
-      if (markersBounds) {
-        m.fitBounds(markersBounds);
-      }
-    }
-    dispatch({ type: 'ON_RECENTER_MAP' });
-  };
-
-  of(fitBounds)
-    .pipe(filter(() => fitBounds && mapProvider === 'osm'))
-    .subscribe(() => (markersBounds && map ? fitOSMBounds(map, markersBounds) : {}));
-  of(recenterMap)
-    .pipe(filter(() => recenterMap && mapProvider === 'osm'))
-    .subscribe(() => (map ? recenterOSMMap(map) : {}));
 
   const Markers = (omap: L.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (
       <Marker key={m.id} id={m.id} map={omap} props={m.props} />
     ));
+
+  const setMapView = (m: L.Map, c: LatLng, z: number) => {
+    m.setView(c, z).invalidateSize();
+  };
+
+  useEffect(() => {
+    const subscriptions: Array<Subscription> = [];
+    if (osmMapRef.current) {
+      if (!map) {
+        const m = initMap(osmMapRef.current);
+        setMap(m);
+        setEvent$(setEventStream(m));
+      } else {
+        subscriptions
+          .concat(
+            event$.map(s =>
+              s.e$
+                .pipe(filter(() => mapProvider === 'osm'))
+                .subscribe(() => handleMapEvent({ map, evt: s.evt, dispatch, osmMapEvtHandlers }))
+            )
+          )
+          .concat(
+            Object.keys(mapTools$).map((tool: keyof typeof mapTools$) =>
+              mapTools$[tool]
+                .pipe(filter(() => mapProvider === 'osm'))
+                .subscribe(() => handleMapTool({ map, tool, center, markersBounds }))
+            )
+          );
+        setMapView(map, mapView.center, mapView.zoom);
+      }
+    }
+    return () => subscriptions.forEach(s => s.unsubscribe());
+  }, [mapProvider, mapCardWidth, event$, mapTools$, center, markersBounds]);
 
   return (
     <div className="defaultContainer">

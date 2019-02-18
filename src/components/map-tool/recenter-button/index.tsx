@@ -1,17 +1,25 @@
-import * as React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button, Tooltip } from 'antd';
 import { GlobalContext } from 'src/components/global-context';
+import { fromEvent } from 'rxjs';
 
 export const RecenterButton: React.FunctionComponent = () => {
   const { dispatch } = React.useContext(GlobalContext);
 
-  const handleClick = () => {
-    dispatch({ type: 'RECENTER_MAP' });
-  };
+  const rcmRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (rcmRef && rcmRef.current) {
+      const recenterMap$ = fromEvent(rcmRef.current, 'click');
+      dispatch({ type: 'SET_RECENTER_MAP_STREAM', payload: recenterMap$ });
+    }
+  }, []);
 
   return (
     <Tooltip title="Recenter Map">
-      <Button onClick={handleClick} style={{ margin: '12px 12px' }} icon="undo" />
+      <div ref={rcmRef} style={{ display: 'inline-flex', margin: '12px 12px' }}>
+        <Button icon="undo" />
+      </div>
     </Tooltip>
   );
 };

@@ -1,11 +1,10 @@
-import { FunctionComponent,
-  useContext, useState, useEffect } from 'react';
+import { FunctionComponent, useContext, useState, useEffect } from 'react';
 import { labelInTwoString } from './label-in-two-string';
 import { AllInOneMarkerProps } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Observable, Subscription } from 'rxjs';
-import { loadStream, handleMarkerEvt, setDefaultIcon } from 'gm';
-import { gmMarkerEvents, ifSelected } from 'utils'
+import { loadMarkerStream, handleMarkerEvt, setDefaultIcon } from 'gm';
+import { markerEvents, ifSelected } from 'utils';
 import { setOrangeIcon } from '../marker-event';
 
 interface GmMarkerProps {
@@ -15,18 +14,14 @@ interface GmMarkerProps {
 }
 
 export const Marker: FunctionComponent<GmMarkerProps> = props => {
-  const { map: gmMap,
-    id,
-    props: mProps } = props;
-  const { title, position, label, withLabel, draggable, animation,
-    markerEvtHandlers,
-  } = mProps;
+  const { map, id, props: mProps } = props;
+  const { title, position, label, withLabel, draggable, animation, markerEvtHandlers } = mProps;
   const { state, dispatch } = useContext(GlobalContext);
   const { selectedMarker } = state;
   const gmlabel = label ? labelInTwoString(label) : labelInTwoString(title);
   const markerOpt = {
     icon: '',
-    map: gmMap,
+    map,
     title,
     position: new google.maps.LatLng(position[0], position[1]),
     label: withLabel ? gmlabel : undefined,
@@ -35,33 +30,34 @@ export const Marker: FunctionComponent<GmMarkerProps> = props => {
   };
 
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
-  const [event$, setEvent$] = useState<Array<{evt: string, e$: Observable<{}>}>>([])
+  const [event$, setEvent$] = useState<Array<{ evt: string; e$: Observable<{}> }>>([]);
 
   const createMarker = () => new google.maps.Marker(markerOpt);
 
-  const setEventStream = (m: google.maps.Marker) => gmMarkerEvents
-    .map( e => ({
+  const setEventStream = (m: google.maps.Marker) =>
+    markerEvents.map(e => ({
       evt: e,
-      e$: loadStream(e, m),
-    }))
+      e$: loadMarkerStream(e, m),
+    }));
 
   useEffect(() => {
-    let evtSubcrpts: Array<Subscription> = []
-    if(!marker) {
-      const m = createMarker()
-      setMarker(m)
-      setEvent$(setEventStream(m))
+    let evtSubcrpts: Array<Subscription> = [];
+    if (!marker) {
+      const m = createMarker();
+      setMarker(m);
+      setEvent$(setEventStream(m));
     } else {
-      const ifselected = ifSelected(id, selectedMarker)
-      ifselected? setOrangeIcon(marker): setDefaultIcon(marker)
-      marker.setPosition(new google.maps.LatLng(position[0], position[1]))
-      evtSubcrpts = event$.map( e =>
-        e.e$.subscribe(() => handleMarkerEvt(
-          { evt: e.evt, id, marker, ifselected, dispatch, markerEvtHandlers }
-        )))
-    };
-    return () => evtSubcrpts.map(es => es.unsubscribe())
-  }, [position, selectedMarker, event$])
+      const ifselected = ifSelected(id, selectedMarker);
+      ifselected ? setOrangeIcon(marker) : setDefaultIcon(marker);
+      marker.setPosition(new google.maps.LatLng(position[0], position[1]));
+      evtSubcrpts = event$.map(e =>
+        e.e$.subscribe(() =>
+          handleMarkerEvt({ map, evt: e.evt, id, marker, ifselected, dispatch, markerEvtHandlers })
+        )
+      );
+    }
+    return () => evtSubcrpts.map(es => es.unsubscribe());
+  }, [position, selectedMarker, event$]);
 
-  return null
+  return null;
 };

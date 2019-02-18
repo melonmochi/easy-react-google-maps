@@ -2,115 +2,92 @@ import 'components/style';
 import 'mapbox-gl/src/css/mapbox-gl.css';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { AddMarkerToListInputType, Bounds } from 'typings';
+import { AddMarkerToListInputType, LatLng } from 'typings';
 import { GlobalContext } from 'components';
-import { Marker, handleMapEvent } from 'mapbox';
+import { Marker, handleMapEvent, handleMapTool } from 'mapbox';
 import { Spin } from 'antd';
-import { filter, take } from 'rxjs/operators';
-import { fromEventPattern, merge, of } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { fromEventPattern, Subscription, Observable } from 'rxjs';
 import { mapboxConfig } from 'config';
 import { mapboxMapEvents } from 'utils';
 
 export const MapboxMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
-    fitBounds,
+    center,
     mapCardWidth,
     mapProps,
     mapProvider,
+    mapTools$,
     mapView,
     markersBounds,
     markersList,
-    recenterMap,
+    zoom,
   } = state;
-  const { center: defaultCenter } = mapProps;
-
   const { mapboxToken, mapboxStyle, mapboxMapEvtHandlers } = mapProps;
-
   mapboxgl.accessToken = mapboxToken ? mapboxToken : mapboxConfig.token;
-
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
-
-  useEffect(() => {
-    if (mapProvider === 'mapbox') {
-      if (!map) {
-        initMap();
-      } else {
-        map
-          .jumpTo({
-            center: [mapView.center[1], mapView.center[0]],
-            zoom: mapView.zoom - 1,
-          })
-          .resize()
-      }
-    }
-  }, [
-    mapProvider,
-    mapCardWidth,
-  ]);
-
   const mapConfig: object = Object.assign(
     {},
     {
-      center: new mapboxgl.LngLat(mapView.center[1], mapView.center[0]),
-      zoom: mapView.zoom - 1,
+      center: [center[1], center[0]],
+      zoom: zoom - 1,
       style: mapboxStyle ? mapboxStyle : 'mapbox://styles/mapbox/streets-v9',
     }
   );
 
   const mapboxMapRef = useRef<HTMLDivElement>(null);
+  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [event$, setEvent$] = useState<Array<{ evt: string; e$: Observable<{}> }>>([]);
 
-  const initMap = () => {
-    if (mapboxMapRef && mapboxMapRef.current) {
-      const newMap = new mapboxgl.Map({
-        container: mapboxMapRef.current,
-        ...mapConfig,
-      });
-      setMap(newMap);
-      setEventStream(newMap);
-    }
-  };
+  const initMap = (node: HTMLDivElement) =>
+    new mapboxgl.Map({
+      container: node,
+      doubleClickZoom: false,
+      ...mapConfig,
+    });
 
-  const setEventStream = (m: mapboxgl.Map) => {
-    const events$ = mapboxMapEvents.map(e => ({
-      e: e,
+  const setEventStream = (m: mapboxgl.Map) =>
+    mapboxMapEvents.map(e => ({
+      evt: e,
       e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
     }));
-    merge(events$.map(s => s.e$.subscribe(handleMapEvent(m, s.e, dispatch, mapboxMapEvtHandlers))));
-  };
-
-  const fitMapboxBounds = (m: mapboxgl.Map, mb: Bounds) => {
-    const swMapbox = [mb[0][1], mb[0][0]];
-    const neMapbox = [mb[1][1], mb[1][0]];
-    m.fitBounds([swMapbox, neMapbox] as Bounds, { linear: true });
-    dispatch({ type: 'ON_FIT_BOUNDS' });
-    fromEventPattern(handler => m.on('moveend', handler), handler => m.off('moveend', handler))
-      .pipe(take(1))
-      .subscribe(() => (map ? map.jumpTo({ zoom: Math.floor(map.getZoom()) }) : {}));
-  };
-  const recenterMapboxMap = (m: mapboxgl.Map) => {
-    const c = defaultCenter ? defaultCenter : null;
-    if (c) {
-      m.panTo([c[1], c[0]]);
-    } else {
-      if (markersBounds) {
-        fitMapboxBounds(m, markersBounds);
-      }
-    }
-    dispatch({ type: 'ON_RECENTER_MAP' });
-  };
-
-  of(fitBounds)
-    .pipe(filter(() => fitBounds && mapProvider === 'mapbox'))
-    .subscribe(() => (map && markersBounds ? fitMapboxBounds(map, markersBounds) : {}));
-  of(recenterMap)
-    .pipe(filter(() => recenterMap && mapProvider === 'mapbox'))
-    .subscribe(() => (map ? recenterMapboxMap(map) : {}));
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (
       <Marker key={m.id} id={m.id} props={m.props} map={mmap} />
     ));
+
+  const setMapView = (m: mapboxgl.Map, c: LatLng, z: number) => {
+    m.jumpTo({ center: [c[1], c[0]], zoom: z - 1 }).resize();
+  };
+
+  useEffect(() => {
+    let evtSubcrpts: Array<Subscription> = [];
+    let mapToolSubcrpts: Array<Subscription> = [];
+    if (mapboxMapRef.current) {
+      if (!map) {
+        const m = initMap(mapboxMapRef.current);
+        setMap(m);
+        setEvent$(setEventStream(m));
+      } else {
+        evtSubcrpts = event$.map(s => {
+          return s.e$
+            .pipe(filter(() => mapProvider === 'mapbox'))
+            .subscribe(() => handleMapEvent({ map, evt: s.evt, dispatch, mapboxMapEvtHandlers }));
+        });
+        mapToolSubcrpts = Object.keys(mapTools$).map((tool: keyof typeof mapTools$) =>
+          mapTools$[tool]
+            .pipe(filter(() => mapProvider === 'mapbox'))
+            .subscribe(() => handleMapTool({ map, tool, center, markersBounds }))
+        );
+        setMapView(map, mapView.center, mapView.zoom);
+      }
+    }
+    return () => {
+      evtSubcrpts.forEach(s => s.unsubscribe());
+      mapToolSubcrpts.forEach(s => s.unsubscribe());
+    };
+  }, [mapProvider, mapCardWidth, event$, mapTools$, center, markersBounds]);
 
   return (
     <div className="defaultContainer">

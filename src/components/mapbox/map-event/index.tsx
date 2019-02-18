@@ -1,11 +1,28 @@
 import { camelCase } from 'utils';
-import { GlobalContextDispatch, LatLng, mapboxMapEvtHandlersType } from 'typings';
+import { GlobalContextDispatch, LatLng, mapboxMapEvtHandlersType, Bounds } from 'typings';
 
-const defaultMapEventHandler = (
-  evtName: string,
-  dispatch: GlobalContextDispatch,
-  map: mapboxgl.Map
-) => {
+type defaultMapEventHandlerType = {
+  map: mapboxgl.Map;
+  evtName: string;
+  dispatch: GlobalContextDispatch;
+};
+
+type handleMapEventType = {
+  map: mapboxgl.Map;
+  evt: string;
+  dispatch: GlobalContextDispatch;
+  mapboxMapEvtHandlers?: mapboxMapEvtHandlersType;
+};
+
+type handleMapToolType = {
+  map: mapboxgl.Map;
+  tool: string;
+  center: LatLng;
+  markersBounds?: Bounds;
+};
+
+const defaultMapEventHandler = (input: defaultMapEventHandlerType) => {
+  const { map, evtName, dispatch } = input;
   switch (evtName) {
     case 'onClick':
       break;
@@ -30,18 +47,30 @@ const defaultMapEventHandler = (
   }
 };
 
-export const handleMapEvent = (
-  m: mapboxgl.Map,
-  evt: string,
-  dispatch: GlobalContextDispatch,
-  osmMapEvtHandlers?: mapboxMapEvtHandlersType
-) => {
-  return () => {
-    const evtName = `on${camelCase(evt)}`;
-    if (osmMapEvtHandlers && osmMapEvtHandlers[evtName]) {
-      osmMapEvtHandlers[evtName](m);
-    } else {
-      defaultMapEventHandler(evtName, dispatch, m);
-    }
-  };
+export const handleMapEvent = (input: handleMapEventType) => {
+  const { map, evt, dispatch, mapboxMapEvtHandlers } = input;
+  const evtName = `on${camelCase(evt)}`;
+  if (mapboxMapEvtHandlers && mapboxMapEvtHandlers[evtName]) {
+    mapboxMapEvtHandlers[evtName](map);
+  } else {
+    defaultMapEventHandler({ map, evtName, dispatch });
+  }
+};
+
+export const handleMapTool = (input: handleMapToolType) => {
+  const { map, tool, center: c, markersBounds: mb } = input;
+  switch (tool) {
+    case 'fitBounds$':
+      if (mb) {
+        const swMapbox = [mb[0][1], mb[0][0]];
+        const neMapbox = [mb[1][1], mb[1][0]];
+        map.fitBounds([swMapbox, neMapbox] as Bounds, { linear: true });
+      }
+      break;
+    case 'recenterMap$':
+      map.panTo([c[1], c[0]]);
+      break;
+    default:
+      break;
+  }
 };
