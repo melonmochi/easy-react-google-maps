@@ -85,12 +85,12 @@ Open your browser and visit http://127.0.0.1:8080
 - 🛵 **RxJS** as general solution for events handling https://rxjs-dev.firebaseapp.com/api.
 - 🚞 **GeoJSON Support**, http://geojson.org/.
 - 🎨 **Charts**, visualization tools.
-- (Optional) Add routing solution like React Router https://github.com/ReactTraining/react-router if it is needed
+- (Optional) Add routing solution like React Router https://github.com/ReactTraining/react-router if it is necessary.
 
 ## 🤝 Contributing [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
-We welcome all contributions. 
+We welcome all contributions.
 
 ## 🌍 License
 
-[MIT](https://github.com/umijs/umi/blob/master/LICENSE)
+[MIT](https://github.com/melonmochi/easy-react-google-maps/blob/master/LICENSE)
