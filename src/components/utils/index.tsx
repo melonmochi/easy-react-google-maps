@@ -44,12 +44,6 @@ export const GTFSFileNamesArray = [
   'feed_info',
 ];
 
-export const gmMapEvents = ['idle'];
-
-export const osmMapEvents = ['moveend'];
-
-export const mapboxMapEvents = ['moveend', 'dblclick'];
-
 export const markerEvents = ['click', 'dblclick', 'dragend', 'mouseout', 'mouseover'];
 
 export const weekDay = [

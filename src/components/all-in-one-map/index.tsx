@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useContext, CSSProperties } from 'react';
+import React, { FunctionComponent, useEffect, useContext } from 'react';
 import { GoogleMapsMap } from 'gm';
 import { OSMMap } from 'osm';
 import { MapboxMap } from 'mapbox';
@@ -10,7 +10,7 @@ import 'components/style';
 
 export const AllInOneMap: FunctionComponent<AllInOneMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { mapProvider, google } = state;
+  const { google } = state;
 
   const loadGmApi = async () => {
     const gmApi = await googleMapsApiLoader(props);
@@ -32,30 +32,12 @@ export const AllInOneMap: FunctionComponent<AllInOneMapProps> = props => {
     }
   }, []);
 
-  const showStyle: CSSProperties = { position: 'absolute', width: '100%', height: '100%' };
-  const hideStyle: CSSProperties = {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    visibility: 'hidden',
-  };
-
-  const gmStyle = mapProvider === 'google' ? showStyle : hideStyle;
-  const osmStyle = mapProvider === 'osm' ? showStyle : hideStyle;
-  const mapboxStyle = mapProvider === 'mapbox' ? showStyle : hideStyle;
-
   if (google) {
     return (
       <React.Fragment>
-        <div style={gmStyle}>
-          <GoogleMapsMap google={google} />
-        </div>
-        <div style={osmStyle}>
-          <OSMMap />
-        </div>
-        <div style={mapboxStyle}>
-          <MapboxMap />
-        </div>
+        <GoogleMapsMap google={google} />
+        <OSMMap />
+        <MapboxMap />
       </React.Fragment>
     );
   } else {

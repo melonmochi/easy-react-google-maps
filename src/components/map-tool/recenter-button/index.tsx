@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Button, Tooltip } from 'antd';
 import { GlobalContext } from 'src/components/global-context';
-import { fromEvent } from 'rxjs';
+import { fromEvent, Observable } from 'rxjs';
 
 export const RecenterButton: React.FunctionComponent = () => {
   const { dispatch } = React.useContext(GlobalContext);
@@ -11,8 +11,17 @@ export const RecenterButton: React.FunctionComponent = () => {
   useEffect(() => {
     if (rcmRef && rcmRef.current) {
       const recenterMap$ = fromEvent(rcmRef.current, 'click');
-      dispatch({ type: 'SET_RECENTER_MAP_STREAM', payload: recenterMap$ });
+      dispatch({
+        type: 'SET_MAP_TOOL_STREAM',
+        payload: { recenter_map: recenterMap$ },
+      });
     }
+    return () => {
+      dispatch({
+        type: 'SET_MAP_TOOL_STREAM',
+        payload: { fit_bounds: new Observable() },
+      });
+    };
   }, []);
 
   return (

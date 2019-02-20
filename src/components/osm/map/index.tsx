@@ -3,13 +3,11 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import greenIconURL from 'assets/images/marker-green.svg';
-import { AddMarkerToListInputType, LatLng } from 'typings';
+import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'components';
-import { Marker, handleMapEvent, handleMapTool } from 'osm';
+import { Marker, setMapView, combineEventStreams, setOsmMapConfig, handleOsmMapEvent } from 'osm';
 import { Spin } from 'antd';
-import { fromEventPattern, Observable, Subscription } from 'rxjs';
-import { osmMapEvents } from 'utils';
-import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 export const osmGreenIcon = L.icon({
   iconUrl: greenIconURL,
@@ -31,72 +29,57 @@ export const OSMMap: FunctionComponent = () => {
     markersList,
     zoom,
   } = state;
-  const { osmTileLayerServer, osmMapEvtHandlers } = mapProps;
-  const mapConfig: object = Object.assign(
-    {},
-    {
-      center,
-      zoom,
-      layers: [
-        new L.TileLayer(
-          osmTileLayerServer ? osmTileLayerServer : 'http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-        ),
-      ],
-    }
-  );
-
+  const { osmTileLayerServer } = mapProps;
+  const mapConfig = setOsmMapConfig({ center, zoom, osmTileLayerServer });
   const osmMapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<L.Map | null>(null);
-  const [event$, setEvent$] = useState<Array<{ evt: string; e$: Observable<{}> }>>([]);
+  const [osmEvents$, setOsmEvents$] = useState<EvtStreamType>({});
 
   const initMap = (node: HTMLDivElement) => L.map(node, mapConfig);
 
-  const setEventStream = (m: L.Map) =>
-    osmMapEvents.map(e => ({
-      evt: e,
-      e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
-    }));
+  useEffect(() => {
+    if (osmMapRef.current) {
+      const m = initMap(osmMapRef.current);
+      setMap(m);
+      setOsmEvents$(combineEventStreams(m, mapTools$));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (map) {
+      setOsmEvents$(combineEventStreams(map, mapTools$));
+    }
+  }, [mapTools$]);
+
+  useEffect(() => {
+    let evtSubsc: Array<Subscription> = [];
+    if (map && mapProvider === 'osm') {
+      setMapView(map, mapView.center, mapView.zoom);
+      evtSubsc = Object.keys(osmEvents$).map(e =>
+        osmEvents$[e].subscribe(() =>
+          handleOsmMapEvent({ map, e, dispatch, center, markersBounds })
+        )
+      );
+    }
+    return () => evtSubsc.forEach(s => s.unsubscribe());
+  }, [mapProvider, osmEvents$, center, markersBounds]);
+
+  useEffect(() => {
+    if (map && mapProvider === 'osm') {
+      map.invalidateSize();
+    }
+  }, [mapCardWidth]);
 
   const Markers = (omap: L.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (
       <Marker key={m.id} id={m.id} map={omap} props={m.props} />
     ));
 
-  const setMapView = (m: L.Map, c: LatLng, z: number) => {
-    m.setView(c, z).invalidateSize();
-  };
-
-  useEffect(() => {
-    const subscriptions: Array<Subscription> = [];
-    if (osmMapRef.current) {
-      if (!map) {
-        const m = initMap(osmMapRef.current);
-        setMap(m);
-        setEvent$(setEventStream(m));
-      } else {
-        subscriptions
-          .concat(
-            event$.map(s =>
-              s.e$
-                .pipe(filter(() => mapProvider === 'osm'))
-                .subscribe(() => handleMapEvent({ map, evt: s.evt, dispatch, osmMapEvtHandlers }))
-            )
-          )
-          .concat(
-            Object.keys(mapTools$).map((tool: keyof typeof mapTools$) =>
-              mapTools$[tool]
-                .pipe(filter(() => mapProvider === 'osm'))
-                .subscribe(() => handleMapTool({ map, tool, center, markersBounds }))
-            )
-          );
-        setMapView(map, mapView.center, mapView.zoom);
-      }
-    }
-    return () => subscriptions.forEach(s => s.unsubscribe());
-  }, [mapProvider, mapCardWidth, event$, mapTools$, center, markersBounds]);
-
   return (
-    <div className="defaultContainer">
+    <div
+      className="defaultContainer"
+      style={{ visibility: mapProvider === 'osm' ? 'visible' : 'hidden' }}
+    >
       <div className="defaultMap" ref={osmMapRef} />
       <Spin
         tip="Loading Map..."

@@ -2,14 +2,18 @@ import 'components/style';
 import 'mapbox-gl/src/css/mapbox-gl.css';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { AddMarkerToListInputType, LatLng } from 'typings';
+import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'components';
-import { Marker, handleMapEvent, handleMapTool } from 'mapbox';
+import {
+  Marker,
+  setMapboxMapConfig,
+  setMapView,
+  combineEventStreams,
+  handleMapboxMapEvent,
+} from 'mapbox';
 import { Spin } from 'antd';
-import { filter } from 'rxjs/operators';
-import { fromEventPattern, Subscription, Observable } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { mapboxConfig } from 'config';
-import { mapboxMapEvents } from 'utils';
 
 export const MapboxMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
@@ -24,20 +28,12 @@ export const MapboxMap: FunctionComponent = () => {
     markersList,
     zoom,
   } = state;
-  const { mapboxToken, mapboxStyle, mapboxMapEvtHandlers } = mapProps;
+  const { mapboxToken, mapboxStyle } = mapProps;
   mapboxgl.accessToken = mapboxToken ? mapboxToken : mapboxConfig.token;
-  const mapConfig: object = Object.assign(
-    {},
-    {
-      center: [center[1], center[0]],
-      zoom: zoom - 1,
-      style: mapboxStyle ? mapboxStyle : 'mapbox://styles/mapbox/streets-v9',
-    }
-  );
-
+  const mapConfig = setMapboxMapConfig({ center, zoom, mapboxStyle });
   const mapboxMapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
-  const [event$, setEvent$] = useState<Array<{ evt: string; e$: Observable<{}> }>>([]);
+  const [mapboxEvents$, setMapboxEvents$] = useState<EvtStreamType>({});
 
   const initMap = (node: HTMLDivElement) =>
     new mapboxgl.Map({
@@ -46,51 +42,49 @@ export const MapboxMap: FunctionComponent = () => {
       ...mapConfig,
     });
 
-  const setEventStream = (m: mapboxgl.Map) =>
-    mapboxMapEvents.map(e => ({
-      evt: e,
-      e$: fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler)),
-    }));
+  useEffect(() => {
+    if (mapboxMapRef.current) {
+      const m = initMap(mapboxMapRef.current);
+      setMap(m);
+      setMapboxEvents$(combineEventStreams(m, mapTools$));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (map) {
+      setMapboxEvents$(combineEventStreams(map, mapTools$));
+    }
+  }, [mapTools$]);
+
+  useEffect(() => {
+    let evtSubsc: Array<Subscription> = [];
+    if (map && mapProvider === 'mapbox') {
+      setMapView(map, mapView.center, mapView.zoom);
+      evtSubsc = Object.keys(mapboxEvents$).map(e =>
+        mapboxEvents$[e].subscribe(() =>
+          handleMapboxMapEvent({ map, e, dispatch, center, markersBounds })
+        )
+      );
+    }
+    return () => evtSubsc.forEach(s => s.unsubscribe());
+  }, [mapProvider, mapboxEvents$, center, markersBounds]);
+
+  useEffect(() => {
+    if (map && mapProvider === 'mapbox') {
+      setTimeout(() => map.resize(), 1);
+    }
+  }, [mapCardWidth]);
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (
       <Marker key={m.id} id={m.id} props={m.props} map={mmap} />
     ));
 
-  const setMapView = (m: mapboxgl.Map, c: LatLng, z: number) => {
-    m.jumpTo({ center: [c[1], c[0]], zoom: z - 1 }).resize();
-  };
-
-  useEffect(() => {
-    let evtSubcrpts: Array<Subscription> = [];
-    let mapToolSubcrpts: Array<Subscription> = [];
-    if (mapboxMapRef.current) {
-      if (!map) {
-        const m = initMap(mapboxMapRef.current);
-        setMap(m);
-        setEvent$(setEventStream(m));
-      } else {
-        evtSubcrpts = event$.map(s => {
-          return s.e$
-            .pipe(filter(() => mapProvider === 'mapbox'))
-            .subscribe(() => handleMapEvent({ map, evt: s.evt, dispatch, mapboxMapEvtHandlers }));
-        });
-        mapToolSubcrpts = Object.keys(mapTools$).map((tool: keyof typeof mapTools$) =>
-          mapTools$[tool]
-            .pipe(filter(() => mapProvider === 'mapbox'))
-            .subscribe(() => handleMapTool({ map, tool, center, markersBounds }))
-        );
-        setMapView(map, mapView.center, mapView.zoom);
-      }
-    }
-    return () => {
-      evtSubcrpts.forEach(s => s.unsubscribe());
-      mapToolSubcrpts.forEach(s => s.unsubscribe());
-    };
-  }, [mapProvider, mapCardWidth, event$, mapTools$, center, markersBounds]);
-
   return (
-    <div className="defaultContainer">
+    <div
+      className="defaultContainer"
+      style={{ visibility: mapProvider === 'mapbox' ? 'visible' : 'hidden' }}
+    >
       <div className="defaultMap" ref={mapboxMapRef} />
       <Spin
         tip="Loading Map..."

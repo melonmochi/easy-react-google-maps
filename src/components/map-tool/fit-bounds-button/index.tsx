@@ -11,7 +11,10 @@ export const FitBoundsButton: React.FunctionComponent = () => {
   useEffect(() => {
     if (fbbRef && fbbRef.current) {
       const fitBounds$ = fromEvent(fbbRef.current, 'click');
-      dispatch({ type: 'SET_FIT_BOUNDS_STREAM', payload: fitBounds$ });
+      dispatch({
+        type: 'SET_MAP_TOOL_STREAM',
+        payload: { fit_bounds: fitBounds$ },
+      });
     }
   }, []);
 

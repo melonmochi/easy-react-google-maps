@@ -1,4 +1,7 @@
 declare module 'typings' {
+  import { Observable } from "rxjs";
+  import { Color } from "csstype";
+
   type GoogleMapsControlPosition =
     | 'TOP_LEFT'
     | 'TOP_CENTER'
@@ -33,7 +36,7 @@ declare module 'typings' {
     exception_type: string;
   };
   type CalendarDates = { [key: string]: CalendarDate };
-  type MapTypeId = 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
+  type MapTypeId = 'HYBRID' | 'ROADMAP' | 'SATELLITE' | 'TERRAIN'
   type GestureHandlingType = 'cooperative' | 'greedy' | 'none' | 'auto';
 
   type Stop = {
@@ -160,14 +163,17 @@ declare module 'typings' {
   type mapboxMapEvtHandlersType = { [evtName: string]: (map: mapboxgl.Map) => void; };
   type osmMapEvtHandlersType = { [evtName: string]: (map: L.Map) => void; };
 
+
+  type GmMarkerAnimationType = 'DROP' | 'BOUNCE'
   interface AllInOneMarkerProps {
     title: string;
     position: [number, number];
     label?: string;
     withLabel?: boolean;
     draggable?: boolean;
-    animation?: 'DROP' | 'BOUNCE';
+    animation?: GmMarkerAnimationType;
     markerEvtHandlers?: MarkerEvtHandlersType;
+    color?: Color;
   }
 
   interface GoogleMapsLoaderInputProps {
@@ -228,16 +234,36 @@ declare module 'typings' {
     dispatch: GlobalContextDispatch,
   }
 
+  type EvtStreamType = { [e: string]: Observable<{}> }
+  type handleMapEventInput = {
+    e: string,
+    dispatch: GlobalContextDispatch,
+    center: LatLng,
+    markersBounds?: Bounds,
+  }
+  type setMapConfigInput = {
+    center: LatLng,
+    zoom: number,
+  }
+  type setMarkerConfigInput = {
+    title: string,
+    position: LatLng,
+    draggable?: boolean,
+  }
+  type handleMarkerEventInput = {
+    evt: string,
+    id: string,
+    ifselected: boolean,
+    dispatch: GlobalContextDispatch
+  }
+
   type GlobalContextState = {
     center: LatLng
     google?: typeof google
     mapCardWidth?: number
     mapProps: AllInOneMapProps
     mapProvider: 'google' | 'osm' | 'mapbox'
-    mapTools$: {
-      fitBounds$: Observable<{}>,
-      recenterMap$: Observable<{}>,
-    }
+    mapTools$: EvtStreamType
     mapView: MapView
     markersBounds?: Bounds
     markersList: MarkersListType
@@ -257,11 +283,8 @@ declare module 'typings' {
     Action.LOAD_MAPS_PROPS |
     Action.REMOVE_MARKER |
     Action.SELECT_MARKER |
-    Action.SET_FIT_BOUNDS_STREAM |
-    Action.SET_RECENTER_MAP_STREAM |
+    Action.SET_MAP_TOOL_STREAM |
     Action.SET_VIEW
-
-  import { Observable } from "rxjs";
 
   namespace Action {
     export type ADD_MARKER = { type: 'ADD_MARKER', payload: AddMarkerToListInputType }
@@ -273,8 +296,7 @@ declare module 'typings' {
     export type LOAD_MAPS_PROPS = { type: 'LOAD_MAPS_PROPS', payload: AllInOneMapProps }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
     export type SELECT_MARKER = { type: 'SELECT_MARKER', payload: string }
-    export type SET_FIT_BOUNDS_STREAM = { type: 'SET_FIT_BOUNDS_STREAM', payload: Observable<{}>}
-    export type SET_RECENTER_MAP_STREAM = { type: 'SET_RECENTER_MAP_STREAM', payload: Observable<{}>}
+    export type SET_MAP_TOOL_STREAM = { type: 'SET_MAP_TOOL_STREAM', payload: EvtStreamType}
     export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }
   }
 }

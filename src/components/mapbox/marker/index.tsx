@@ -1,12 +1,16 @@
 import './style';
 import React, { FunctionComponent, useState, useEffect, useRef, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { AllInOneMarkerProps } from 'typings';
+import { Subscription } from 'rxjs';
+import { AllInOneMarkerProps, EvtStreamType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Tooltip } from 'antd';
-import { Observable, Subscription } from 'rxjs';
-import { loadStream, handleMarkerEvt } from 'mapbox';
-import { ifSelected, markerEvents } from 'utils';
+import { ifSelected } from 'utils';
+import {
+  loadMarpboxMarkerEventsStream,
+  setMapboxMarkerConfig,
+  handleMapboxMarkerEvent,
+} from 'mapbox';
 
 interface MapboxMarkerProps {
   map: mapboxgl.Map;
@@ -16,13 +20,8 @@ interface MapboxMarkerProps {
 
 export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
   const { map, id, props: mProps } = props;
-  const { draggable, position, title, markerEvtHandlers } = mProps;
-
-  const markerOpt = {
-    color: '#0c4842',
-    draggable,
-  };
-
+  const { draggable, position, title, color } = mProps;
+  const markerOpt = setMapboxMarkerConfig({ title, color, draggable, position });
   const { state, dispatch } = useContext(GlobalContext);
   const { selectedMarker } = state;
   const [markerStyle, setMarkerStyle] = useState<'greenMarker' | 'blueBigMarker' | 'redBigMarker'>(
@@ -31,47 +30,38 @@ export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
   const el = useRef<HTMLDivElement>(null);
 
   const [marker, setMarker] = useState<mapboxgl.Marker | undefined>(undefined);
-  const [event$, setEvent$] = useState<Array<{ evt: string; e$: Observable<{}> }>>([]);
+  const [mapboxMarkerEvents$, setMapboxMarkerEvents$] = useState<EvtStreamType>({});
 
   const createMarker = (node: HTMLDivElement) =>
-    new mapboxgl.Marker(node, markerOpt).setLngLat([position[1], position[0]]).addTo(map);
-
-  const setEventStream = (node: HTMLDivElement, m: mapboxgl.Marker) =>
-    markerEvents.map(e => ({
-      evt: e,
-      e$: loadStream(e, node, m),
-    }));
+    new mapboxgl.Marker(node, markerOpt.opt).setLngLat(markerOpt.position).addTo(map);
 
   useEffect(() => {
-    let evtSubcrpts: Array<Subscription> = [];
-    if (!marker) {
-      const node = el.current;
-      if (node) {
-        const m = createMarker(node);
-        setMarker(m);
-        setEvent$(setEventStream(node, m));
-      }
-    } else {
+    if (el.current) {
+      const m = createMarker(el.current);
+      setMarker(m);
+      setMapboxMarkerEvents$(loadMarpboxMarkerEventsStream(m, el.current));
+    }
+  }, []);
+
+  useEffect(() => {
+    let markerEvtSubsc: Array<Subscription> = [];
+    if (marker) {
       const ifselected = ifSelected(id, selectedMarker);
       ifselected ? setMarkerStyle('redBigMarker') : setMarkerStyle('greenMarker');
-      marker.setLngLat([position[1], position[0]]);
-      evtSubcrpts = event$.map(e =>
-        e.e$.subscribe(() =>
-          handleMarkerEvt({
-            map,
-            evt: e.evt,
-            id,
-            marker,
-            ifselected,
-            dispatch,
-            markerEvtHandlers,
-            setMarkerStyle,
-          })
+      markerEvtSubsc = Object.keys(mapboxMarkerEvents$).map(e =>
+        mapboxMarkerEvents$[e].subscribe(() =>
+          handleMapboxMarkerEvent({ map, evt: e, id, marker, ifselected, dispatch, setMarkerStyle })
         )
       );
     }
-    return () => evtSubcrpts.map(es => es.unsubscribe());
-  }, [position, selectedMarker, event$]);
+    return () => markerEvtSubsc.forEach(s => s.unsubscribe());
+  }, [mapboxMarkerEvents$, selectedMarker]);
+
+  useEffect(() => {
+    if (marker) {
+      marker.setLngLat([position[1], position[0]]);
+    }
+  }, [position]);
 
   return (
     <div>

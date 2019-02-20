@@ -21,10 +21,8 @@ export const reducers = (state: State, action: Action) => {
       return REMOVE_MARKER(state, action);
     case 'SELECT_MARKER':
       return SELECT_MARKER(state, action);
-    case 'SET_FIT_BOUNDS_STREAM':
-      return SET_FIT_BOUNDS_STREAM(state, action);
-    case 'SET_RECENTER_MAP_STREAM':
-      return SET_RECENTER_MAP_STREAM(state, action);
+    case 'SET_MAP_TOOL_STREAM':
+      return SET_MAP_TOOL_STREAM(state, action);
     case 'SET_VIEW':
       return SET_VIEW(state, action);
     default:
@@ -113,11 +111,8 @@ export const SELECT_MARKER = (state: State, action: Action.SELECT_MARKER) => {
     selectedMarker: state.markersList.find(m => m.id === action.payload),
   } as State;
 };
-export const SET_FIT_BOUNDS_STREAM = (state: State, action: Action.SET_FIT_BOUNDS_STREAM) => {
-  return { ...state, mapTools$: { ...state.mapTools$, fitBounds$: action.payload } } as State;
-};
-export const SET_RECENTER_MAP_STREAM = (state: State, action: Action.SET_RECENTER_MAP_STREAM) => {
-  return { ...state, mapTools$: { ...state.mapTools$, recenterMap$: action.payload } } as State;
+export const SET_MAP_TOOL_STREAM = (state: State, action: Action.SET_MAP_TOOL_STREAM) => {
+  return { ...state, mapTools$: Object.assign({}, state.mapTools$, action.payload) } as State;
 };
 export const SET_VIEW = (state: State, action: Action.SET_VIEW) => {
   return { ...state, mapView: action.payload } as State;

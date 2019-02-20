@@ -64,7 +64,10 @@ export const handleMapTool = (input: handleMapToolType) => {
       if (mb) {
         const swMapbox = [mb[0][1], mb[0][0]];
         const neMapbox = [mb[1][1], mb[1][0]];
-        map.fitBounds([swMapbox, neMapbox] as Bounds, { linear: true });
+        map.fitBounds([swMapbox, neMapbox] as Bounds, {
+          linear: true,
+          padding: 100,
+        });
       }
       break;
     case 'recenterMap$':

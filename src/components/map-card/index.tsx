@@ -54,7 +54,7 @@ export const MapCard: FunctionComponent = props => {
       activeTabKey={state.mapProvider}
       onTabChange={onTabChange}
       bordered={false}
-      bodyStyle={{ padding: '0', marginTop: '1px' }}
+      bodyStyle={{ padding: '0', marginTop: '1px', height: '100%' }}
     >
       <ResizeDetector handleWidth onResize={onResize} />
       {renderChildren()}
