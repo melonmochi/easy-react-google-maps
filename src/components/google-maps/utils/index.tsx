@@ -69,7 +69,6 @@ export const loadGmMapEventsStream = (m: google.maps.Map) =>
 export const handleGmMapEvent = (input: handleGmMapEventInput) => {
   const { map, e, dispatch, center: c, markersBounds: mb } = input;
   const evtName = `on${camelCase(e)}`;
-  console.log('im in handleGm, evtName is', evtName);
   switch (evtName) {
     case 'onIdle':
       const gCenter = map.getCenter();

@@ -48,7 +48,6 @@ const loadMapboxMapEventsStream = (m: mapboxgl.Map) =>
 export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
   const { map, e, dispatch, center: c, markersBounds: mb } = input;
   const evtName = `on${camelCase(e)}`;
-  console.log('im handling mapbox evet', evtName);
   switch (evtName) {
     case 'onMoveend':
       const newCenter = [map.getCenter().lat, map.getCenter().lng] as LatLng;
@@ -113,19 +112,19 @@ const loadMapboxMarkerNode$ = (evt: string, node: HTMLDivElement) => fromEvent(n
 const loadMapboxMarkerMapbox$ = (e: string, m: mapboxgl.Marker) =>
   fromEventPattern(handler => m.on(e, handler), handler => m.off(e, handler));
 
-const setMapboxMouseOverOutStream = (node: HTMLDivElement) => {
-  const mouseup$ = loadMapboxMarkerNode$('mouseup', node);
+const setMapboxMouseOverOutStream = (node: HTMLDivElement, m: mapboxgl.Marker) => {
+  const dragend$ = loadMapboxMarkerMapbox$('dragend', m);
   const mousedown$ = loadMapboxMarkerNode$('mousedown', node);
   const mouseover$ = loadMapboxMarkerNode$('mouseover', node);
   const mouseout$ = loadMapboxMarkerNode$('mouseout', node);
   const mouseOver$ = mouseover$.pipe(takeUntil(mousedown$));
   const mouseOut$ = mouseout$.pipe(takeUntil(mousedown$));
-  const mouseOv$ = mouseup$.pipe(switchMap(() => mouseOver$));
-  const mouseOt$ = mouseup$.pipe(switchMap(() => mouseOut$));
+  const mouseOv$ = dragend$.pipe(switchMap(() => mouseOver$));
+  const mouseOt$ = dragend$.pipe(switchMap(() => mouseOut$));
   // Marble diagram
   // -------------down ----------------- ------------------down
   // oo---oo------|    --oo*--oo*----oo* ------oo----oo----|
-  // -------------|    ----------------- up----------------|
+  // -------------|    ----------------- dragend----------------|
   return [merge(mouseOver$, mouseOv$), merge(mouseOut$, mouseOt$)];
 };
 
@@ -138,9 +137,9 @@ export const loadMapboxMarkerEventStream = (
     case 'dragend':
       return loadMapboxMarkerMapbox$(evt, m);
     case 'mouseout':
-      return setMapboxMouseOverOutStream(node)[1];
+      return setMapboxMouseOverOutStream(node, m)[1];
     case 'mouseover':
-      return setMapboxMouseOverOutStream(node)[0];
+      return setMapboxMouseOverOutStream(node, m)[0];
     default:
       return loadMapboxMarkerNode$(evt, node);
   }
