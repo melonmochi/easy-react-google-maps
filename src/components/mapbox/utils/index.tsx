@@ -9,10 +9,9 @@ import {
 } from 'typings';
 import { fromEventPattern, merge, fromEvent } from 'rxjs';
 import { camelCase, markerEvents } from 'utils';
-import { takeUntil, switchMap } from 'rxjs/operators';
+import { takeUntil, switchMap, filter } from 'rxjs/operators';
 import { Color } from 'csstype';
-
-export const mapboxMapEvents = ['moveend', 'dblclick'];
+export const mapboxMapEvents = [ 'click', 'dblclick', 'moveend' ];
 
 // ------------------------MAP------------------------
 
@@ -37,11 +36,19 @@ export const setMapboxMapConfig = (input: setMapboxMapConfigInput) => {
 };
 
 const loadMapbox$ = (evt: string, m: mapboxgl.Map) =>
-  fromEventPattern(handler => m.on(evt, handler), handler => m.off(evt, handler));
+  fromEventPattern(handler => m.on(evt, handler), handler => m.off(evt, handler), e => e);
 
 const loadMapboxMapEventsStream = (m: mapboxgl.Map) =>
   mapboxMapEvents.reduce((obj: EvtStreamType, e) => {
-    obj[e] = loadMapbox$(e, m);
+    switch (e) {
+      case 'click':
+        obj[e] = loadMapbox$(e, m).pipe(
+          filter(evt => evt.originalEvent.target.tagName === 'CANVAS'))
+        break;
+      default:
+        obj[e] = loadMapbox$(e, m)
+        break;
+    }
     return obj;
   }, {});
 
@@ -49,6 +56,9 @@ export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
   const { map, e, dispatch, center: c, markersBounds: mb } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
+    case 'onClick':
+      dispatch({ type: 'SELECT_MARKER', payload: '' });
+      break;
     case 'onMoveend':
       const newCenter = [map.getCenter().lat, map.getCenter().lng] as LatLng;
       const newZoom = Math.floor(map.getZoom() + 1);

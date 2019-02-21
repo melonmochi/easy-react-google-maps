@@ -15,7 +15,7 @@ import { takeUntil, switchMap } from 'rxjs/operators';
 import blueIconURL from 'assets/images/marker-blue.svg';
 import orangeIconURL from 'assets/images/marker-orange.svg';
 
-const gmMapEvents = ['idle'];
+const gmMapEvents = [ 'click', 'idle' ];
 
 // ------------------------MAP------------------------
 
@@ -70,6 +70,9 @@ export const handleGmMapEvent = (input: handleGmMapEventInput) => {
   const { map, e, dispatch, center: c, markersBounds: mb } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
+    case 'onClick':
+      dispatch({type: 'SELECT_MARKER', payload: ''})
+      break;
     case 'onIdle':
       const gCenter = map.getCenter();
       const center = [gCenter.lat(), gCenter.lng()] as LatLng;

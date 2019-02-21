@@ -11,7 +11,7 @@ import { camelCase, markerEvents } from 'utils';
 import L from 'leaflet';
 import { takeUntil, switchMap } from 'rxjs/operators';
 
-export const osmMapEvents = ['moveend'];
+export const osmMapEvents = ['click', 'moveend'];
 
 // ------------------------MAP------------------------
 
@@ -51,6 +51,9 @@ export const handleOsmMapEvent = (input: handleOsmMapEventInput) => {
   const { map, e, dispatch, center: c, markersBounds: mb } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
+    case 'onClick':
+      dispatch({ type: 'SELECT_MARKER', payload: '' });
+      break;
     case 'onMoveend':
       const newCenter = [map.getCenter().lat, map.getCenter().lng] as LatLng;
       const newZoom = map.getZoom();
