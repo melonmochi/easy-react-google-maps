@@ -66,7 +66,7 @@ export const handleOsmMapEvent = (input: handleOsmMapEventInput) => {
       });
       break;
     case 'onFit_bounds':
-      return mb && map.fitBounds(mb);
+      return mb && map.fitBounds(mb, { padding: [100, 100] });
     case 'onRecenter_map':
       map.panTo(c);
       break;
