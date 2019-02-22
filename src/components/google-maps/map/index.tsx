@@ -1,9 +1,9 @@
-import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
+import React, { FunctionComponent, useEffect, useContext, useRef, useState, Fragment } from 'react';
 import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Subscription } from 'rxjs';
 import { Spin } from 'antd';
-import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams } from 'gm';
+import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams, SearchBox } from 'gm';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -42,6 +42,11 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     return () => evtSubsc.forEach(s => s.unsubscribe());
   }, [mapProvider, gmEvents$, center, markersBounds]);
 
+  const MapChildComponents = (m: google.maps.Map) => <Fragment>
+      <SearchBox {...props} map={m}/>
+      {Markers(m)}
+    </ Fragment>
+
   const Markers = (gmap: google.maps.Map) =>
     state.markersList.map((m: AddMarkerToListInputType) => (
       <Marker key={m.id} id={m.id} map={gmap} props={m.props} />
@@ -59,7 +64,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
         size="large"
         style={{ width: 0, margin: 'auto', zIndex: 11 }}
       />
-      {map ? Markers(map) : null}
+      {map ? MapChildComponents(map) : null}
     </div>
   );
 };

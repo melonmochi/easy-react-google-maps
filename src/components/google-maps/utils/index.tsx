@@ -227,3 +227,45 @@ export const labelInTwoString = (label: string) => {
       return splitedLabel[0].charAt(0) + splitedLabel[1].charAt(0);
   }
 };
+
+// ------------------------SEARCH_BOX------------------------
+const gmSearchBoxEvents = ['places_changed'];
+
+const loadGmSearchBox$ = (evt: string, sb: google.maps.places.SearchBox) =>
+  fromEventPattern(
+    handler => sb.addListener(evt, handler),
+    (_handler, listener) => google.maps.event.removeListener(listener)
+  );
+
+export const loadGmSearchBoxEventsStream = (sb: google.maps.places.SearchBox) =>
+  gmSearchBoxEvents.reduce((obj: { [e: string]: Observable<{}> }, e) => {
+    obj[e] = loadGmSearchBox$(e, sb);
+    return obj;
+  }, {});
+
+export const handleGmSearchBoxEvent = (input: {e: string, map: google.maps.Map, searchBox: google.maps.places.SearchBox}) => {
+  const { e, map, searchBox } = input
+  const evtName = `on${camelCase(e)}`;
+  switch (evtName) {
+    case 'onPlaces_changed':
+      const places = searchBox.getPlaces();
+      const bounds = new google.maps.LatLngBounds();
+      if (map && places.length !== 0) {
+        places.forEach(place => {
+          if (!place.geometry) {
+            throw new Error('Returned place contains no geometry');
+          } else {
+            if (place.geometry.viewport) {
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          }
+        });
+        map.fitBounds(bounds);
+      }
+      break;
+    default:
+    // throw new Error('No corresponding event')
+  }
+}

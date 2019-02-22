@@ -1,80 +1,49 @@
-import * as React from 'react';
-import { GoogleMapsControlPosition } from 'typings';
+import './style'
+import React, { FunctionComponent, useRef, useEffect, useState } from 'react';
+import { GoogleMapsControlPosition, EvtStreamType } from 'typings';
+import { Subscription } from 'rxjs';
+import { loadGmSearchBoxEventsStream, handleGmSearchBoxEvent } from 'gm';
 
-// tslint:disable-next-line:interface-name
 export interface SearchBoxProps {
-  google?: typeof google;
-  map?: google.maps.Map;
+  google: typeof google;
+  map: google.maps.Map;
   position?: GoogleMapsControlPosition;
 }
 
-export default class SearchBox extends React.Component<SearchBoxProps, any> {
-  searchBox: google.maps.places.SearchBox;
+export const SearchBox: FunctionComponent<SearchBoxProps> = props => {
+  const { google, map, position } = props
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
+  const [searchBoxEvents$, setSearchBoxEvents$] = useState<EvtStreamType>({});
 
-  private inputRef = React.createRef<HTMLInputElement>();
-
-  componentDidMount() {
-    this.renderSearchBox();
-  }
-
-  onPlacesChanged = () => {
-    const places = this.searchBox.getPlaces();
-    const bounds = new google.maps.LatLngBounds();
-    const { map } = this.props;
-
-    if (map && places.length !== 0) {
-      places.forEach(place => {
-        if (!place.geometry) {
-          throw new Error('Returned place contains no geometry');
-        } else {
-          if (place.geometry.viewport) {
-            bounds.union(place.geometry.viewport);
-          } else {
-            bounds.extend(place.geometry.location);
-          }
-        }
-      });
-      map.fitBounds(bounds);
+  useEffect(() => {
+    if (inputRef.current) {
+      const sb = createSearchBox(inputRef.current)
+      setSearchBox(sb)
+      setSearchBoxEvents$(loadGmSearchBoxEventsStream(sb))
+      const pos = position ? position : 'TOP_LEFT';
+      map.controls[google.maps.ControlPosition[pos]].push(inputRef.current);
     }
-  };
+  }, [])
 
-  renderSearchBox() {
-    if (this.props && this.props.google) {
-      const { google, map } = this.props;
-
-      const input = this.inputRef.current;
-      this.searchBox = new google.maps.places.SearchBox(input as HTMLInputElement);
-
-      const position = this.props.position ? this.props.position : 'TOP_LEFT';
-
-      if (map) {
-        map.controls[google.maps.ControlPosition[position]].push(input as HTMLInputElement);
-      }
-
-      this.searchBox.addListener('places_changed', this.onPlacesChanged);
+  useEffect(() => {
+    let evtSubsc: Array<Subscription> = [];
+    if(searchBox) {
+      evtSubsc = Object.keys(searchBoxEvents$).map(e =>
+        searchBoxEvents$[e].subscribe(() => handleGmSearchBoxEvent({ e, map, searchBox }))
+      );
     }
-  }
+    return () => evtSubsc.forEach(s => s.unsubscribe());
+  },[searchBoxEvents$])
 
-  render() {
-    return (
-      <input
-        ref={this.inputRef}
-        type="text"
-        style={{
-          border: `1px solid transparent`,
-          borderRadius: `3px`,
-          boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
-          boxSizing: `border-box`,
-          fontSize: `14px`,
-          height: `32px`,
-          margin: '12px 12px',
-          outline: `none`,
-          padding: `0 12px`,
-          position: 'relative',
-          textOverflow: `ellipses`,
-          width: `240px`,
-        }}
-      />
-    );
-  }
+  const createSearchBox = (input: HTMLInputElement) => new google.maps.places.SearchBox(
+    input);
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      className="search-box-input"
+    />
+  );
 }
