@@ -26,6 +26,7 @@ export const MapboxMap: FunctionComponent = () => {
     mapView,
     markersBounds,
     markersList,
+    searchBoxPlacesBounds,
     zoom,
   } = state;
   const { mapboxToken, mapboxStyle } = mapProps;
@@ -74,6 +75,12 @@ export const MapboxMap: FunctionComponent = () => {
       setTimeout(() => map.resize(), 1);
     }
   }, [mapCardWidth]);
+
+  useEffect(() => {
+    if(map) {
+      handleMapboxMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
+    }
+  },[searchBoxPlacesBounds])
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

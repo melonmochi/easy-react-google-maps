@@ -14,7 +14,7 @@ export { MapCard } from './map-card';
 
 export { EasySideBar as SideBar } from './side-bar';
 
-export { MapTool } from './map-tool';
+export { MapTool, SearchBox } from './map-tool';
 
 export { AllInOneMap as Map } from './all-in-one-map';
 

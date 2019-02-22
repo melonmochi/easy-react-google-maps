@@ -240,6 +240,7 @@ declare module 'typings' {
     dispatch: GlobalContextDispatch,
     center: LatLng,
     markersBounds?: Bounds,
+    searchBoxPlacesBounds?: Bounds,
   }
   type setMapConfigInput = {
     center: LatLng,
@@ -268,6 +269,7 @@ declare module 'typings' {
     markersBounds?: Bounds
     markersList: MarkersListType
     selectedMarker?: AddMarkerToListInputType
+    searchBoxPlacesBounds?: Bounds
     zoom: number
   }
 
@@ -284,6 +286,7 @@ declare module 'typings' {
     Action.REMOVE_MARKER |
     Action.SELECT_MARKER |
     Action.SET_MAP_TOOL_STREAM |
+    Action.SET_SEARCH_BOX_PLACES_BOUNDS |
     Action.SET_VIEW
 
   namespace Action {
@@ -297,6 +300,7 @@ declare module 'typings' {
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
     export type SELECT_MARKER = { type: 'SELECT_MARKER', payload: string }
     export type SET_MAP_TOOL_STREAM = { type: 'SET_MAP_TOOL_STREAM', payload: EvtStreamType}
+    export type SET_SEARCH_BOX_PLACES_BOUNDS = { type: 'SET_SEARCH_BOX_PLACES_BOUNDS', payload: Bounds }
     export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }
   }
 }

@@ -48,7 +48,7 @@ const loadOsmMapEventsStream = (m: L.Map) =>
   }, {});
 
 export const handleOsmMapEvent = (input: handleOsmMapEventInput) => {
-  const { map, e, dispatch, center: c, markersBounds: mb } = input;
+  const { map, e, dispatch, center: c, markersBounds: mb, searchBoxPlacesBounds: sbpb } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onClick':
@@ -67,6 +67,8 @@ export const handleOsmMapEvent = (input: handleOsmMapEventInput) => {
       break;
     case 'onFit_bounds':
       return mb && map.fitBounds(mb, { padding: [100, 100] });
+    case 'onPlaces_changed':
+      return sbpb && map.fitBounds(sbpb, { padding: [100, 100] });
     case 'onRecenter_map':
       map.panTo(c);
       break;

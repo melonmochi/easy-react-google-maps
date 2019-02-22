@@ -11,3 +11,5 @@ export const MapTool: React.FunctionComponent = () => {
     </Card>
   );
 };
+
+export { SearchBox } from './search-box'

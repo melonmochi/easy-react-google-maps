@@ -6,6 +6,20 @@
     <title><%= htmlWebpackPlugin.options.title %></title>
   </head>
   <body>
+    <style>
+      .pac-container .pac-item {
+        line-height: 40px;
+      }
+      .pac-container .pac-item .pac-item-query {
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+      }
+      .pac-container .pac-item .pac-icon {
+        margin-top: 0;
+        vertical-align: middle;
+      }
+    </style>
     <div id="root" style="height: 100%"></div>
   </body>
 </html>

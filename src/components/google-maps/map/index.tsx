@@ -1,9 +1,9 @@
-import React, { FunctionComponent, useEffect, useContext, useRef, useState, Fragment } from 'react';
+import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Subscription } from 'rxjs';
 import { Spin } from 'antd';
-import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams, SearchBox } from 'gm';
+import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams } from 'gm';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -11,7 +11,7 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { center, mapProps, mapView, mapProvider, mapTools$, markersBounds, zoom } = state;
+  const { center, mapProps, mapView, mapProvider, mapTools$, markersBounds, zoom, searchBoxPlacesBounds } = state;
   const { google } = props;
   const { gestureHandling, gmMaptype } = mapProps;
   const mapConfig = setGmMapConfig({ center, zoom, gestureHandling, gmMaptype });
@@ -32,20 +32,23 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   }, [mapTools$]);
 
   useEffect(() => {
+    if(map) {
+      handleGmMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
+    }
+  },[searchBoxPlacesBounds])
+
+  useEffect(() => {
     let evtSubsc: Array<Subscription> = [];
     if (map && mapProvider === 'google') {
       setMapView(map, mapView.zoom, mapView.center);
       evtSubsc = Object.keys(gmEvents$).map(e =>
-        gmEvents$[e].subscribe(() => handleGmMapEvent({ map, e, dispatch, center, markersBounds }))
+        gmEvents$[e].subscribe(() => handleGmMapEvent({ map, e, dispatch, center, searchBoxPlacesBounds }))
       );
     }
     return () => evtSubsc.forEach(s => s.unsubscribe());
   }, [mapProvider, gmEvents$, center, markersBounds]);
 
-  const MapChildComponents = (m: google.maps.Map) => <Fragment>
-      <SearchBox {...props} map={m}/>
-      {Markers(m)}
-    </ Fragment>
+  const MapChildComponents = (m: google.maps.Map) => Markers(m)
 
   const Markers = (gmap: google.maps.Map) =>
     state.markersList.map((m: AddMarkerToListInputType) => (

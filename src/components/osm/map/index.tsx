@@ -27,6 +27,7 @@ export const OSMMap: FunctionComponent = () => {
     mapView,
     markersBounds,
     markersList,
+    searchBoxPlacesBounds,
     zoom,
   } = state;
   const { osmTileLayerServer } = mapProps;
@@ -69,6 +70,12 @@ export const OSMMap: FunctionComponent = () => {
       map.invalidateSize();
     }
   }, [mapCardWidth]);
+
+  useEffect(() => {
+    if(map) {
+      handleOsmMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
+    }
+  },[searchBoxPlacesBounds])
 
   const Markers = (omap: L.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

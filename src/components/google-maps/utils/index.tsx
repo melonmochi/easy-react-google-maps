@@ -7,15 +7,16 @@ import {
   setMarkerConfigInput,
   GmMarkerAnimationType,
   handleMarkerEventInput,
+  GlobalContextDispatch,
 } from 'typings';
 import { fromEventPattern, Observable, merge } from 'rxjs';
-import { boundsToGmbounds, camelCase, markerEvents } from 'utils';
+import { boundsToGmbounds, camelCase, markerEvents, gmBoundsToBounds } from 'utils';
 import { setMapConfigInput } from 'typings';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import blueIconURL from 'assets/images/marker-blue.svg';
 import orangeIconURL from 'assets/images/marker-orange.svg';
 
-const gmMapEvents = [ 'click', 'idle' ];
+const gmMapEvents = ['click', 'idle' ];
 
 // ------------------------MAP------------------------
 
@@ -67,11 +68,11 @@ export const loadGmMapEventsStream = (m: google.maps.Map) =>
   }, {});
 
 export const handleGmMapEvent = (input: handleGmMapEventInput) => {
-  const { map, e, dispatch, center: c, markersBounds: mb } = input;
+  const { map, e, dispatch, center: c, markersBounds: mb, searchBoxPlacesBounds: sbpb } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onClick':
-      dispatch({type: 'SELECT_MARKER', payload: ''})
+      dispatch({ type: 'SELECT_MARKER', payload: '' })
       break;
     case 'onIdle':
       const gCenter = map.getCenter();
@@ -81,6 +82,8 @@ export const handleGmMapEvent = (input: handleGmMapEventInput) => {
       break;
     case 'onFit_bounds':
       return mb && map.fitBounds(boundsToGmbounds(mb));
+    case 'onPlaces_changed':
+      return sbpb && map.fitBounds(boundsToGmbounds(sbpb));
     case 'onRecenter_map':
       map.panTo(new google.maps.LatLng(c[0], c[1]));
       break;
@@ -243,14 +246,20 @@ export const loadGmSearchBoxEventsStream = (sb: google.maps.places.SearchBox) =>
     return obj;
   }, {});
 
-export const handleGmSearchBoxEvent = (input: {e: string, map: google.maps.Map, searchBox: google.maps.places.SearchBox}) => {
-  const { e, map, searchBox } = input
+type handleGmSearchBoxEventInput = {
+  e: string,
+  searchBox: google.maps.places.SearchBox
+  dispatch: GlobalContextDispatch
+}
+
+export const handleGmSearchBoxEvent = (input: handleGmSearchBoxEventInput) => {
+  const { e, searchBox, dispatch } = input
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onPlaces_changed':
       const places = searchBox.getPlaces();
       const bounds = new google.maps.LatLngBounds();
-      if (map && places.length !== 0) {
+      if (places.length !== 0) {
         places.forEach(place => {
           if (!place.geometry) {
             throw new Error('Returned place contains no geometry');
@@ -262,7 +271,7 @@ export const handleGmSearchBoxEvent = (input: {e: string, map: google.maps.Map, 
             }
           }
         });
-        map.fitBounds(bounds);
+        dispatch({ type: 'SET_SEARCH_BOX_PLACES_BOUNDS', payload: gmBoundsToBounds(bounds) })
       }
       break;
     default:

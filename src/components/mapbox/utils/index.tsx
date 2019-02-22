@@ -53,7 +53,7 @@ const loadMapboxMapEventsStream = (m: mapboxgl.Map) =>
   }, {});
 
 export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
-  const { map, e, dispatch, center: c, markersBounds: mb } = input;
+  const { map, e, dispatch, center: c, markersBounds: mb, searchBoxPlacesBounds: sbpb } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onClick':
@@ -67,6 +67,10 @@ export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
         payload: { center: newCenter, zoom: newZoom },
       });
       break;
+    case 'onPlaces_changed':
+      if (sbpb) {
+        map.fitBounds(boundsToMapboxBounds(sbpb), { linear: true, padding: 100 });
+      }
     case 'onFit_bounds':
       if (mb) {
         map.fitBounds(boundsToMapboxBounds(mb), { linear: true, padding: 100 });

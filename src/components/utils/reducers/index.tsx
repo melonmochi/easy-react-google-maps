@@ -23,6 +23,8 @@ export const reducers = (state: State, action: Action) => {
       return SELECT_MARKER(state, action);
     case 'SET_MAP_TOOL_STREAM':
       return SET_MAP_TOOL_STREAM(state, action);
+    case 'SET_SEARCH_BOX_PLACES_BOUNDS':
+      return SET_SEARCH_BOX_PLACES_BOUNDS(state, action)
     case 'SET_VIEW':
       return SET_VIEW(state, action);
     default:
@@ -114,6 +116,9 @@ export const SELECT_MARKER = (state: State, action: Action.SELECT_MARKER) => {
 export const SET_MAP_TOOL_STREAM = (state: State, action: Action.SET_MAP_TOOL_STREAM) => {
   return { ...state, mapTools$: Object.assign({}, state.mapTools$, action.payload) } as State;
 };
+export const SET_SEARCH_BOX_PLACES_BOUNDS = (state: State, action: Action.SET_SEARCH_BOX_PLACES_BOUNDS) => {
+  return { ...state, searchBoxPlacesBounds: action.payload } as State;
+}
 export const SET_VIEW = (state: State, action: Action.SET_VIEW) => {
   return { ...state, mapView: action.payload } as State;
 };
