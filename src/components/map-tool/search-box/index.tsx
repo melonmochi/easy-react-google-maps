@@ -15,6 +15,7 @@ export const SearchBox: FunctionComponent<SearchBoxProps> = props => {
   const { dispatch } = useContext(GlobalContext)
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
   const [searchBoxEvents$, setSearchBoxEvents$] = useState<EvtStreamType>({});
+  const [ placeName, setPlaceName ] = useState<string>('')
 
   useEffect(() => {
     const input = document.getElementById('search-box-input') as HTMLInputElement;
@@ -35,12 +36,19 @@ export const SearchBox: FunctionComponent<SearchBoxProps> = props => {
     return () => evtSubsc.forEach(s => s.unsubscribe());
   }, [searchBoxEvents$])
 
+  const onPlaceNameChanged = (value: string) => {
+    setPlaceName(value)
+  }
+
   return <Search
+    value={placeName}
     id='search-box-input'
     className='search-box-input'
+    onChange={ e => onPlaceNameChanged(e.target.value) }
+    onSearch={onPlaceNameChanged}
+    type='text'
     size='large'
     placeholder="Input where you want to go"
-    enterButton
     prefix={<Icon type="compass" style={{ color: 'rgba(0,0,0,.25)' }} />}
     style={{ width: '300px' }}
   />
