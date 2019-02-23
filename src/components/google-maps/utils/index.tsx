@@ -15,6 +15,8 @@ import { setMapConfigInput } from 'typings';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import blueIconURL from 'assets/images/marker-blue.svg';
 import orangeIconURL from 'assets/images/marker-orange.svg';
+import { Modal } from 'antd';
+const confirm = Modal.confirm;
 
 const gmMapEvents = ['click', 'idle' ];
 
@@ -194,7 +196,7 @@ export const setOrangeIcon = (m: google.maps.Marker) =>
   });
 
 export const handleGmMarkerEvent = (input: handleGmMarkerEventInput) => {
-  const { map, evt, id, marker, ifselected, dispatch } = input;
+  const { map, evt, id, marker, position, ifselected, dispatch } = input;
   const evtName = `on${camelCase(evt)}`;
   switch (evtName) {
     case 'onClick':
@@ -204,11 +206,21 @@ export const handleGmMarkerEvent = (input: handleGmMarkerEventInput) => {
       map.panTo(new google.maps.LatLng(marker.getPosition().lat(), marker.getPosition().lng()));
       break;
     case 'onDragend':
-      dispatch({
-        type: 'CHANGE_MARKER_POSITION',
-        payload: {
-          id: id,
-          newPosition: [marker.getPosition().lat(), marker.getPosition().lng()],
+      confirm({
+        centered: true,
+        title: 'Do you want to move this marker?',
+        content: 'When clicked the OK button, the marker position will be changed',
+        onOk() {
+          dispatch({
+            type: 'CHANGE_MARKER_POSITION',
+            payload: {
+              id: id,
+              newPosition: [marker.getPosition().lat(), marker.getPosition().lng()],
+            },
+          })
+        },
+        onCancel() {
+          marker.setPosition(new google.maps.LatLng(position[0], position[1]))
         },
       });
       break;

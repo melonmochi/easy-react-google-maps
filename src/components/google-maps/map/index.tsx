@@ -42,7 +42,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     if (map && mapProvider === 'google') {
       setMapView(map, mapView.zoom, mapView.center);
       evtSubsc = Object.keys(gmEvents$).map(e =>
-        gmEvents$[e].subscribe(() => handleGmMapEvent({ map, e, dispatch, center, searchBoxPlacesBounds }))
+        gmEvents$[e].subscribe(() => handleGmMapEvent({ map, e, dispatch, center, markersBounds, searchBoxPlacesBounds }))
       );
     }
     return () => evtSubsc.forEach(s => s.unsubscribe());

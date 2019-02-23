@@ -254,6 +254,7 @@ declare module 'typings' {
   type handleMarkerEventInput = {
     evt: string,
     id: string,
+    position: LatLng,
     ifselected: boolean,
     dispatch: GlobalContextDispatch
   }

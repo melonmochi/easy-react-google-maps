@@ -46,22 +46,17 @@ export const Marker: FunctionComponent<GmMarkerProps> = props => {
   useEffect(() => {
     let markerEvtSubsc: Array<Subscription> = [];
     if (marker) {
+      marker.setPosition(new google.maps.LatLng(position[0], position[1]));
       const ifselected = ifSelected(id, selectedMarker);
       ifselected ? setOrangeIcon(marker) : setDefaultIcon(marker);
       markerEvtSubsc = Object.keys(gmMarkerEvents$).map(e =>
         gmMarkerEvents$[e].subscribe(() =>
-          handleGmMarkerEvent({ map, evt: e, id, marker, ifselected, dispatch })
+          handleGmMarkerEvent({ map, evt: e, id, marker, position, ifselected, dispatch })
         )
       );
     }
     return () => markerEvtSubsc.forEach(s => s.unsubscribe());
-  }, [gmMarkerEvents$, selectedMarker]);
-
-  useEffect(() => {
-    if (marker) {
-      marker.setPosition(new google.maps.LatLng(position[0], position[1]));
-    }
-  }, [position]);
+  }, [gmMarkerEvents$, selectedMarker, position]);
 
   return null;
 };

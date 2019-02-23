@@ -39,22 +39,17 @@ export const Marker: FunctionComponent<OSMMarkerProps> = props => {
   useEffect(() => {
     let markerEvtSubsc: Array<Subscription> = [];
     if (marker) {
+      marker.setLatLng([position[0], position[1]]);
       const ifselected = ifSelected(id, selectedMarker);
       ifselected ? setOrangeIcon(marker) : setDefaultIcon(marker);
       markerEvtSubsc = Object.keys(osmMarkerEvents$).map(e =>
         osmMarkerEvents$[e].subscribe(() =>
-          handleOsmMarkerEvent({ map, evt: e, id, marker, ifselected, dispatch })
+          handleOsmMarkerEvent({ map, evt: e, id, marker, position, ifselected, dispatch })
         )
       );
     }
     return () => markerEvtSubsc.forEach(s => s.unsubscribe());
-  }, [osmMarkerEvents$, selectedMarker]);
-
-  useEffect(() => {
-    if (marker) {
-      marker.setLatLng([position[0], position[1]]);
-    }
-  }, [position]);
+  }, [osmMarkerEvents$, selectedMarker, position]);
 
   return null;
 };

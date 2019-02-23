@@ -12,6 +12,8 @@ import { camelCase, markerEvents } from 'utils';
 import { takeUntil, switchMap, filter } from 'rxjs/operators';
 import { Color } from 'csstype';
 export const mapboxMapEvents = [ 'click', 'dblclick', 'moveend' ];
+import { Modal } from 'antd';
+const confirm = Modal.confirm;
 
 // ------------------------MAP------------------------
 
@@ -174,7 +176,7 @@ type handleMapboxMarkerEventInput = handleMarkerEventInput & {
 };
 
 export const handleMapboxMarkerEvent = (input: handleMapboxMarkerEventInput) => {
-  const { map, evt, id, marker, ifselected, dispatch, setMarkerStyle } = input;
+  const { map, evt, id, marker, ifselected, position, dispatch, setMarkerStyle } = input;
   const evtName = `on${camelCase(evt)}`;
   switch (evtName) {
     case 'onClick':
@@ -187,9 +189,19 @@ export const handleMapboxMarkerEvent = (input: handleMapboxMarkerEventInput) => 
       map.panTo(marker.getLngLat());
       break;
     case 'onDragend':
-      dispatch({
-        type: 'CHANGE_MARKER_POSITION',
-        payload: { id, newPosition: [marker.getLngLat().lat, marker.getLngLat().lng] },
+      confirm({
+        centered: true,
+        title: 'Do you want to move this marker?',
+        content: 'When clicked the OK button, the marker position will be changed',
+        onOk() {
+          dispatch({
+            type: 'CHANGE_MARKER_POSITION',
+            payload: { id, newPosition: [marker.getLngLat().lat, marker.getLngLat().lng] },
+          });
+        },
+        onCancel() {
+          marker.setLngLat([position[1], position[0]])
+        },
       });
       break;
     case 'onMouseover':

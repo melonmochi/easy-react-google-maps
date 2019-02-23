@@ -10,6 +10,8 @@ import { fromEventPattern, merge } from 'rxjs';
 import { camelCase, markerEvents } from 'utils';
 import L from 'leaflet';
 import { takeUntil, switchMap } from 'rxjs/operators';
+import { Modal } from 'antd';
+const confirm = Modal.confirm;
 
 export const osmMapEvents = ['click', 'moveend'];
 
@@ -166,7 +168,7 @@ type handleOsmMarkerEventInput = handleMarkerEventInput & {
 };
 
 export const handleOsmMarkerEvent = (input: handleOsmMarkerEventInput) => {
-  const { map, evt, id, marker, ifselected, dispatch } = input;
+  const { map, evt, id, marker, ifselected, position, dispatch } = input;
   const evtName = `on${camelCase(evt)}`;
   switch (evtName) {
     case 'onClick':
@@ -176,9 +178,19 @@ export const handleOsmMarkerEvent = (input: handleOsmMarkerEventInput) => {
       map.setView([marker.getLatLng().lat, marker.getLatLng().lng], map.getZoom());
       break;
     case 'onDragend':
-      dispatch({
-        type: 'CHANGE_MARKER_POSITION',
-        payload: { id, newPosition: [marker.getLatLng().lat, marker.getLatLng().lng] },
+      confirm({
+        centered: true,
+        title: 'Do you want to move this marker?',
+        content: 'When clicked the OK button, the marker position will be changed',
+        onOk() {
+          dispatch({
+            type: 'CHANGE_MARKER_POSITION',
+            payload: { id, newPosition: [marker.getLatLng().lat, marker.getLatLng().lng] },
+          });
+        },
+        onCancel() {
+          marker.setLatLng(position)
+        },
       });
       break;
     case 'onMouseout':
