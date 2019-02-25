@@ -7,6 +7,7 @@ const initialState: State = {
   mapView: { center: defaultCenter, zoom: defaultZoom },
   mapProps: {},
   mapTools$: {},
+  markerItem$: {},
   markersList: [],
   mapProvider: 'google',
   zoom: defaultZoom,

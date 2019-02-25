@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useContext } from 'react';
+import React, { FunctionComponent, useContext, useRef, useEffect } from 'react';
 import {
   Avatar,
   Card,
@@ -8,38 +8,40 @@ import { List as VList, ListRowProps, AutoSizer } from 'react-virtualized';
 import { stringToColour } from 'utils';
 import './style';
 import { GlobalContext } from 'components';
+import { setMarkerItemStream } from './utils'
 
-export const StopsList: FunctionComponent = () => {
+const RowRenderer: FunctionComponent<ListRowProps> = props => {
   const { state, dispatch } = useContext(GlobalContext)
   const { markersList, selectedMarker } = state
-  const handleOnClickListItem = (key: string) => {
-      dispatch({type: 'SELECT_MARKER', payload: key })
-  }
-  const handleOnDblClickListItem = (key: string) => {
-    const currentMarker = markersList.find( x=> x.id === key)
-    if(currentMarker) {
-      dispatch({ type: 'FOCUS_MARKER', payload: key })
+  const markerItemRef = useRef<HTMLDivElement>(null);
+  const stopItem = markersList[props.index];
+  const stopFirstChar = stopItem.props.title.substring(0, 3);
+  const randomcolor: string = stringToColour(stopItem.props.title);
+  const randomavatar = (
+    <Avatar
+      style={{ backgroundColor: randomcolor }}
+      size='large'
+    >
+      {stopFirstChar}
+    </Avatar>
+  );
+  useEffect(() => {
+    if (markerItemRef && markerItemRef.current) {
+      const m$ = setMarkerItemStream(markerItemRef.current)
+      dispatch({
+        type: 'SET_MARKER_ITEM_STREAM',
+        payload: { [stopItem.id]: m$ },
+      });
     }
-  }
-  const rowRenderer = (props: ListRowProps) => {
-    const stopItem = markersList[props.index];
-    const stopFirstChar = stopItem.props.title.substring(0, 3);
-    const randomcolor: string = stringToColour(stopItem.props.title);
-    const randomavatar = (
-      <Avatar
-        style={{ backgroundColor: randomcolor }}
-        size='large'
-      >
-        {stopFirstChar}
-      </Avatar>
-    );
-    const itemClassName = selectedMarker? stopItem.id === selectedMarker.id ? 'listItemSelected' : 'listItem': 'listItem';
+  }, []);
+  const itemClassName = selectedMarker? stopItem.id === selectedMarker.id ? 'listItemSelected' : 'listItem': 'listItem';
     return (
-      <List.Item
+      <div
+        ref={markerItemRef}
         key={stopItem.id}
+      >
+        <List.Item
         className={itemClassName}
-        onClick={() => handleOnClickListItem(stopItem.id)}
-        onDoubleClick={() => handleOnDblClickListItem(stopItem.id)}
         extra={<div className="listItemExtra" />}
         style={{ ...props.style, padding: 0 }}
       >
@@ -49,8 +51,14 @@ export const StopsList: FunctionComponent = () => {
           description={<span className="list-item-meta-description" >{stopItem.id}</span>}
         />
       </List.Item>
+      </div>
     );
   };
+
+export const StopsList: FunctionComponent = () => {
+  const { state } = useContext(GlobalContext)
+  const { markersList, selectedMarker } = state
+
   const autoSize = (
     <AutoSizer>
       {({ height, width }: { height: number; width: number }) => {
@@ -60,7 +68,7 @@ export const StopsList: FunctionComponent = () => {
             height={height}
             rowCount={markersList.length}
             rowHeight={49.33}
-            rowRenderer={rowRenderer}
+            rowRenderer={props => <RowRenderer {...props} />}
             width={width}
             onSelectedStopKey={selectedMarker? selectedMarker.id: undefined}
           />

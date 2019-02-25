@@ -5,6 +5,7 @@ import {
   handleMapEventInput,
   setMarkerConfigInput,
   handleMarkerEventInput,
+  handleMarkerItemEventInput,
 } from 'typings';
 import { fromEventPattern, merge } from 'rxjs';
 import { camelCase, markerEvents } from 'utils';
@@ -23,6 +24,9 @@ type setOsmMapConfigInput = setMapConfigInput & {
 type handleOsmMapEventInput = {
   map: L.Map;
 } & handleMapEventInput;
+type handleOsmMarkerItemEventInput = handleMarkerItemEventInput & {
+  map: L.Map;
+}
 
 export const setOsmMapConfig = (input: setOsmMapConfigInput) => {
   const { center, zoom, osmTileLayerServer } = input;
@@ -78,6 +82,21 @@ export const handleOsmMapEvent = (input: handleOsmMapEventInput) => {
       break;
   }
 };
+
+export const handleOsmMarkerItemEvent = (input: handleOsmMarkerItemEventInput) => {
+  const { map, e, dispatch, marker } = input;
+  const evtName = `on${camelCase(e)}`;
+  switch (evtName) {
+    case 'onMarker_item_click':
+      dispatch({ type: 'SELECT_MARKER', payload: marker.id })
+      break;
+    case 'onMarker_item_dblclick':
+      map.panTo(marker.props.position);
+      break;
+    default:
+      break;
+  }
+}
 
 export const setMapView = (m: L.Map, c: LatLng, z: number) => {
   m.setView(c, z).invalidateSize();

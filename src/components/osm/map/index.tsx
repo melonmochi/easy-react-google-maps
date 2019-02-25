@@ -5,7 +5,7 @@ import React, { FunctionComponent, useEffect, useContext, useRef, useState } fro
 import greenIconURL from 'assets/images/marker-green.svg';
 import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'components';
-import { Marker, setMapView, combineEventStreams, setOsmMapConfig, handleOsmMapEvent } from 'osm';
+import { Marker, setMapView, combineEventStreams, setOsmMapConfig, handleOsmMapEvent, handleOsmMarkerItemEvent } from 'osm';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
 
@@ -20,12 +20,12 @@ export const OSMMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
-    focusedMarker,
     mapCardWidth,
     mapProps,
     mapProvider,
     mapTools$,
     mapView,
+    markerItem$,
     markersBounds,
     markersList,
     searchBoxPlacesBounds,
@@ -79,10 +79,20 @@ export const OSMMap: FunctionComponent = () => {
   },[searchBoxPlacesBounds])
 
   useEffect(() => {
-    if (map && mapProvider === 'osm') {
-      setMapView(map, mapView.center, mapView.zoom);
+    let evtSubsc: { [id: string]: Array<Subscription> } = {};
+    if (map && mapProvider === 'google') {
+      evtSubsc = Object.keys(markerItem$).reduce((obj: { [id: string]: Array<Subscription> }, id) => {
+        obj[id] = Object.keys(markerItem$[id]).map( e => {
+          const marker = markersList.find( m => m.id === id )
+          return markerItem$[id][e]
+          .subscribe(() => marker? handleOsmMarkerItemEvent({ map, e, dispatch, marker }):{})
+        })
+        return obj
+      }
+      , {});
     }
-  }, [focusedMarker])
+    return () => Object.keys(evtSubsc).forEach( id => evtSubsc[id].forEach(e$ => e$.unsubscribe()))
+  },[markerItem$, markersList])
 
   const Markers = (omap: L.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

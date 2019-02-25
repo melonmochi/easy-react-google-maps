@@ -3,7 +3,7 @@ import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Subscription } from 'rxjs';
 import { Spin } from 'antd';
-import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams } from 'gm';
+import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams, handleGmMarkerItemEvent } from 'gm';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -11,8 +11,8 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { center, mapProps, mapView, mapProvider, mapTools$, focusedMarker,
-    markersBounds, zoom, searchBoxPlacesBounds } = state;
+  const { center, mapProps, mapView, mapProvider, mapTools$, markerItem$,
+    markersBounds, zoom, searchBoxPlacesBounds, markersList } = state;
   const { google } = props;
   const { gestureHandling, gmMaptype } = mapProps;
   const mapConfig = setGmMapConfig({ center, zoom, gestureHandling, gmMaptype });
@@ -52,10 +52,20 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   }, [mapProvider, gmEvents$, center, markersBounds]);
 
   useEffect(() => {
+    let evtSubsc: { [id: string]: Array<Subscription> } = {};
     if (map && mapProvider === 'google') {
-      setMapView(map, mapView.zoom, mapView.center);
+      evtSubsc = Object.keys(markerItem$).reduce((obj: { [id: string]: Array<Subscription> }, id) => {
+        obj[id] = Object.keys(markerItem$[id]).map( e => {
+          const marker = markersList.find( m => m.id === id )
+          return markerItem$[id][e]
+          .subscribe(() => marker? handleGmMarkerItemEvent({ map, e, dispatch, marker }):{})
+        })
+        return obj
+      }
+      , {});
     }
-  }, [focusedMarker])
+    return () => Object.keys(evtSubsc).forEach( id => evtSubsc[id].forEach(e$ => e$.unsubscribe()))
+  },[markerItem$, markersList])
 
   const MapChildComponents = (m: google.maps.Map) => Markers(m)
 

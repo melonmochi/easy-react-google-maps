@@ -6,6 +6,7 @@ import {
   Bounds,
   setMarkerConfigInput,
   handleMarkerEventInput,
+  handleMarkerItemEventInput,
 } from 'typings';
 import { fromEventPattern, merge, fromEvent } from 'rxjs';
 import { camelCase, markerEvents } from 'utils';
@@ -20,10 +21,12 @@ const confirm = Modal.confirm;
 type setMapboxMapConfigInput = setMapConfigInput & {
   mapboxStyle?: string;
 };
-
 type handleMapboxMapEventInput = {
   map: mapboxgl.Map;
 } & handleMapEventInput;
+type handleMapboxMarkerItemEventInput = handleMarkerItemEventInput & {
+  map: mapboxgl.Map;
+}
 
 export const setMapboxMapConfig = (input: setMapboxMapConfigInput) => {
   const { center, zoom, mapboxStyle } = input;
@@ -85,6 +88,21 @@ export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
       break;
   }
 };
+
+export const handleMapboxMarkerItemEvent = (input: handleMapboxMarkerItemEventInput) => {
+  const { map, e, dispatch, marker } = input;
+  const evtName = `on${camelCase(e)}`;
+  switch (evtName) {
+    case 'onMarker_item_click':
+      dispatch({ type: 'SELECT_MARKER', payload: marker.id })
+      break;
+    case 'onMarker_item_dblclick':
+      map.panTo(latlngToMapboxLngLat(marker.props.position));
+      break;
+    default:
+      break;
+  }
+}
 
 export const setMapView = (m: mapboxgl.Map, c: LatLng, z: number) => {
   m.jumpTo({ center: [c[1], c[0]], zoom: z - 1 }).resize();
@@ -212,3 +230,7 @@ export const handleMapboxMarkerEvent = (input: handleMapboxMarkerEventInput) => 
     // throw new Error('No corresponding event')
   }
 };
+
+const latlngToMapboxLngLat = (pos: LatLng) => {
+  return [pos[1], pos[0]] as LatLng
+}

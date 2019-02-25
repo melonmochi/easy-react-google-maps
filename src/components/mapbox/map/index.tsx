@@ -10,6 +10,7 @@ import {
   setMapView,
   combineEventStreams,
   handleMapboxMapEvent,
+  handleMapboxMarkerItemEvent,
 } from 'mapbox';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
@@ -19,12 +20,12 @@ export const MapboxMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
-    focusedMarker,
     mapCardWidth,
     mapProps,
     mapProvider,
     mapTools$,
     mapView,
+    markerItem$,
     markersBounds,
     markersList,
     searchBoxPlacesBounds,
@@ -84,10 +85,20 @@ export const MapboxMap: FunctionComponent = () => {
   },[searchBoxPlacesBounds])
 
   useEffect(() => {
-    if (map && mapProvider === 'mapbox') {
-      setMapView(map, mapView.center, mapView.zoom);
+    let evtSubsc: { [id: string]: Array<Subscription> } = {};
+    if (map && mapProvider === 'google') {
+      evtSubsc = Object.keys(markerItem$).reduce((obj: { [id: string]: Array<Subscription> }, id) => {
+        obj[id] = Object.keys(markerItem$[id]).map( e => {
+          const marker = markersList.find( m => m.id === id )
+          return markerItem$[id][e]
+          .subscribe(() => marker? handleMapboxMarkerItemEvent({ map, e, dispatch, marker }):{})
+        })
+        return obj
+      }
+      , {});
     }
-  }, [focusedMarker])
+    return () => Object.keys(evtSubsc).forEach( id => evtSubsc[id].forEach(e$ => e$.unsubscribe()))
+  },[markerItem$, markersList])
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

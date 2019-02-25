@@ -13,8 +13,6 @@ export const reducers = (state: State, action: Action) => {
       return CHANGE_MAP_PROVIDER(state, action);
     case 'CHANGE_MARKER_POSITION':
       return CHANGE_MARKER_POSITION(state, action);
-    case 'FOCUS_MARKER':
-      return FOCUS_MARKER(state, action);
     case 'LOAD_GM_API':
       return LOAD_GM_API(state, action);
     case 'LOAD_MAPS_PROPS':
@@ -25,8 +23,10 @@ export const reducers = (state: State, action: Action) => {
       return SELECT_MARKER(state, action);
     case 'SET_MAP_TOOL_STREAM':
       return SET_MAP_TOOL_STREAM(state, action);
+    case 'SET_MARKER_ITEM_STREAM':
+      return SET_MARKER_ITEM_STREAM(state, action);
     case 'SET_SEARCH_BOX_PLACES_BOUNDS':
-      return SET_SEARCH_BOX_PLACES_BOUNDS(state, action)
+      return SET_SEARCH_BOX_PLACES_BOUNDS(state, action);
     case 'SET_VIEW':
       return SET_VIEW(state, action);
     default:
@@ -88,14 +88,6 @@ export const CHANGE_MAP_CARD_WIDTH = (state: State, action: Action.CHANGE_MAP_CA
 export const CHANGE_MAP_PROVIDER = (state: State, action: Action.CHANGE_MAP_PROVIDER) => {
   return { ...state, mapProvider: action.payload } as State;
 };
-export const FOCUS_MARKER = (state: State, action: Action.FOCUS_MARKER) => {
-  const mar = state.markersList.find(m => m.id === action.payload)
-  return {
-    ...state,
-    focusedMarker: mar,
-    mapView: mar? {center: mar.props.position, zoom: state.mapView.zoom}: state.mapView,
-  } as State;
-};
 export const LOAD_GM_API = (state: State, action: Action.LOAD_GM_API) => {
   return { ...state, google: action.payload } as State;
 };
@@ -126,6 +118,9 @@ export const SELECT_MARKER = (state: State, action: Action.SELECT_MARKER) => {
 export const SET_MAP_TOOL_STREAM = (state: State, action: Action.SET_MAP_TOOL_STREAM) => {
   return { ...state, mapTools$: Object.assign({}, state.mapTools$, action.payload) } as State;
 };
+export const SET_MARKER_ITEM_STREAM = (state: State, action: Action.SET_MARKER_ITEM_STREAM) => {
+  return { ...state, markerItem$: Object.assign({}, state.markerItem$, action.payload) } as State;
+}
 export const SET_SEARCH_BOX_PLACES_BOUNDS = (state: State, action: Action.SET_SEARCH_BOX_PLACES_BOUNDS) => {
   return { ...state, searchBoxPlacesBounds: action.payload } as State;
 }

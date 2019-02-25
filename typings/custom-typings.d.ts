@@ -242,6 +242,11 @@ declare module 'typings' {
     markersBounds?: Bounds,
     searchBoxPlacesBounds?: Bounds,
   }
+  type handleMarkerItemEventInput = {
+    e: string,
+    marker: AddMarkerToListInputType,
+    dispatch: GlobalContextDispatch,
+  }
   type setMapConfigInput = {
     center: LatLng,
     zoom: number,
@@ -261,13 +266,13 @@ declare module 'typings' {
 
   type GlobalContextState = {
     center: LatLng
-    focusedMarker?: AddMarkerToListInputType
     google?: typeof google
     mapCardWidth?: number
     mapProps: AllInOneMapProps
     mapProvider: 'google' | 'osm' | 'mapbox'
     mapTools$: EvtStreamType
     mapView: MapView
+    markerItem$: { [id: string]: EvtStreamType }
     markersBounds?: Bounds
     markersList: MarkersListType
     selectedMarker?: AddMarkerToListInputType
@@ -283,12 +288,12 @@ declare module 'typings' {
     Action.CHANGE_MAP_CARD_WIDTH |
     Action.CHANGE_MAP_PROVIDER |
     Action.CHANGE_MARKER_POSITION |
-    Action.FOCUS_MARKER |
     Action.LOAD_GM_API |
     Action.LOAD_MAPS_PROPS |
     Action.REMOVE_MARKER |
     Action.SELECT_MARKER |
     Action.SET_MAP_TOOL_STREAM |
+    Action.SET_MARKER_ITEM_STREAM |
     Action.SET_SEARCH_BOX_PLACES_BOUNDS |
     Action.SET_VIEW
 
@@ -298,12 +303,12 @@ declare module 'typings' {
     export type CHANGE_MAP_CARD_WIDTH = { type: 'CHANGE_MAP_CARD_WIDTH', payload: number }
     export type CHANGE_MAP_PROVIDER = { type: 'CHANGE_MAP_PROVIDER', payload: MapProvider }
     export type CHANGE_MARKER_POSITION = { type: 'CHANGE_MARKER_POSITION', payload: { id: string, newPosition: LatLng } }
-    export type FOCUS_MARKER = { type: 'FOCUS_MARKER', payload: string }
     export type LOAD_GM_API = { type: 'LOAD_GM_API', payload: typeof google }
     export type LOAD_MAPS_PROPS = { type: 'LOAD_MAPS_PROPS', payload: AllInOneMapProps }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
     export type SELECT_MARKER = { type: 'SELECT_MARKER', payload: string }
     export type SET_MAP_TOOL_STREAM = { type: 'SET_MAP_TOOL_STREAM', payload: EvtStreamType}
+    export type SET_MARKER_ITEM_STREAM = { type: 'SET_MARKER_ITEM_STREAM', payload: { [id: string]: EvtStreamType} }
     export type SET_SEARCH_BOX_PLACES_BOUNDS = { type: 'SET_SEARCH_BOX_PLACES_BOUNDS', payload: Bounds }
     export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }
   }

@@ -8,6 +8,7 @@ import {
   GmMarkerAnimationType,
   handleMarkerEventInput,
   GlobalContextDispatch,
+  handleMarkerItemEventInput,
 } from 'typings';
 import { fromEventPattern, Observable, merge } from 'rxjs';
 import { boundsToGmbounds, camelCase, markerEvents, gmBoundsToBounds } from 'utils';
@@ -30,6 +31,10 @@ type setGmMapConfigInput = setMapConfigInput & {
 type handleGmMapEventInput = {
   map: google.maps.Map;
 } & handleMapEventInput;
+
+type handleGmMarkerItemEventInput = handleMarkerItemEventInput & {
+  map: google.maps.Map;
+}
 
 export const setGmMapConfig = (input: setGmMapConfigInput) => {
   const { center, gestureHandling, gmMaptype, zoom } = input;
@@ -93,6 +98,22 @@ export const handleGmMapEvent = (input: handleGmMapEventInput) => {
       break;
   }
 };
+
+export const handleGmMarkerItemEvent = (input: handleGmMarkerItemEventInput) => {
+  const { map, e, dispatch, marker } = input;
+  const evtName = `on${camelCase(e)}`;
+  console.log('im doing map-item-event e in gm', evtName)
+  switch (evtName) {
+    case 'onMarker_item_click':
+      dispatch({ type: 'SELECT_MARKER', payload: marker.id })
+      break;
+    case 'onMarker_item_dblclick':
+      map.panTo(latlngToGmLatlng(marker.props.position));
+      break;
+    default:
+      break;
+  }
+}
 
 export const setMapView = (m: google.maps.Map, z: number, c: LatLng) => {
   m.setOptions({ center: new google.maps.LatLng(c[0], c[1]), zoom: z });
@@ -289,4 +310,8 @@ export const handleGmSearchBoxEvent = (input: handleGmSearchBoxEventInput) => {
     default:
     // throw new Error('No corresponding event')
   }
+}
+
+const latlngToGmLatlng = (pos: LatLng) => {
+  return new google.maps.LatLng(pos[0], pos[1])
 }
