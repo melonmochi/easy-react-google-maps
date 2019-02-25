@@ -4,7 +4,7 @@ export { default as CalendarList } from './calendar-list';
 
 export { default as NetworkList } from './network';
 
-export { default as StopsList } from './stops-list';
+export { StopsList } from './stops-list';
 
 export { EasyLayout as Layout } from './layout';
 

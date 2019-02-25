@@ -30,7 +30,8 @@ export const SearchBox: FunctionComponent<SearchBoxProps> = props => {
     let evtSubsc: Array<Subscription> = [];
     if (searchBox) {
       evtSubsc = Object.keys(searchBoxEvents$).map(e =>
-        searchBoxEvents$[e].subscribe(() => handleGmSearchBoxEvent({ e, searchBox, dispatch }))
+        searchBoxEvents$[e].subscribe(() => handleGmSearchBoxEvent(
+          { e, searchBox, dispatch }))
       );
     };
     return () => evtSubsc.forEach(s => s.unsubscribe());
@@ -44,7 +45,7 @@ export const SearchBox: FunctionComponent<SearchBoxProps> = props => {
     value={placeName}
     id='search-box-input'
     className='search-box-input'
-    onChange={ e => onPlaceNameChanged(e.target.value) }
+    onChange={e => onPlaceNameChanged(e.target.value)}
     onSearch={onPlaceNameChanged}
     type='text'
     size='large'

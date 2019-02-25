@@ -1,10 +1,5 @@
 @import '~antd/dist/antd.less';
 
-.listItemExtra {
-  width: 272px;
-  height: 1px;
-}
-
 .ant-list-item {
   background: aliceblue;
   display: inline;
@@ -16,7 +11,7 @@
   &:hover {
     content: '';
     // transform: scaleY(0.0001);
-    opacity: 0.8;
+    opacity: 1;
     background: aliceblue;
     transition: transform 3s @ease-out, opacity 3s @ease-out;
   }
@@ -66,29 +61,43 @@
   }
 }
 
-.ant-list-item-meta {
-  align-items: center;
+.ant-list-item-extra-wrap {
+  height: inherit;
+  .ant-list-item-main {
+    height: inherit;
+  }
 }
 
-a.listItemMetaTitle {
+.ant-list-item-meta {
+  height: 100%;
+  align-items: center;
+  .ant-list-item-meta-avatar {
+    margin: auto 20px;
+  }
+  .ant-list-item-meta-content {
+    margin: auto 0;
+  }
+}
+
+a.list-item-meta-title {
   color: @heading-color;
 }
 
-.ant-list-item-meta-title {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  height: 22px;
-  min-width: 100px;
+span.list-item-meta-description {
+  display: inline-block;
   max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.ant-list-item-meta-content {
-  min-width: 200px;
-}
-
-.ant-list-item-meta-avatar {
-  vertical-align: middle;
+.ant-list-item-meta-title {
+  display: inline-block;
+  max-width: 200px;
+  margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ReactVirtualized__Grid {

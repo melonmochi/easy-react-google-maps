@@ -20,6 +20,7 @@ export const OSMMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
+    focusedMarker,
     mapCardWidth,
     mapProps,
     mapProvider,
@@ -73,9 +74,15 @@ export const OSMMap: FunctionComponent = () => {
 
   useEffect(() => {
     if(map) {
-      handleOsmMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
+      handleOsmMapEvent({ map, e: 'places_changed', dispatch, center,searchBoxPlacesBounds });
     }
   },[searchBoxPlacesBounds])
+
+  useEffect(() => {
+    if (map && mapProvider === 'osm') {
+      setMapView(map, mapView.center, mapView.zoom);
+    }
+  }, [focusedMarker])
 
   const Markers = (omap: L.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

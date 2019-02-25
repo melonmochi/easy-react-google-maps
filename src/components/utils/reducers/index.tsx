@@ -13,6 +13,8 @@ export const reducers = (state: State, action: Action) => {
       return CHANGE_MAP_PROVIDER(state, action);
     case 'CHANGE_MARKER_POSITION':
       return CHANGE_MARKER_POSITION(state, action);
+    case 'FOCUS_MARKER':
+      return FOCUS_MARKER(state, action);
     case 'LOAD_GM_API':
       return LOAD_GM_API(state, action);
     case 'LOAD_MAPS_PROPS':
@@ -85,6 +87,14 @@ export const CHANGE_MAP_CARD_WIDTH = (state: State, action: Action.CHANGE_MAP_CA
 };
 export const CHANGE_MAP_PROVIDER = (state: State, action: Action.CHANGE_MAP_PROVIDER) => {
   return { ...state, mapProvider: action.payload } as State;
+};
+export const FOCUS_MARKER = (state: State, action: Action.FOCUS_MARKER) => {
+  const mar = state.markersList.find(m => m.id === action.payload)
+  return {
+    ...state,
+    focusedMarker: mar,
+    mapView: mar? {center: mar.props.position, zoom: state.mapView.zoom}: state.mapView,
+  } as State;
 };
 export const LOAD_GM_API = (state: State, action: Action.LOAD_GM_API) => {
   return { ...state, google: action.payload } as State;

@@ -11,7 +11,8 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { center, mapProps, mapView, mapProvider, mapTools$, markersBounds, zoom, searchBoxPlacesBounds } = state;
+  const { center, mapProps, mapView, mapProvider, mapTools$, focusedMarker,
+    markersBounds, zoom, searchBoxPlacesBounds } = state;
   const { google } = props;
   const { gestureHandling, gmMaptype } = mapProps;
   const mapConfig = setGmMapConfig({ center, zoom, gestureHandling, gmMaptype });
@@ -45,8 +46,16 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
         gmEvents$[e].subscribe(() => handleGmMapEvent({ map, e, dispatch, center, markersBounds, searchBoxPlacesBounds }))
       );
     }
-    return () => evtSubsc.forEach(s => s.unsubscribe());
+    return () => {
+      evtSubsc.forEach(s => s.unsubscribe());
+    }
   }, [mapProvider, gmEvents$, center, markersBounds]);
+
+  useEffect(() => {
+    if (map && mapProvider === 'google') {
+      setMapView(map, mapView.zoom, mapView.center);
+    }
+  }, [focusedMarker])
 
   const MapChildComponents = (m: google.maps.Map) => Markers(m)
 

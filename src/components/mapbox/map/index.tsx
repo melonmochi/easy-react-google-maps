@@ -19,6 +19,7 @@ export const MapboxMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
+    focusedMarker,
     mapCardWidth,
     mapProps,
     mapProvider,
@@ -81,6 +82,12 @@ export const MapboxMap: FunctionComponent = () => {
       handleMapboxMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
     }
   },[searchBoxPlacesBounds])
+
+  useEffect(() => {
+    if (map && mapProvider === 'mapbox') {
+      setMapView(map, mapView.center, mapView.zoom);
+    }
+  }, [focusedMarker])
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

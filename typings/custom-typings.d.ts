@@ -261,6 +261,7 @@ declare module 'typings' {
 
   type GlobalContextState = {
     center: LatLng
+    focusedMarker?: AddMarkerToListInputType
     google?: typeof google
     mapCardWidth?: number
     mapProps: AllInOneMapProps
@@ -282,6 +283,7 @@ declare module 'typings' {
     Action.CHANGE_MAP_CARD_WIDTH |
     Action.CHANGE_MAP_PROVIDER |
     Action.CHANGE_MARKER_POSITION |
+    Action.FOCUS_MARKER |
     Action.LOAD_GM_API |
     Action.LOAD_MAPS_PROPS |
     Action.REMOVE_MARKER |
@@ -296,6 +298,7 @@ declare module 'typings' {
     export type CHANGE_MAP_CARD_WIDTH = { type: 'CHANGE_MAP_CARD_WIDTH', payload: number }
     export type CHANGE_MAP_PROVIDER = { type: 'CHANGE_MAP_PROVIDER', payload: MapProvider }
     export type CHANGE_MARKER_POSITION = { type: 'CHANGE_MARKER_POSITION', payload: { id: string, newPosition: LatLng } }
+    export type FOCUS_MARKER = { type: 'FOCUS_MARKER', payload: string }
     export type LOAD_GM_API = { type: 'LOAD_GM_API', payload: typeof google }
     export type LOAD_MAPS_PROPS = { type: 'LOAD_MAPS_PROPS', payload: AllInOneMapProps }
     export type REMOVE_MARKER= { type: 'REMOVE_MARKER', payload: string }
