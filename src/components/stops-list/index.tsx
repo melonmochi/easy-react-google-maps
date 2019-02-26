@@ -3,6 +3,7 @@ import {
   Avatar,
   Card,
   List,
+  Tooltip,
 } from 'antd';
 import { List as VList, ListRowProps, AutoSizer } from 'react-virtualized';
 import { stringToColour } from 'utils';
@@ -34,26 +35,29 @@ const RowRenderer: FunctionComponent<ListRowProps> = props => {
       });
     }
   }, []);
-  const itemClassName = selectedMarker? stopItem.id === selectedMarker.id ? 'listItemSelected' : 'listItem': 'listItem';
-    return (
-      <div
-        ref={markerItemRef}
-        key={stopItem.id}
-      >
+  const itemClassName = selectedMarker ? stopItem.id === selectedMarker.id ? 'listItemSelected' : 'listItem' : 'listItem';
+  return (
+    <div
+      ref={markerItemRef}
+      key={stopItem.id}
+      style={{ overflowY: 'auto' }}
+    >
+      <Tooltip placement="left" title={stopItem.props.title}>
         <List.Item
-        className={itemClassName}
-        extra={<div className="listItemExtra" />}
-        style={{ ...props.style, padding: 0 }}
-      >
-        <List.Item.Meta
-          avatar={randomavatar}
-          title={<a className="list-item-meta-title">{stopItem.props.title}</a>}
-          description={<span className="list-item-meta-description" >{stopItem.id}</span>}
-        />
-      </List.Item>
-      </div>
-    );
-  };
+          className={itemClassName}
+          extra={<div className="listItemExtra" />}
+          style={{ ...props.style, padding: 0 }}
+        >
+          <List.Item.Meta
+            avatar={randomavatar}
+            title={<a className="list-item-meta-title">{stopItem.props.title}</a>}
+            description={<span className="list-item-meta-description" >{stopItem.id}</span>}
+          />
+        </List.Item>
+      </Tooltip>
+    </div>
+  );
+};
 
 export const StopsList: FunctionComponent = () => {
   const { state } = useContext(GlobalContext)
@@ -64,13 +68,12 @@ export const StopsList: FunctionComponent = () => {
       {({ height, width }: { height: number; width: number }) => {
         return (
           <VList
-            // autoHeight
             height={height}
             rowCount={markersList.length}
             rowHeight={49.33}
             rowRenderer={props => <RowRenderer {...props} />}
             width={width}
-            onSelectedStopKey={selectedMarker? selectedMarker.id: undefined}
+            onSelectedStopKey={selectedMarker ? selectedMarker.id : undefined}
           />
         )
       }

@@ -13,7 +13,50 @@
   .sideBarMenu {
     border-right: 1px;
   }
+  .menu-tabs {
+    height: 100%;
+    .ant-tabs-bar {
+      margin: 0;
+    }
+    .ant-tabs-nav-wrap {
+      height: 48px;
+    }
+    .ant-tabs-ink-bar {
+      min-width: 80px;
+    }
+    .ant-tabs-nav {
+      height: 48px;
+      display: flex;
+      flex-direction: row;
+    }
+    .ant-tabs-nav-container {
+      padding: 0;
+      .ant-tabs-tab-prev {
+        width: 12px;
+      }
+      .ant-tabs-tab-next {
+        width: 12px;
+      }
+    }
+    .ant-tabs-tab {
+      display: inline-flex;
+      min-width: 80px;
+      margin: 0;
+
+    }
+    .ant-tabs-tab > span {
+      margin: auto;
+      .anticon {
+        vertical-align: middle;
+      }
+    }
+    .ant-tabs-content {
+      height: 100%;
+    }
+  }
   .menu-card {
+    display: flex;
+    flex-direction: column;
     height: 100%;
   }
 }

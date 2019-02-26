@@ -94,3 +94,11 @@ export const city = {
   Shanghai: [31.22222, 121.45806] as LatLng,
   Tokyo: [35.6895, 139.69171] as LatLng,
 };
+
+const randomNumber = (a: number, b: number) => {
+  return a+(b-a)*Math.random()
+}
+
+const randomLat = () => randomNumber(-70, 70)
+const randomLng = () => randomNumber(-180, 180)
+export const randomLatLng = () => [randomLat(), randomLng()] as LatLng
