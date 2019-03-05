@@ -8,7 +8,6 @@ export {
   setMapboxMarkerConfig,
   handleMapboxMarkerEvent,
   loadMarpboxMarkerEventsStream,
-  handleMapboxMarkerItemEvent,
   loadMarpboxMarkerLayerEventsStream,
   handleMapboxMarkerLayerEvent,
 } from './utils';

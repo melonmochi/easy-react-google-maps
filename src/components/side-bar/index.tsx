@@ -56,7 +56,7 @@ const MenuCard = (key: MenuKeyType) => (
     className="menu-card"
     bordered={false}
     headStyle={{ display: 'table' }}
-    bodyStyle={{ height: '100%', padding: 0, marginTop: '1px' }}
+    bodyStyle={{ height: '100%', padding: 0 }}
   >
     {MenuList[key]}
   </Card>
@@ -95,7 +95,7 @@ export const EasySideBar: FunctionComponent = () => {
       reverseArrow
       width={300}
     >
-      <Tabs className="menu-tabs" defaultActiveKey="map-menu">
+      <Tabs className="menu-tabs" defaultActiveKey="map-menu" >
         {TabContent(collapse)}
       </Tabs>
     </Sider>

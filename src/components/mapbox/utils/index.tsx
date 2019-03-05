@@ -6,7 +6,6 @@ import {
   Bounds,
   setMarkerConfigInput,
   handleMarkerEventInput,
-  handleMarkerItemEventInput,
   AddMarkerToListInputType,
   mapboxMarkerLayerEventType,
   handleMapboxMarkerLayerEventInput,
@@ -37,9 +36,6 @@ type handleMapboxMapEventInput = {
   map: mapboxgl.Map;
   markersList: AddMarkerToListInputType[];
 } & handleMapEventInput;
-type handleMapboxMarkerItemEventInput = handleMarkerItemEventInput & {
-  map: mapboxgl.Map;
-};
 type addSourseToMapInput = {
   map: mapboxgl.Map;
   markersSource: FeatureCollection<Geometry, GeoJsonProperties>;
@@ -126,21 +122,6 @@ export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
       break;
     case 'onRecenter_map':
       map.panTo([c[1], c[0]]);
-      break;
-    default:
-      break;
-  }
-};
-
-export const handleMapboxMarkerItemEvent = (input: handleMapboxMarkerItemEventInput) => {
-  const { map, e, dispatch, marker } = input;
-  const evtName = `on${camelCase(e)}`;
-  switch (evtName) {
-    case 'onMarker_item_click':
-      dispatch({ type: 'SELECT_MARKER', payload: marker.id });
-      break;
-    case 'onMarker_item_dblclick':
-      map.panTo(latlngToMapboxLngLat(marker.props.position));
       break;
     default:
       break;
@@ -408,6 +389,6 @@ export const handleMapboxMarkerLayerEvent = (input: handleMapboxMarkerLayerEvent
   }
 };
 
-const latlngToMapboxLngLat = (pos: LatLng) => {
+export const latlngToMapboxLngLat = (pos: LatLng) => {
   return [pos[1], pos[0]] as LatLng;
 };

@@ -8,7 +8,6 @@ import {
   GmMarkerAnimationType,
   handleMarkerEventInput,
   GlobalContextDispatch,
-  handleMarkerItemEventInput,
 } from 'typings';
 import { fromEventPattern, Observable, merge } from 'rxjs';
 import { boundsToGmbounds, camelCase, markerEvents, gmBoundsToBounds } from 'utils';
@@ -27,14 +26,9 @@ type setGmMapConfigInput = setMapConfigInput & {
   gestureHandling?: GestureHandlingType;
   gmMaptype?: MapTypeId;
 };
-
 type handleGmMapEventInput = {
   map: google.maps.Map;
 } & handleMapEventInput;
-
-type handleGmMarkerItemEventInput = handleMarkerItemEventInput & {
-  map: google.maps.Map;
-};
 
 export const setGmMapConfig = (input: setGmMapConfigInput) => {
   const { center, gestureHandling, gmMaptype, zoom } = input;
@@ -93,21 +87,6 @@ export const handleGmMapEvent = (input: handleGmMapEventInput) => {
       return sbpb && map.fitBounds(boundsToGmbounds(sbpb));
     case 'onRecenter_map':
       map.panTo(new google.maps.LatLng(c[0], c[1]));
-      break;
-    default:
-      break;
-  }
-};
-
-export const handleGmMarkerItemEvent = (input: handleGmMarkerItemEventInput) => {
-  const { map, e, dispatch, marker } = input;
-  const evtName = `on${camelCase(e)}`;
-  switch (evtName) {
-    case 'onMarker_item_click':
-      dispatch({ type: 'SELECT_MARKER', payload: marker.id });
-      break;
-    case 'onMarker_item_dblclick':
-      map.panTo(latlngToGmLatlng(marker.props.position));
       break;
     default:
       break;
@@ -319,6 +298,6 @@ export const handleGmSearchBoxEvent = (input: handleGmSearchBoxEventInput) => {
   }
 };
 
-const latlngToGmLatlng = (pos: LatLng) => {
+export const latlngToGmLatlng = (pos: LatLng) => {
   return new google.maps.LatLng(pos[0], pos[1]);
 };

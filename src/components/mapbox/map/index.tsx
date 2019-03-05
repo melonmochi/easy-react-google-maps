@@ -9,9 +9,7 @@ import {
   setMapView,
   combineEventStreams,
   handleMapboxMapEvent,
-  // handleMapboxMarkerItemEvent,
   Marker,
-  handleMapboxMarkerItemEvent,
 } from 'mapbox';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
@@ -30,10 +28,10 @@ export const MapboxMap: FunctionComponent<MapboxMapProps> = props => {
     mapProvider,
     mapTools$,
     mapView,
-    markerItem$,
     markersBounds,
     markersList,
     searchBoxPlacesBounds,
+    updateView,
     zoom,
   } = state;
   const { mapboxStyle } = mapProps;
@@ -111,23 +109,10 @@ export const MapboxMap: FunctionComponent<MapboxMapProps> = props => {
   }, [searchBoxPlacesBounds]);
 
   useEffect(() => {
-    let evtSubsc: { [id: string]: Array<Subscription> } = {};
-    if (map && mapProvider === 'mapbox') {
-      evtSubsc = Object.keys(markerItem$).reduce(
-        (obj: { [id: string]: Array<Subscription> }, id) => {
-          obj[id] = Object.keys(markerItem$[id]).map(e => {
-            const marker = markersList.find(m => m.id === id);
-            return markerItem$[id][e].subscribe(() =>
-              marker ? handleMapboxMarkerItemEvent({ map, e, dispatch, marker }) : {}
-            );
-          });
-          return obj;
-        },
-        {}
-      );
+    if(map && mapProvider === 'mapbox') {
+      setMapView(map, mapView.center, mapView.zoom);
     }
-    return () => Object.keys(evtSubsc).forEach(id => evtSubsc[id].forEach(e$ => e$.unsubscribe()));
-  }, [markerItem$, markersList]);
+  }, [updateView])
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

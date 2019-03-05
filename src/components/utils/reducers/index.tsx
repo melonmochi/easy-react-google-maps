@@ -32,14 +32,14 @@ export const reducers = (state: State, action: Action) => {
       return SET_GM_MARKER_CLUSTERER(state, action);
     case 'SET_MAP_TOOL_STREAM':
       return SET_MAP_TOOL_STREAM(state, action);
-    case 'SET_MARKER_ITEM_STREAM':
-      return SET_MARKER_ITEM_STREAM(state, action);
     case 'SET_SEARCH_BOX_PLACES_BOUNDS':
       return SET_SEARCH_BOX_PLACES_BOUNDS(state, action);
     case 'SET_VIEW':
       return SET_VIEW(state, action);
     case 'UPDATE_ICON':
       return UPDATE_ICON(state, action);
+    case 'UPDATE_VIEW':
+      return UPDATE_VIEW(state, action)
     default:
       throw new Error();
   }
@@ -53,7 +53,7 @@ export const ADD_MARKER = (state: State, action: Action.ADD_MARKER) => {
   const newBounds = markersBounds ? extendBounds(markersBounds, position) : [position, position];
   return {
     ...state,
-    markersList: [...state.markersList.concat([{ id, props }])],
+    markersList: [...state.markersList.concat([{ id, props, hide: false }])],
     markersBounds: newBounds,
   } as State;
 };
@@ -157,9 +157,6 @@ export const SET_GM_MARKER_CLUSTERER = (state: State, action: Action.SET_GM_MARK
 export const SET_MAP_TOOL_STREAM = (state: State, action: Action.SET_MAP_TOOL_STREAM) => {
   return { ...state, mapTools$: Object.assign({}, state.mapTools$, action.payload) } as State;
 };
-export const SET_MARKER_ITEM_STREAM = (state: State, action: Action.SET_MARKER_ITEM_STREAM) => {
-  return { ...state, markerItem$: Object.assign({}, state.markerItem$, action.payload) } as State;
-};
 export const SET_SEARCH_BOX_PLACES_BOUNDS = (
   state: State,
   action: Action.SET_SEARCH_BOX_PLACES_BOUNDS
@@ -167,8 +164,14 @@ export const SET_SEARCH_BOX_PLACES_BOUNDS = (
   return { ...state, searchBoxPlacesBounds: action.payload } as State;
 };
 export const SET_VIEW = (state: State, action: Action.SET_VIEW) => {
-  return { ...state, mapView: action.payload } as State;
+  return { ...state, mapView: {
+    center: action.payload.center? action.payload.center: state.mapView.center,
+    zoom: action.payload.zoom? action.payload.zoom: state.mapView.zoom,
+  }} as State;
 };
 export const UPDATE_ICON = (state: State, _action: Action.UPDATE_ICON) => {
   return { ...state, updateIcon: !state.updateIcon };
 };
+export const UPDATE_VIEW = (state: State, _action: Action.UPDATE_VIEW) => {
+  return { ...state, updateView: !state.updateView }
+}

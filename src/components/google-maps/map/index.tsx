@@ -8,7 +8,6 @@ import {
   handleGmMapEvent,
   setMapView,
   combineEventStreams,
-  handleGmMarkerItemEvent,
   Marker,
 } from 'gm';
 
@@ -24,11 +23,10 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     mapView,
     mapProvider,
     mapTools$,
-    markerItem$,
     markersBounds,
     zoom,
     searchBoxPlacesBounds,
-    markersList,
+    updateView,
   } = state;
   const { google } = props;
   const { gestureHandling, gmMaptype } = mapProps;
@@ -72,23 +70,10 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   }, [mapProvider, gmEvents$, center, markersBounds]);
 
   useEffect(() => {
-    let evtSubsc: { [id: string]: Array<Subscription> } = {};
-    if (map && mapProvider === 'google') {
-      evtSubsc = Object.keys(markerItem$).reduce(
-        (obj: { [id: string]: Array<Subscription> }, id) => {
-          obj[id] = Object.keys(markerItem$[id]).map(e => {
-            const marker = markersList.find(m => m.id === id);
-            return markerItem$[id][e].subscribe(() =>
-              marker ? handleGmMarkerItemEvent({ map, e, dispatch, marker }) : {}
-            );
-          });
-          return obj;
-        },
-        {}
-      );
+    if(map && mapProvider === 'google') {
+      setMapView(map, mapView.zoom, mapView.center);
     }
-    return () => Object.keys(evtSubsc).forEach(id => evtSubsc[id].forEach(e$ => e$.unsubscribe()));
-  }, [markerItem$, markersList]);
+  }, [updateView])
 
   const Markers = (gmap: google.maps.Map) =>
     state.markersList.map((m: AddMarkerToListInputType) => (

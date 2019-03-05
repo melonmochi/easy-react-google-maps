@@ -1,10 +1,14 @@
-import React, { FunctionComponent, useContext, useRef, useEffect } from 'react';
-import { Avatar, Card, List, Tooltip } from 'antd';
+import React, { FunctionComponent, useContext, useRef, useEffect, useState } from 'react';
+import { Avatar, Card, List, Tooltip, Input } from 'antd';
 import { List as VList, ListRowProps, AutoSizer } from 'react-virtualized';
 import { stringToColour } from 'utils';
 import './style';
 import { GlobalContext } from 'components';
-import { setMarkerItemStream } from './utils';
+import { setMarkerItemStream, handleMarkerItemEvt } from './utils';
+import { EvtStreamType } from 'typings';
+import { Subscription } from 'rxjs';
+
+const { Search } = Input
 
 const RowRenderer: FunctionComponent<ListRowProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
@@ -13,6 +17,9 @@ const RowRenderer: FunctionComponent<ListRowProps> = props => {
   const stopItem = markersList[props.index];
   const stopFirstChar = stopItem.props.title.substring(0, 3);
   const randomcolor: string = stringToColour(stopItem.props.title);
+
+  const [ markerItem$, setMarkerItem$ ] = useState<EvtStreamType>({})
+
   const randomavatar = (
     <Avatar style={{ backgroundColor: randomcolor }} size="large">
       {stopFirstChar}
@@ -21,12 +28,22 @@ const RowRenderer: FunctionComponent<ListRowProps> = props => {
   useEffect(() => {
     if (markerItemRef && markerItemRef.current) {
       const m$ = setMarkerItemStream(markerItemRef.current);
-      dispatch({
-        type: 'SET_MARKER_ITEM_STREAM',
-        payload: { [stopItem.id]: m$ },
-      });
+      setMarkerItem$(m$)
     }
-  }, []);
+  }, [markerItemRef.current]);
+
+  useEffect(() => {
+    let evtSubsc: Array<Subscription> = [];
+    evtSubsc = Object.keys(markerItem$).map(e =>
+      markerItem$[e].subscribe(() => {
+        handleMarkerItemEvt({ e, dispatch, id: stopItem.id, position: stopItem.props.position })
+      })
+    );
+    return () => {
+      evtSubsc.forEach(s => s.unsubscribe());
+    };
+  },[ markerItem$ ])
+
   const itemClassName = selectedMarker
     ? stopItem.id === selectedMarker.id
       ? 'listItemSelected'
@@ -55,6 +72,10 @@ export const StopsList: FunctionComponent = () => {
   const { state } = useContext(GlobalContext);
   const { markersList, selectedMarker } = state;
 
+  const filteredMarkersList = markersList.filter( m => !m.hide )
+
+  const selMarker = selectedMarker? filteredMarkersList.find(m => m.id === selectedMarker.id): undefined
+
   const autoSize = (
     <AutoSizer>
       {({ height, width }: { height: number; width: number }) => {
@@ -66,18 +87,25 @@ export const StopsList: FunctionComponent = () => {
             rowRenderer={props => <RowRenderer {...props} />}
             width={width}
             onSelectedStopKey={selectedMarker ? selectedMarker.id : undefined}
+            scrollToIndex={selMarker ? filteredMarkersList.indexOf(selMarker): undefined}
           />
         );
       }}
     </AutoSizer>
   );
+
+  const handleOnSearch = (value: string) => {
+    console.log(value)
+  }
+
+  const SearchBar = <Search onSearch={handleOnSearch}/>
+
   return (
-    <Card
-      bordered={false}
-      style={{ height: '100%' }}
-      bodyStyle={{ height: '100%', padding: 0, paddingRight: 0 }}
-    >
-      {autoSize}
+    <Card bordered={false}
+    title={SearchBar}
+    style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
+    bodyStyle={{ padding: 0, flex: 1 }}>
+        {autoSize}
     </Card>
   );
 };

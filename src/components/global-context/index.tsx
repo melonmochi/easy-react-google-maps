@@ -16,6 +16,7 @@ const initialState: State = {
   mapProvider: 'osm',
   osmMarkerClusterer: L.markerClusterGroup(),
   updateIcon: false,
+  updateView: false,
   zoom: defaultZoom,
 };
 

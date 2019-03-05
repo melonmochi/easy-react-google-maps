@@ -10,5 +10,4 @@ export {
   setDefaultIcon,
   setOrangeIcon,
   handleOsmMarkerEvent,
-  handleOsmMarkerItemEvent,
 } from './utils';

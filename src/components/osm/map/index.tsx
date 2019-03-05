@@ -11,7 +11,6 @@ import {
   combineEventStreams,
   setOsmMapConfig,
   handleOsmMapEvent,
-  handleOsmMarkerItemEvent,
 } from 'osm';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
@@ -32,11 +31,11 @@ export const OSMMap: FunctionComponent = () => {
     mapProvider,
     mapTools$,
     mapView,
-    markerItem$,
     markersBounds,
     markersList,
     osmMarkerClusterer,
     searchBoxPlacesBounds,
+    updateView,
     zoom,
   } = state;
   const { osmTileLayerServer } = mapProps;
@@ -89,31 +88,19 @@ export const OSMMap: FunctionComponent = () => {
   }, [searchBoxPlacesBounds]);
 
   useEffect(() => {
-    let evtSubsc: { [id: string]: Array<Subscription> } = {};
-    if (map && mapProvider === 'osm') {
-      evtSubsc = Object.keys(markerItem$).reduce(
-        (obj: { [id: string]: Array<Subscription> }, id) => {
-          obj[id] = Object.keys(markerItem$[id]).map(e => {
-            const marker = markersList.find(m => m.id === id);
-            return markerItem$[id][e].subscribe(() =>
-              marker ? handleOsmMarkerItemEvent({ map, e, dispatch, marker }) : {}
-            );
-          });
-          return obj;
-        },
-        {}
-      );
-    }
-    return () => Object.keys(evtSubsc).forEach(id => evtSubsc[id].forEach(e$ => e$.unsubscribe()));
-  }, [markerItem$, markersList]);
-
-  useEffect(() => {
-    if (previousZoom) {
+    if (previousZoom && mapProvider === 'osm') {
       if (mapView.zoom > previousZoom) {
         dispatch({ type: 'UPDATE_ICON' });
       }
     }
   }, [mapView.zoom]);
+
+  useEffect(() => {
+    if(map && mapProvider === 'osm') {
+      setMapView(map, mapView.center, mapView.zoom );
+      dispatch({ type: 'UPDATE_ICON' });
+    }
+  }, [updateView])
 
   const Markers = (omap: L.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

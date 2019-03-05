@@ -151,7 +151,7 @@ declare module 'typings' {
     feed_info?: string;
   };
 
-  type AddMarkerToListInputType = { id: string; props: AllInOneMarkerProps };
+  type AddMarkerToListInputType = { id: string; props: AllInOneMarkerProps, hide: boolean };
   type Bounds = [ LatLng, LatLng ]
   type LatLng = [ number, number ]
   type MapProvider = 'google' | 'osm' | 'mapbox';
@@ -246,11 +246,6 @@ declare module 'typings' {
     markersBounds?: Bounds,
     searchBoxPlacesBounds?: Bounds,
   }
-  type handleMarkerItemEventInput = {
-    e: string,
-    marker: AddMarkerToListInputType,
-    dispatch: GlobalContextDispatch,
-  }
   type setMapConfigInput = {
     center: LatLng,
     zoom: number,
@@ -287,6 +282,7 @@ declare module 'typings' {
     selectedMarker?: AddMarkerToListInputType
     searchBoxPlacesBounds?: Bounds
     updateIcon: boolean
+    updateView: boolean
     zoom: number
   }
 
@@ -307,10 +303,10 @@ declare module 'typings' {
     Action.SELECT_MARKER |
     Action.SET_GM_MARKER_CLUSTERER |
     Action.SET_MAP_TOOL_STREAM |
-    Action.SET_MARKER_ITEM_STREAM |
     Action.SET_SEARCH_BOX_PLACES_BOUNDS |
     Action.SET_VIEW |
-    Action.UPDATE_ICON
+    Action.UPDATE_ICON |
+    Action.UPDATE_VIEW
 
   namespace Action {
     export type ADD_MARKER = { type: 'ADD_MARKER', payload: AddMarkerToListInputType }
@@ -327,10 +323,10 @@ declare module 'typings' {
     export type SELECT_MARKER = { type: 'SELECT_MARKER', payload: string }
     export type SET_GM_MARKER_CLUSTERER = { type: 'SET_GM_MARKER_CLUSTERER', payload: google.maps.Map }
     export type SET_MAP_TOOL_STREAM = { type: 'SET_MAP_TOOL_STREAM', payload: EvtStreamType}
-    export type SET_MARKER_ITEM_STREAM = { type: 'SET_MARKER_ITEM_STREAM', payload: { [id: string]: EvtStreamType} }
     export type SET_SEARCH_BOX_PLACES_BOUNDS = { type: 'SET_SEARCH_BOX_PLACES_BOUNDS', payload: Bounds }
-    export type SET_VIEW = { type: 'SET_VIEW', payload: MapView }
+    export type SET_VIEW = { type: 'SET_VIEW', payload: { center?: LatLng, zoom?: number } }
     export type UPDATE_ICON = { type: 'UPDATE_ICON' }
+    export type UPDATE_VIEW = { type: 'UPDATE_VIEW' }
   }
 
   type mapboxMarkerLayerEventType = "click" | "dblclick" | "touchcancel" |

@@ -15,5 +15,4 @@ export {
   setOrangeIcon,
   loadGmSearchBoxEventsStream,
   handleGmSearchBoxEvent,
-  handleGmMarkerItemEvent,
 } from './utils';
