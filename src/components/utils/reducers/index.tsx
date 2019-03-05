@@ -1,5 +1,6 @@
 import { GlobalContextState as State, Action, Bounds } from 'typings';
 import { extendBounds } from 'utils';
+const MarkerClusterer = require('@google/markerclustererplus');
 
 export const reducers = (state: State, action: Action) => {
   switch (action.type) {
@@ -7,6 +8,12 @@ export const reducers = (state: State, action: Action) => {
       return ADD_MARKER(state, action);
     case 'ADD_MARKERS':
       return ADD_MARKERS(state, action);
+    case 'ADD_MARKER_TO_GM_CLUSTER':
+      return ADD_MARKER_TO_GM_CLUSTER(state, action);
+    case 'ADD_MARKER_TO_OSM_CLUSTER':
+      return ADD_MARKER_TO_OSM_CLUSTER(state, action);
+    case 'ADD_MARKERS_TO_GM_CLUSTER':
+      return ADD_MARKERS_TO_GM_CLUSTER(state, action);
     case 'CHANGE_MAP_CARD_WIDTH':
       return CHANGE_MAP_CARD_WIDTH(state, action);
     case 'CHANGE_MAP_PROVIDER':
@@ -21,6 +28,8 @@ export const reducers = (state: State, action: Action) => {
       return REMOVE_MARKER(state, action);
     case 'SELECT_MARKER':
       return SELECT_MARKER(state, action);
+    case 'SET_GM_MARKER_CLUSTERER':
+      return SET_GM_MARKER_CLUSTERER(state, action);
     case 'SET_MAP_TOOL_STREAM':
       return SET_MAP_TOOL_STREAM(state, action);
     case 'SET_MARKER_ITEM_STREAM':
@@ -29,6 +38,8 @@ export const reducers = (state: State, action: Action) => {
       return SET_SEARCH_BOX_PLACES_BOUNDS(state, action);
     case 'SET_VIEW':
       return SET_VIEW(state, action);
+    case 'UPDATE_ICON':
+      return UPDATE_ICON(state, action);
     default:
       throw new Error();
   }
@@ -61,6 +72,31 @@ export const ADD_MARKERS = (state: State, action: Action.ADD_MARKERS) => {
     markersList: [...state.markersList, ...action.payload],
     markersBounds: newBounds,
   } as State;
+};
+export const ADD_MARKER_TO_GM_CLUSTER = (state: State, action: Action.ADD_MARKER_TO_GM_CLUSTER) => {
+  const GmMarkerClusterer = state.gmMarkerClusterer;
+  if (GmMarkerClusterer) {
+    GmMarkerClusterer.addMarker(action.payload.marker);
+  }
+  return state as State;
+};
+export const ADD_MARKER_TO_OSM_CLUSTER = (
+  state: State,
+  action: Action.ADD_MARKER_TO_OSM_CLUSTER
+) => {
+  const mc = state.osmMarkerClusterer;
+  mc.addLayer(action.payload);
+  return state as State;
+};
+export const ADD_MARKERS_TO_GM_CLUSTER = (
+  state: State,
+  action: Action.ADD_MARKERS_TO_GM_CLUSTER
+) => {
+  const GmMarkerClusterer = state.gmMarkerClusterer;
+  if (GmMarkerClusterer) {
+    GmMarkerClusterer.addMarkers(action.payload.markers);
+  }
+  return state as State;
 };
 export const CHANGE_MARKER_POSITION = (state: State, action: Action.CHANGE_MARKER_POSITION) => {
   const { markersList } = state;
@@ -115,15 +151,24 @@ export const SELECT_MARKER = (state: State, action: Action.SELECT_MARKER) => {
     selectedMarker: state.markersList.find(m => m.id === action.payload),
   } as State;
 };
+export const SET_GM_MARKER_CLUSTERER = (state: State, action: Action.SET_GM_MARKER_CLUSTERER) => {
+  return { ...state, gmMarkerClusterer: new MarkerClusterer(action.payload) } as State;
+};
 export const SET_MAP_TOOL_STREAM = (state: State, action: Action.SET_MAP_TOOL_STREAM) => {
   return { ...state, mapTools$: Object.assign({}, state.mapTools$, action.payload) } as State;
 };
 export const SET_MARKER_ITEM_STREAM = (state: State, action: Action.SET_MARKER_ITEM_STREAM) => {
   return { ...state, markerItem$: Object.assign({}, state.markerItem$, action.payload) } as State;
-}
-export const SET_SEARCH_BOX_PLACES_BOUNDS = (state: State, action: Action.SET_SEARCH_BOX_PLACES_BOUNDS) => {
+};
+export const SET_SEARCH_BOX_PLACES_BOUNDS = (
+  state: State,
+  action: Action.SET_SEARCH_BOX_PLACES_BOUNDS
+) => {
   return { ...state, searchBoxPlacesBounds: action.payload } as State;
-}
+};
 export const SET_VIEW = (state: State, action: Action.SET_VIEW) => {
   return { ...state, mapView: action.payload } as State;
+};
+export const UPDATE_ICON = (state: State, _action: Action.UPDATE_ICON) => {
+  return { ...state, updateIcon: !state.updateIcon };
 };

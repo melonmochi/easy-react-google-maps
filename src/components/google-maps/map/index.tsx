@@ -1,9 +1,16 @@
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
-import { AddMarkerToListInputType, EvtStreamType } from 'typings';
+import { EvtStreamType, AddMarkerToListInputType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Subscription } from 'rxjs';
 import { Spin } from 'antd';
-import { setGmMapConfig, handleGmMapEvent, setMapView, Marker, combineEventStreams, handleGmMarkerItemEvent } from 'gm';
+import {
+  setGmMapConfig,
+  handleGmMapEvent,
+  setMapView,
+  combineEventStreams,
+  handleGmMarkerItemEvent,
+  Marker,
+} from 'gm';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -11,8 +18,18 @@ interface GoogleMapsMapProps {
 
 export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { center, mapProps, mapView, mapProvider, mapTools$, markerItem$,
-    markersBounds, zoom, searchBoxPlacesBounds, markersList } = state;
+  const {
+    center,
+    mapProps,
+    mapView,
+    mapProvider,
+    mapTools$,
+    markerItem$,
+    markersBounds,
+    zoom,
+    searchBoxPlacesBounds,
+    markersList,
+  } = state;
   const { google } = props;
   const { gestureHandling, gmMaptype } = mapProps;
   const mapConfig = setGmMapConfig({ center, zoom, gestureHandling, gmMaptype });
@@ -23,6 +40,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   useEffect(() => {
     const m = new google.maps.Map(gmMapRef.current, mapConfig);
     setMap(m);
+    dispatch({ type: 'SET_GM_MARKER_CLUSTERER', payload: m });
     setGmEvents$(combineEventStreams(m, mapTools$));
   }, []);
 
@@ -33,41 +51,44 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   }, [mapTools$]);
 
   useEffect(() => {
-    if(map) {
+    if (map) {
       handleGmMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
     }
-  },[searchBoxPlacesBounds])
+  }, [searchBoxPlacesBounds]);
 
   useEffect(() => {
     let evtSubsc: Array<Subscription> = [];
     if (map && mapProvider === 'google') {
       setMapView(map, mapView.zoom, mapView.center);
       evtSubsc = Object.keys(gmEvents$).map(e =>
-        gmEvents$[e].subscribe(() => handleGmMapEvent({ map, e, dispatch, center, markersBounds, searchBoxPlacesBounds }))
+        gmEvents$[e].subscribe(() =>
+          handleGmMapEvent({ map, e, dispatch, center, markersBounds, searchBoxPlacesBounds })
+        )
       );
     }
     return () => {
       evtSubsc.forEach(s => s.unsubscribe());
-    }
+    };
   }, [mapProvider, gmEvents$, center, markersBounds]);
 
   useEffect(() => {
     let evtSubsc: { [id: string]: Array<Subscription> } = {};
     if (map && mapProvider === 'google') {
-      evtSubsc = Object.keys(markerItem$).reduce((obj: { [id: string]: Array<Subscription> }, id) => {
-        obj[id] = Object.keys(markerItem$[id]).map( e => {
-          const marker = markersList.find( m => m.id === id )
-          return markerItem$[id][e]
-          .subscribe(() => marker? handleGmMarkerItemEvent({ map, e, dispatch, marker }):{})
-        })
-        return obj
-      }
-      , {});
+      evtSubsc = Object.keys(markerItem$).reduce(
+        (obj: { [id: string]: Array<Subscription> }, id) => {
+          obj[id] = Object.keys(markerItem$[id]).map(e => {
+            const marker = markersList.find(m => m.id === id);
+            return markerItem$[id][e].subscribe(() =>
+              marker ? handleGmMarkerItemEvent({ map, e, dispatch, marker }) : {}
+            );
+          });
+          return obj;
+        },
+        {}
+      );
     }
-    return () => Object.keys(evtSubsc).forEach( id => evtSubsc[id].forEach(e$ => e$.unsubscribe()))
-  },[markerItem$, markersList])
-
-  const MapChildComponents = (m: google.maps.Map) => Markers(m)
+    return () => Object.keys(evtSubsc).forEach(id => evtSubsc[id].forEach(e$ => e$.unsubscribe()));
+  }, [markerItem$, markersList]);
 
   const Markers = (gmap: google.maps.Map) =>
     state.markersList.map((m: AddMarkerToListInputType) => (
@@ -86,7 +107,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
         size="large"
         style={{ width: 0, margin: 'auto', zIndex: 11 }}
       />
-      {map ? MapChildComponents(map) : null}
+      {map ? Markers(map) : null}
     </div>
   );
 };

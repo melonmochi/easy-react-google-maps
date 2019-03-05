@@ -26,7 +26,7 @@ type handleOsmMapEventInput = {
 } & handleMapEventInput;
 type handleOsmMarkerItemEventInput = handleMarkerItemEventInput & {
   map: L.Map;
-}
+};
 
 export const setOsmMapConfig = (input: setOsmMapConfigInput) => {
   const { center, zoom, osmTileLayerServer } = input;
@@ -88,7 +88,7 @@ export const handleOsmMarkerItemEvent = (input: handleOsmMarkerItemEventInput) =
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onMarker_item_click':
-      dispatch({ type: 'SELECT_MARKER', payload: marker.id })
+      dispatch({ type: 'SELECT_MARKER', payload: marker.id });
       break;
     case 'onMarker_item_dblclick':
       map.panTo(marker.props.position);
@@ -96,7 +96,7 @@ export const handleOsmMarkerItemEvent = (input: handleOsmMarkerItemEventInput) =
     default:
       break;
   }
-}
+};
 
 export const setMapView = (m: L.Map, c: LatLng, z: number) => {
   m.setView(c, z).invalidateSize();
@@ -208,14 +208,26 @@ export const handleOsmMarkerEvent = (input: handleOsmMarkerEventInput) => {
           });
         },
         onCancel() {
-          marker.setLatLng(position)
+          marker.setLatLng(position);
+          if (!ifselected) {
+            setDefaultIcon(marker);
+          }
+          dispatch({
+            type: 'UPDATE_ICON',
+          });
         },
       });
       break;
     case 'onMouseout':
-      return !ifselected && setDefaultIcon(marker);
+      if (!ifselected) {
+        setDefaultIcon(marker);
+      }
+      break;
     case 'onMouseover':
-      return !ifselected && setBlueIcon(marker);
+      if (!ifselected) {
+        setBlueIcon(marker);
+      }
+      break;
     default:
     // throw new Error('No corresponding event')
   }

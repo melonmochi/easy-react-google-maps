@@ -19,7 +19,7 @@ import orangeIconURL from 'assets/images/marker-orange.svg';
 import { Modal } from 'antd';
 const confirm = Modal.confirm;
 
-const gmMapEvents = ['click', 'idle' ];
+const gmMapEvents = ['click', 'idle'];
 
 // ------------------------MAP------------------------
 
@@ -34,7 +34,7 @@ type handleGmMapEventInput = {
 
 type handleGmMarkerItemEventInput = handleMarkerItemEventInput & {
   map: google.maps.Map;
-}
+};
 
 export const setGmMapConfig = (input: setGmMapConfigInput) => {
   const { center, gestureHandling, gmMaptype, zoom } = input;
@@ -79,7 +79,7 @@ export const handleGmMapEvent = (input: handleGmMapEventInput) => {
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onClick':
-      dispatch({ type: 'SELECT_MARKER', payload: '' })
+      dispatch({ type: 'SELECT_MARKER', payload: '' });
       break;
     case 'onIdle':
       const gCenter = map.getCenter();
@@ -102,10 +102,9 @@ export const handleGmMapEvent = (input: handleGmMapEventInput) => {
 export const handleGmMarkerItemEvent = (input: handleGmMarkerItemEventInput) => {
   const { map, e, dispatch, marker } = input;
   const evtName = `on${camelCase(e)}`;
-  console.log('im doing map-item-event e in gm', evtName)
   switch (evtName) {
     case 'onMarker_item_click':
-      dispatch({ type: 'SELECT_MARKER', payload: marker.id })
+      dispatch({ type: 'SELECT_MARKER', payload: marker.id });
       break;
     case 'onMarker_item_dblclick':
       map.panTo(latlngToGmLatlng(marker.props.position));
@@ -113,7 +112,7 @@ export const handleGmMarkerItemEvent = (input: handleGmMarkerItemEventInput) => 
     default:
       break;
   }
-}
+};
 
 export const setMapView = (m: google.maps.Map, z: number, c: LatLng) => {
   m.setOptions({ center: new google.maps.LatLng(c[0], c[1]), zoom: z });
@@ -208,6 +207,7 @@ export const setBlueIcon = (m: google.maps.Marker) => {
     scaledSize: new google.maps.Size(50, 50),
   });
 };
+
 export const setOrangeIcon = (m: google.maps.Marker) =>
   m.setIcon({
     url: orangeIconURL,
@@ -238,10 +238,17 @@ export const handleGmMarkerEvent = (input: handleGmMarkerEventInput) => {
               id: id,
               newPosition: [marker.getPosition().lat(), marker.getPosition().lng()],
             },
-          })
+          });
         },
         onCancel() {
-          marker.setPosition(new google.maps.LatLng(position[0], position[1]))
+          marker.setPosition(new google.maps.LatLng(position[0], position[1]));
+          dispatch({
+            type: 'CHANGE_MARKER_POSITION',
+            payload: {
+              id: id,
+              newPosition: [marker.getPosition().lat(), marker.getPosition().lng()],
+            },
+          });
         },
       });
       break;
@@ -280,13 +287,13 @@ export const loadGmSearchBoxEventsStream = (sb: google.maps.places.SearchBox) =>
   }, {});
 
 type handleGmSearchBoxEventInput = {
-  e: string,
-  searchBox: google.maps.places.SearchBox
-  dispatch: GlobalContextDispatch
-}
+  e: string;
+  searchBox: google.maps.places.SearchBox;
+  dispatch: GlobalContextDispatch;
+};
 
 export const handleGmSearchBoxEvent = (input: handleGmSearchBoxEventInput) => {
-  const { e, searchBox, dispatch } = input
+  const { e, searchBox, dispatch } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onPlaces_changed':
@@ -304,14 +311,14 @@ export const handleGmSearchBoxEvent = (input: handleGmSearchBoxEventInput) => {
             }
           }
         });
-        dispatch({ type: 'SET_SEARCH_BOX_PLACES_BOUNDS', payload: gmBoundsToBounds(bounds) })
+        dispatch({ type: 'SET_SEARCH_BOX_PLACES_BOUNDS', payload: gmBoundsToBounds(bounds) });
       }
       break;
     default:
     // throw new Error('No corresponding event')
   }
-}
+};
 
 const latlngToGmLatlng = (pos: LatLng) => {
-  return new google.maps.LatLng(pos[0], pos[1])
-}
+  return new google.maps.LatLng(pos[0], pos[1]);
+};

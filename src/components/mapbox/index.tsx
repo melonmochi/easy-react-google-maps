@@ -9,4 +9,6 @@ export {
   handleMapboxMarkerEvent,
   loadMarpboxMarkerEventsStream,
   handleMapboxMarkerItemEvent,
+  loadMarpboxMarkerLayerEventsStream,
+  handleMapboxMarkerLayerEvent,
 } from './utils';

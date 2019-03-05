@@ -26,7 +26,7 @@
       "src": ["src"],
       "typings": ["typings"],
       "utils": ["src/components/utils"],
-    }
+    },
   },
   "exclude": [
     "node_modules"

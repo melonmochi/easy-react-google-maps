@@ -3,16 +3,16 @@ import { Card } from 'antd';
 import ResizeDetector from 'react-resize-detector';
 import { GlobalContext } from '../global-context';
 import './style';
-import { SearchBox } from 'components'
+import { SearchBox } from 'components';
 
 const MapOptionsList = [
   {
-    key: 'google',
-    tab: 'GoogleMaps',
-  },
-  {
     key: 'osm',
     tab: 'OpenStreetMap',
+  },
+  {
+    key: 'google',
+    tab: 'GoogleMaps',
   },
   {
     key: 'mapbox',
@@ -22,7 +22,7 @@ const MapOptionsList = [
 
 export const MapCard: FunctionComponent = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { google } = state
+  const { google } = state;
 
   const renderChildren = () => {
     const { children } = props;
@@ -52,7 +52,7 @@ export const MapCard: FunctionComponent = props => {
   return (
     <Card
       className="mapCard"
-      extra={google? <SearchBox google={google} />: null}
+      extra={google ? <SearchBox google={google} /> : null}
       tabList={MapOptionsList}
       activeTabKey={state.mapProvider}
       onTabChange={onTabChange}
@@ -63,7 +63,7 @@ export const MapCard: FunctionComponent = props => {
         alignSelf: 'flex-start',
         padding: '0 10px',
       }}
-      bodyStyle={{ padding: '0', marginTop: '1px' }}
+      bodyStyle={{ padding: '0' }}
     >
       <ResizeDetector handleWidth onResize={onResize} />
       {renderChildren()}

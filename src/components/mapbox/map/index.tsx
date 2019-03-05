@@ -2,21 +2,26 @@ import 'components/style';
 import 'mapbox-gl/src/css/mapbox-gl.css';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { AddMarkerToListInputType, EvtStreamType } from 'typings';
+import { EvtStreamType, AddMarkerToListInputType } from 'typings';
 import { GlobalContext } from 'components';
 import {
-  Marker,
   setMapboxMapConfig,
   setMapView,
   combineEventStreams,
   handleMapboxMapEvent,
+  // handleMapboxMarkerItemEvent,
+  Marker,
   handleMapboxMarkerItemEvent,
 } from 'mapbox';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
-import { mapboxConfig } from 'config';
 
-export const MapboxMap: FunctionComponent = () => {
+interface MapboxMapProps {
+  token: string;
+}
+
+export const MapboxMap: FunctionComponent<MapboxMapProps> = props => {
+  const { token } = props;
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
@@ -31,12 +36,13 @@ export const MapboxMap: FunctionComponent = () => {
     searchBoxPlacesBounds,
     zoom,
   } = state;
-  const { mapboxToken, mapboxStyle } = mapProps;
-  mapboxgl.accessToken = mapboxToken ? mapboxToken : mapboxConfig.token;
+  const { mapboxStyle } = mapProps;
   const mapConfig = setMapboxMapConfig({ center, zoom, mapboxStyle });
+  mapboxgl.accessToken = token;
   const mapboxMapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [mapboxEvents$, setMapboxEvents$] = useState<EvtStreamType>({});
+  // const [markerLayerEvents$, setMarkerLayerEvents$] = useState<EvtStreamType>({});
 
   const initMap = (node: HTMLDivElement) =>
     new mapboxgl.Map({
@@ -50,8 +56,21 @@ export const MapboxMap: FunctionComponent = () => {
       const m = initMap(mapboxMapRef.current);
       setMap(m);
       setMapboxEvents$(combineEventStreams(m, mapTools$));
+      // setMarkerLayerEvents$(loadMarpboxMarkerLayerEventsStream(m))
     }
   }, []);
+
+  // useEffect(() => {
+  //   let evtSubsc: Array<Subscription> = [];
+  //   if (map && mapProvider === 'mapbox') {
+  //     evtSubsc = Object.keys(markerLayerEvents$).map( (evt: mapboxMarkerLayerEventType) =>
+  //       markerLayerEvents$[evt].subscribe( (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] | undefined; } & mapboxgl.EventData) =>
+  //         handleMapboxMarkerLayerEvent({ evt, e, map, dispatch })
+  //       )
+  //     );
+  //   }
+  //   return () => evtSubsc.forEach(s => s.unsubscribe());
+  // },[markerLayerEvents$])
 
   useEffect(() => {
     if (map) {
@@ -65,12 +84,12 @@ export const MapboxMap: FunctionComponent = () => {
       setMapView(map, mapView.center, mapView.zoom);
       evtSubsc = Object.keys(mapboxEvents$).map(e =>
         mapboxEvents$[e].subscribe(() =>
-          handleMapboxMapEvent({ map, e, dispatch, center, markersBounds })
+          handleMapboxMapEvent({ map, e, dispatch, center, markersList, markersBounds })
         )
       );
     }
     return () => evtSubsc.forEach(s => s.unsubscribe());
-  }, [mapProvider, mapboxEvents$, center, markersBounds]);
+  }, [mapProvider, mapboxEvents$, center]);
 
   useEffect(() => {
     if (map && mapProvider === 'mapbox') {
@@ -79,26 +98,36 @@ export const MapboxMap: FunctionComponent = () => {
   }, [mapCardWidth]);
 
   useEffect(() => {
-    if(map) {
-      handleMapboxMapEvent({ map, e: 'places_changed', dispatch, center, searchBoxPlacesBounds });
+    if (map) {
+      handleMapboxMapEvent({
+        map,
+        e: 'places_changed',
+        dispatch,
+        center,
+        markersList,
+        searchBoxPlacesBounds,
+      });
     }
-  },[searchBoxPlacesBounds])
+  }, [searchBoxPlacesBounds]);
 
   useEffect(() => {
     let evtSubsc: { [id: string]: Array<Subscription> } = {};
-    if (map && mapProvider === 'google') {
-      evtSubsc = Object.keys(markerItem$).reduce((obj: { [id: string]: Array<Subscription> }, id) => {
-        obj[id] = Object.keys(markerItem$[id]).map( e => {
-          const marker = markersList.find( m => m.id === id )
-          return markerItem$[id][e]
-          .subscribe(() => marker? handleMapboxMarkerItemEvent({ map, e, dispatch, marker }):{})
-        })
-        return obj
-      }
-      , {});
+    if (map && mapProvider === 'mapbox') {
+      evtSubsc = Object.keys(markerItem$).reduce(
+        (obj: { [id: string]: Array<Subscription> }, id) => {
+          obj[id] = Object.keys(markerItem$[id]).map(e => {
+            const marker = markersList.find(m => m.id === id);
+            return markerItem$[id][e].subscribe(() =>
+              marker ? handleMapboxMarkerItemEvent({ map, e, dispatch, marker }) : {}
+            );
+          });
+          return obj;
+        },
+        {}
+      );
     }
-    return () => Object.keys(evtSubsc).forEach( id => evtSubsc[id].forEach(e$ => e$.unsubscribe()))
-  },[markerItem$, markersList])
+    return () => Object.keys(evtSubsc).forEach(id => evtSubsc[id].forEach(e$ => e$.unsubscribe()));
+  }, [markerItem$, markersList]);
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList.map((m: AddMarkerToListInputType) => (

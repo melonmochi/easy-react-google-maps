@@ -6,21 +6,20 @@ const { Sider } = Layout;
 const { TabPane } = Tabs;
 const SubMenu = Menu.SubMenu;
 
-type MenuKeyType = 'map-menu' | 'marker-menu'
-type MenuOptionsListType = Array<{ key: MenuKeyType, tabName: string, icon: string }>
-const MenuOptionsList: MenuOptionsListType =
-  [
-    {
-      key: 'map-menu',
-      tabName: 'Map',
-      icon: 'global',
-    },
-    {
-      key: 'marker-menu',
-      tabName: 'Marker',
-      icon: 'flag',
-    },
-  ];
+type MenuKeyType = 'map-menu' | 'marker-menu';
+type MenuOptionsListType = Array<{ key: MenuKeyType; tabName: string; icon: string }>;
+const MenuOptionsList: MenuOptionsListType = [
+  {
+    key: 'map-menu',
+    tabName: 'Map',
+    icon: 'global',
+  },
+  {
+    key: 'marker-menu',
+    tabName: 'Marker',
+    icon: 'flag',
+  },
+];
 
 const MapMenu = () => (
   <Menu
@@ -45,12 +44,12 @@ const MapMenu = () => (
       <span>Drawer</span>
     </Menu.Item>
   </Menu>
-)
+);
 
 const MenuList = {
   'map-menu': <MapMenu />,
   'marker-menu': <StopsList />,
-}
+};
 
 const MenuCard = (key: MenuKeyType) => (
   <Card
@@ -61,17 +60,28 @@ const MenuCard = (key: MenuKeyType) => (
   >
     {MenuList[key]}
   </Card>
-)
+);
 
-const TabContent = (key: MenuKeyType, collapsed: boolean) => {
-  const menuOption = MenuOptionsList.find( t => t.key === key)
-  const opt = menuOption? { icon: menuOption.icon, tabName: menuOption.tabName }: {icon: '', tabName: ''}
-  return (
-    <TabPane tab={<span><Tooltip title={opt.tabName}><Icon type={opt.icon} />{collapsed? '': opt.tabName}</Tooltip></span>} key={key} >
-      {MenuCard(key)}
+const TabContent = (collapsed: boolean) =>
+  MenuOptionsList.map(opt => (
+    <TabPane
+      tab={
+        <span>
+          <Tooltip title={opt.tabName}>
+            <Icon type={opt.icon} />
+            {collapsed ? (
+              ''
+            ) : (
+              <div style={{ marginLeft: 12, display: 'inline-flex' }}>{opt.tabName}</div>
+            )}
+          </Tooltip>
+        </span>
+      }
+      key={opt.key}
+    >
+      {MenuCard(opt.key)}
     </TabPane>
-  )
-}
+  ));
 
 export const EasySideBar: FunctionComponent = () => {
   const [collapse, onCollapse] = useState(false);
@@ -85,9 +95,8 @@ export const EasySideBar: FunctionComponent = () => {
       reverseArrow
       width={300}
     >
-      <Tabs className='menu-tabs' defaultActiveKey='map-menu'>
-        {TabContent('map-menu', collapse)}
-        {TabContent('marker-menu', collapse)}
+      <Tabs className="menu-tabs" defaultActiveKey="map-menu">
+        {TabContent(collapse)}
       </Tabs>
     </Sider>
   );

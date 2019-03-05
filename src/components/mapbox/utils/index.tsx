@@ -7,15 +7,27 @@ import {
   setMarkerConfigInput,
   handleMarkerEventInput,
   handleMarkerItemEventInput,
+  AddMarkerToListInputType,
+  mapboxMarkerLayerEventType,
+  handleMapboxMarkerLayerEventInput,
 } from 'typings';
 import { fromEventPattern, merge, fromEvent } from 'rxjs';
-import { camelCase, markerEvents } from 'utils';
+import { camelCase, markerEvents, markersToMapboxGeoJSON } from 'utils';
 import { takeUntil, switchMap, filter } from 'rxjs/operators';
 import { Color } from 'csstype';
-export const mapboxMapEvents = [ 'click', 'dblclick', 'moveend' ];
+export const mapboxMapEvents = ['load', 'click', 'dblclick', 'moveend'];
 import { Modal } from 'antd';
+import { FeatureCollection, Geometry, GeoJsonProperties, Point } from 'geojson';
 const confirm = Modal.confirm;
-
+const MapboxMarkerLayerEvents = [
+  'click',
+  'dblclick',
+  'mousedown',
+  'mouseup',
+  'mouseover',
+  'mouseout',
+];
+import busIconURL from 'components/mapbox/marker/style/images/bus-15.svg';
 // ------------------------MAP------------------------
 
 type setMapboxMapConfigInput = setMapConfigInput & {
@@ -23,11 +35,22 @@ type setMapboxMapConfigInput = setMapConfigInput & {
 };
 type handleMapboxMapEventInput = {
   map: mapboxgl.Map;
+  markersList: AddMarkerToListInputType[];
 } & handleMapEventInput;
 type handleMapboxMarkerItemEventInput = handleMarkerItemEventInput & {
   map: mapboxgl.Map;
-}
-
+};
+type addSourseToMapInput = {
+  map: mapboxgl.Map;
+  markersSource: FeatureCollection<Geometry, GeoJsonProperties>;
+};
+type handleMapboxMarkerEventInput = handleMarkerEventInput & {
+  map: mapboxgl.Map;
+  marker: mapboxgl.Marker;
+  setMarkerStyle: React.Dispatch<
+    React.SetStateAction<'greenMarker' | 'blueBigMarker' | 'redBigMarker'>
+  >;
+};
 export const setMapboxMapConfig = (input: setMapboxMapConfigInput) => {
   const { center, zoom, mapboxStyle } = input;
   return Object.assign(
@@ -48,10 +71,11 @@ const loadMapboxMapEventsStream = (m: mapboxgl.Map) =>
     switch (e) {
       case 'click':
         obj[e] = loadMapbox$(e, m).pipe(
-          filter(evt => evt.originalEvent.target.tagName === 'CANVAS'))
+          filter(evt => evt.originalEvent.target.tagName === 'CANVAS')
+        );
         break;
       default:
-        obj[e] = loadMapbox$(e, m)
+        obj[e] = loadMapbox$(e, m);
         break;
     }
     return obj;
@@ -64,6 +88,25 @@ export const handleMapboxMapEvent = (input: handleMapboxMapEventInput) => {
     case 'onClick':
       dispatch({ type: 'SELECT_MARKER', payload: '' });
       break;
+    // case 'onLoad':
+    //   const chunkMarkers = chunkArray(markersList, 3) as Array<AddMarkerToListInputType[]>
+    //   const markersSource = GeoJSONMarkers(chunkMarkers[0])
+    //   addSourseToMap({ map, markersSource })
+    //   let i = 1;
+    //   const timer = window.setInterval(() => {
+    //     const mars = chunkMarkers[i]
+    //     if (i < 3 && mars) {
+    //       const ms = GeoJSONMarkers(mars)
+    //       const newMS = markersSource.features.concat(ms.features);
+    //       markersSource.features = newMS
+    //       const markers = map.getSource('markers') as GeoJSONSource
+    //       markers.setData(markersSource);
+    //       i++;
+    //     } else {
+    //       window.clearInterval(timer);
+    //     }
+    //   }, 1000);
+    //   break;
     case 'onMoveend':
       const newCenter = [map.getCenter().lat, map.getCenter().lng] as LatLng;
       const newZoom = Math.floor(map.getZoom() + 1);
@@ -94,7 +137,7 @@ export const handleMapboxMarkerItemEvent = (input: handleMapboxMarkerItemEventIn
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onMarker_item_click':
-      dispatch({ type: 'SELECT_MARKER', payload: marker.id })
+      dispatch({ type: 'SELECT_MARKER', payload: marker.id });
       break;
     case 'onMarker_item_dblclick':
       map.panTo(latlngToMapboxLngLat(marker.props.position));
@@ -102,7 +145,7 @@ export const handleMapboxMarkerItemEvent = (input: handleMapboxMarkerItemEventIn
     default:
       break;
   }
-}
+};
 
 export const setMapView = (m: mapboxgl.Map, c: LatLng, z: number) => {
   m.jumpTo({ center: [c[1], c[0]], zoom: z - 1 }).resize();
@@ -185,14 +228,6 @@ export const loadMarpboxMarkerEventsStream = (m: mapboxgl.Marker, node: HTMLDivE
     return obj;
   }, {});
 
-type handleMapboxMarkerEventInput = handleMarkerEventInput & {
-  map: mapboxgl.Map;
-  marker: mapboxgl.Marker;
-  setMarkerStyle: React.Dispatch<
-    React.SetStateAction<'greenMarker' | 'blueBigMarker' | 'redBigMarker'>
-  >;
-};
-
 export const handleMapboxMarkerEvent = (input: handleMapboxMarkerEventInput) => {
   const { map, evt, id, marker, ifselected, position, dispatch, setMarkerStyle } = input;
   const evtName = `on${camelCase(evt)}`;
@@ -218,7 +253,7 @@ export const handleMapboxMarkerEvent = (input: handleMapboxMarkerEventInput) => 
           });
         },
         onCancel() {
-          marker.setLngLat([position[1], position[0]])
+          marker.setLngLat([position[1], position[0]]);
         },
       });
       break;
@@ -231,6 +266,148 @@ export const handleMapboxMarkerEvent = (input: handleMapboxMarkerEventInput) => 
   }
 };
 
+export const GeoJSONMarkers = (ml: AddMarkerToListInputType[]) =>
+  markersToMapboxGeoJSON(
+    ml.map(m => ({
+      id: m.id,
+      title: m.props.title,
+      position: m.props.position,
+    }))
+  );
+
+export const addSourseToMap = (input: addSourseToMapInput) => {
+  const { map, markersSource } = input;
+  map.addSource('markers', {
+    type: 'geojson',
+    data: markersSource,
+    cluster: true,
+  });
+  map.addLayer({
+    id: 'clusters',
+    type: 'circle',
+    source: 'markers',
+    filter: ['has', 'point_count'],
+    paint: {
+      'circle-color': ['step', ['get', 'point_count'], '#51bbd6', 100, '#f1f075', 750, '#f28cb1'],
+      'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
+    },
+  });
+  map.addLayer({
+    id: 'cluster-count',
+    type: 'symbol',
+    source: 'markers',
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': '{point_count_abbreviated}',
+      'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+      'text-size': 12,
+    },
+  });
+
+  const img = new Image(15, 15);
+  img.onload = () => map.addImage('bus', img, { sdf: true });
+  img.src = busIconURL;
+
+  map.addLayer({
+    id: 'unclustered-point',
+    type: 'symbol',
+    source: 'markers',
+    filter: ['!', ['has', 'point_count']],
+    layout: {
+      'icon-image': 'bus',
+      'icon-size': 1.5,
+      'text-field': '{title}',
+      'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+      'text-offset': [0, 0.6],
+      'text-anchor': 'top',
+    },
+    paint: {
+      'icon-color': ['case', ['boolean', ['feature-state', 'hover'], false], '#005CAF', '#0c4842'],
+    },
+  });
+
+  // inspect a cluster on click
+  map.on('click', 'clusters', e => {
+    const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+    const firstFeature = features[0];
+    if (firstFeature && firstFeature.properties) {
+      const clusterId = firstFeature ? firstFeature.properties.cluster_id : '';
+      const source = map.getSource('markers') as mapboxgl.GeoJSONSource;
+      source.getClusterExpansionZoom(clusterId, (err, z) => {
+        if (err) return;
+        map.easeTo({
+          center: (features[0].geometry as Point).coordinates as LatLng,
+          zoom: z,
+        });
+      });
+    }
+  });
+  map.on('mouseenter', 'clusters', function() {
+    map.getCanvas().style.cursor = 'pointer';
+  });
+  map.on('mouseleave', 'clusters', function() {
+    map.getCanvas().style.cursor = '';
+  });
+};
+
+const loadMarkerLayer$ = (evt: mapboxMarkerLayerEventType, layerID: string, m: mapboxgl.Map) =>
+  fromEventPattern(
+    handler => m.on(evt, layerID, handler),
+    handler => m.off(evt, layerID, handler),
+    e => e
+  );
+
+const loadUnclusteredMarkerLayer$ = (evt: mapboxMarkerLayerEventType, m: mapboxgl.Map) =>
+  loadMarkerLayer$(evt, 'unclustered-point', m);
+
+export const loadMarpboxMarkerLayerEventsStream = (m: mapboxgl.Map) =>
+  MapboxMarkerLayerEvents.reduce((obj: EvtStreamType, evt) => {
+    obj[evt] = loadUnclusteredMarkerLayer$(evt as mapboxMarkerLayerEventType, m);
+    return obj;
+  }, {});
+
+let featureID = 0;
+
+export const handleMapboxMarkerLayerEvent = (input: handleMapboxMarkerLayerEventInput) => {
+  const { evt, map, e } = input;
+  const evtName = `on${camelCase(evt)}`;
+  const feature = map.queryRenderedFeatures(e.point, { layers: ['unclustered-point'] })[0];
+  if (feature && feature.id) {
+    featureID = feature.id as number;
+  }
+
+  switch (evtName) {
+    case 'onClick':
+      // dispatch({
+      //   type: 'SELECT_MARKER',
+      //   payload: id,
+      // });
+      break;
+    case 'onDblclick':
+      break;
+    case 'onMouseover':
+      map.setFeatureState(
+        { source: 'markers', id: featureID },
+        {
+          hover: true,
+        }
+      );
+      break;
+    case 'onMouseout':
+      map.setFeatureState(
+        { source: 'markers', id: featureID },
+        {
+          hover: false,
+        }
+      );
+      /*const markers = map.getSource('markers') as GeoJSONSource
+          markers.setData(markersSource);*/
+      break;
+    default:
+    // throw new Error('No corresponding event')
+  }
+};
+
 const latlngToMapboxLngLat = (pos: LatLng) => {
-  return [pos[1], pos[0]] as LatLng
-}
+  return [pos[1], pos[0]] as LatLng;
+};

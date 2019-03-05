@@ -79,6 +79,13 @@ export { boundsToCenters } from './bounds-to-center';
 export { ifSelected } from './if-selected';
 
 export {
+  markerToGeoJSON,
+  markersToGeoJSON,
+  markerToMapboxGeoJSON,
+  markersToMapboxGeoJSON,
+} from './geojson';
+
+export {
   boundsToGmbounds,
   gmBoundsToBounds,
   boundsToOSMBounds,
@@ -96,9 +103,20 @@ export const city = {
 };
 
 const randomNumber = (a: number, b: number) => {
-  return a+(b-a)*Math.random()
-}
+  return a + (b - a) * Math.random();
+};
 
-const randomLat = () => randomNumber(-70, 70)
-const randomLng = () => randomNumber(-180, 180)
-export const randomLatLng = () => [randomLat(), randomLng()] as LatLng
+const randomLat = () => randomNumber(38, 42);
+const randomLng = () => randomNumber(-5, -1);
+export const randomLatLng = () => [randomLat(), randomLng()] as LatLng;
+
+export const chunkArray = (l: Array<any>, part: number) => {
+  const chunk = Math.ceil(part);
+  const len = l.length;
+  if (chunk <= len) {
+    const chunkLen = Math.ceil(len / chunk);
+    return Array.from(new Array(chunk), (_x, i) => l.slice(i * chunkLen, i * chunkLen + chunkLen));
+  } else {
+    return [l];
+  }
+};

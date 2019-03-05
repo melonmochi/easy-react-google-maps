@@ -1,47 +1,39 @@
 import React, { FunctionComponent, useContext, useRef, useEffect } from 'react';
-import {
-  Avatar,
-  Card,
-  List,
-  Tooltip,
-} from 'antd';
+import { Avatar, Card, List, Tooltip } from 'antd';
 import { List as VList, ListRowProps, AutoSizer } from 'react-virtualized';
 import { stringToColour } from 'utils';
 import './style';
 import { GlobalContext } from 'components';
-import { setMarkerItemStream } from './utils'
+import { setMarkerItemStream } from './utils';
 
 const RowRenderer: FunctionComponent<ListRowProps> = props => {
-  const { state, dispatch } = useContext(GlobalContext)
-  const { markersList, selectedMarker } = state
+  const { state, dispatch } = useContext(GlobalContext);
+  const { markersList, selectedMarker } = state;
   const markerItemRef = useRef<HTMLDivElement>(null);
   const stopItem = markersList[props.index];
   const stopFirstChar = stopItem.props.title.substring(0, 3);
   const randomcolor: string = stringToColour(stopItem.props.title);
   const randomavatar = (
-    <Avatar
-      style={{ backgroundColor: randomcolor }}
-      size='large'
-    >
+    <Avatar style={{ backgroundColor: randomcolor }} size="large">
       {stopFirstChar}
     </Avatar>
   );
   useEffect(() => {
     if (markerItemRef && markerItemRef.current) {
-      const m$ = setMarkerItemStream(markerItemRef.current)
+      const m$ = setMarkerItemStream(markerItemRef.current);
       dispatch({
         type: 'SET_MARKER_ITEM_STREAM',
         payload: { [stopItem.id]: m$ },
       });
     }
   }, []);
-  const itemClassName = selectedMarker ? stopItem.id === selectedMarker.id ? 'listItemSelected' : 'listItem' : 'listItem';
+  const itemClassName = selectedMarker
+    ? stopItem.id === selectedMarker.id
+      ? 'listItemSelected'
+      : 'listItem'
+    : 'listItem';
   return (
-    <div
-      ref={markerItemRef}
-      key={stopItem.id}
-      style={{ overflowY: 'auto' }}
-    >
+    <div ref={markerItemRef} key={stopItem.id} style={{ overflowY: 'auto' }}>
       <Tooltip placement="left" title={stopItem.props.title}>
         <List.Item
           className={itemClassName}
@@ -51,7 +43,7 @@ const RowRenderer: FunctionComponent<ListRowProps> = props => {
           <List.Item.Meta
             avatar={randomavatar}
             title={<a className="list-item-meta-title">{stopItem.props.title}</a>}
-            description={<span className="list-item-meta-description" >{stopItem.id}</span>}
+            description={<span className="list-item-meta-description">{stopItem.id}</span>}
           />
         </List.Item>
       </Tooltip>
@@ -60,8 +52,8 @@ const RowRenderer: FunctionComponent<ListRowProps> = props => {
 };
 
 export const StopsList: FunctionComponent = () => {
-  const { state } = useContext(GlobalContext)
-  const { markersList, selectedMarker } = state
+  const { state } = useContext(GlobalContext);
+  const { markersList, selectedMarker } = state;
 
   const autoSize = (
     <AutoSizer>
@@ -75,17 +67,17 @@ export const StopsList: FunctionComponent = () => {
             width={width}
             onSelectedStopKey={selectedMarker ? selectedMarker.id : undefined}
           />
-        )
-      }
-      }
+        );
+      }}
     </AutoSizer>
   );
   return (
     <Card
       bordered={false}
       style={{ height: '100%' }}
-      bodyStyle={{ height: '100%', padding: 0, paddingRight: 0 }}>
+      bodyStyle={{ height: '100%', padding: 0, paddingRight: 0 }}
+    >
       {autoSize}
     </Card>
   );
-}
+};

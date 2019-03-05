@@ -49,8 +49,19 @@ export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
       marker.setLngLat([position[1], position[0]]);
       const ifselected = ifSelected(id, selectedMarker);
       ifselected ? setMarkerStyle('redBigMarker') : setMarkerStyle('greenMarker');
-      markerEvtSubsc = Object.keys(mapboxMarkerEvents$).map(e => mapboxMarkerEvents$[e]
-        .subscribe(() => handleMapboxMarkerEvent({ map, evt: e, id, marker, position, ifselected, dispatch, setMarkerStyle }))
+      markerEvtSubsc = Object.keys(mapboxMarkerEvents$).map(e =>
+        mapboxMarkerEvents$[e].subscribe(() =>
+          handleMapboxMarkerEvent({
+            map,
+            evt: e,
+            id,
+            marker,
+            position,
+            ifselected,
+            dispatch,
+            setMarkerStyle,
+          })
+        )
       );
     }
     return () => markerEvtSubsc.forEach(s => s.unsubscribe());
