@@ -35,6 +35,7 @@ export const Marker: FunctionComponent<OSMMarkerProps> = props => {
     setMarker(m);
     dispatch({ type: 'ADD_MARKER_TO_OSM_CLUSTER', payload: m });
     setOsmMarkerEvents$(loadOsmMarkerEventsStream(m));
+    return () => dispatch({ type: 'REMOVE_MARKER_FROM_OSM_CLUSTER', payload: m });
   }, []);
 
   useEffect(() => {

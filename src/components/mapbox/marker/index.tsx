@@ -33,7 +33,7 @@ export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
   const [mapboxMarkerEvents$, setMapboxMarkerEvents$] = useState<EvtStreamType>({});
 
   const createMarker = (node: HTMLDivElement) =>
-    new mapboxgl.Marker(node, markerOpt.opt).setLngLat(markerOpt.position).addTo(map);
+    new mapboxgl.Marker(node, markerOpt.opt).setLngLat(markerOpt.position);
 
   useEffect(() => {
     if (el.current) {
@@ -42,6 +42,17 @@ export const Marker: FunctionComponent<MapboxMarkerProps> = props => {
       setMapboxMarkerEvents$(loadMarpboxMarkerEventsStream(m, el.current));
     }
   }, []);
+
+  useEffect(() => {
+    if (marker) {
+      marker.addTo(map);
+    }
+    return () => {
+      if (marker) {
+        marker.remove();
+      }
+    };
+  }, [marker]);
 
   useEffect(() => {
     let markerEvtSubsc: Array<Subscription> = [];

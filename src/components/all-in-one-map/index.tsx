@@ -46,7 +46,10 @@ export const AllInOneMap: FunctionComponent<AllInOneMapProps> = props => {
       dispatch({ type: 'LOAD_MAPS_PROPS', payload: props });
     }
     if (markers && markers.length > 0) {
-      dispatch({ type: 'ADD_MARKERS', payload: markers.map(m => ({ id: uuidv4(), props: m, hide: false })) });
+      dispatch({
+        type: 'ADD_MARKERS',
+        payload: markers.map(m => ({ id: uuidv4(), props: m, hide: false })),
+      });
     }
   }, []);
 

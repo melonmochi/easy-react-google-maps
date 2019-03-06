@@ -5,13 +5,7 @@ import React, { FunctionComponent, useEffect, useContext, useRef, useState } fro
 import greenIconURL from 'assets/images/marker-green.svg';
 import { AddMarkerToListInputType, EvtStreamType } from 'typings';
 import { GlobalContext } from 'components';
-import {
-  Marker,
-  setMapView,
-  combineEventStreams,
-  setOsmMapConfig,
-  handleOsmMapEvent,
-} from 'osm';
+import { Marker, setMapView, combineEventStreams, setOsmMapConfig, handleOsmMapEvent } from 'osm';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
 
@@ -96,16 +90,18 @@ export const OSMMap: FunctionComponent = () => {
   }, [mapView.zoom]);
 
   useEffect(() => {
-    if(map && mapProvider === 'osm') {
-      setMapView(map, mapView.center, mapView.zoom );
+    if (map && mapProvider === 'osm') {
+      setMapView(map, mapView.center, mapView.zoom);
       dispatch({ type: 'UPDATE_ICON' });
     }
-  }, [updateView])
+  }, [updateView]);
 
   const Markers = (omap: L.Map) =>
-    markersList.map((m: AddMarkerToListInputType) => (
-      <Marker key={m.id} id={m.id} map={omap} props={m.props} />
-    ));
+    markersList
+      .filter(m => !m.hide)
+      .map((m: AddMarkerToListInputType) => (
+        <Marker key={m.id} id={m.id} map={omap} props={m.props} />
+      ));
 
   return (
     <div

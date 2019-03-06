@@ -42,6 +42,7 @@ export const Marker: FunctionComponent<GmMarkerProps> = props => {
     setMarker(m);
     setGmMarkerEvents$(setMarkerEventStream(m));
     dispatch({ type: 'ADD_MARKER_TO_GM_CLUSTER', payload: { map, marker: m } });
+    return () => dispatch({ type: 'REMOVE_MARKER_FROM_GM_CLUSTER', payload: { map, marker: m } });
   }, []);
 
   useEffect(() => {

@@ -5,44 +5,48 @@ import { stringToColour } from 'utils';
 import './style';
 import { GlobalContext } from 'components';
 import { setMarkerItemStream, handleMarkerItemEvt } from './utils';
-import { EvtStreamType } from 'typings';
+import { EvtStreamType, AddMarkerToListInputType } from 'typings';
 import { Subscription } from 'rxjs';
 
-const { Search } = Input
+const { Search } = Input;
 
-const RowRenderer: FunctionComponent<ListRowProps> = props => {
+const RowRenderer: FunctionComponent<
+  ListRowProps & { mItem: AddMarkerToListInputType }
+> = props => {
   const { state, dispatch } = useContext(GlobalContext);
-  const { markersList, selectedMarker } = state;
+  const { selectedMarker } = state;
   const markerItemRef = useRef<HTMLDivElement>(null);
-  const stopItem = markersList[props.index];
+  const stopItem = props.mItem;
   const stopFirstChar = stopItem.props.title.substring(0, 3);
   const randomcolor: string = stringToColour(stopItem.props.title);
 
-  const [ markerItem$, setMarkerItem$ ] = useState<EvtStreamType>({})
+  const [markerItem$, setMarkerItem$] = useState<EvtStreamType>({});
 
   const randomavatar = (
     <Avatar style={{ backgroundColor: randomcolor }} size="large">
       {stopFirstChar}
     </Avatar>
   );
+
+  console.log(props.index, stopItem.props.title);
   useEffect(() => {
     if (markerItemRef && markerItemRef.current) {
       const m$ = setMarkerItemStream(markerItemRef.current);
-      setMarkerItem$(m$)
+      setMarkerItem$(m$);
     }
-  }, [markerItemRef.current]);
+  }, [stopItem]);
 
   useEffect(() => {
     let evtSubsc: Array<Subscription> = [];
     evtSubsc = Object.keys(markerItem$).map(e =>
       markerItem$[e].subscribe(() => {
-        handleMarkerItemEvt({ e, dispatch, id: stopItem.id, position: stopItem.props.position })
+        handleMarkerItemEvt({ e, dispatch, id: stopItem.id, position: stopItem.props.position });
       })
     );
     return () => {
       evtSubsc.forEach(s => s.unsubscribe());
     };
-  },[ markerItem$ ])
+  }, [markerItem$]);
 
   const itemClassName = selectedMarker
     ? stopItem.id === selectedMarker.id
@@ -69,12 +73,16 @@ const RowRenderer: FunctionComponent<ListRowProps> = props => {
 };
 
 export const StopsList: FunctionComponent = () => {
-  const { state } = useContext(GlobalContext);
+  const { state, dispatch } = useContext(GlobalContext);
   const { markersList, selectedMarker } = state;
 
-  const filteredMarkersList = markersList.filter( m => !m.hide )
+  const [currentList, setCurrentList] = useState<AddMarkerToListInputType[]>(markersList);
 
-  const selMarker = selectedMarker? filteredMarkersList.find(m => m.id === selectedMarker.id): undefined
+  const filteredMarkersList = markersList.filter(m => !m.hide);
+
+  const selMarker = selectedMarker
+    ? filteredMarkersList.find(m => m.id === selectedMarker.id)
+    : undefined;
 
   const autoSize = (
     <AutoSizer>
@@ -82,12 +90,14 @@ export const StopsList: FunctionComponent = () => {
         return (
           <VList
             height={height}
-            rowCount={markersList.length}
+            rowCount={filteredMarkersList.length}
             rowHeight={49.33}
-            rowRenderer={props => <RowRenderer {...props} />}
+            rowRenderer={props => (
+              <RowRenderer {...props} mItem={filteredMarkersList[props.index]} />
+            )}
             width={width}
             onSelectedStopKey={selectedMarker ? selectedMarker.id : undefined}
-            scrollToIndex={selMarker ? filteredMarkersList.indexOf(selMarker): undefined}
+            scrollToIndex={selMarker ? filteredMarkersList.indexOf(selMarker) : undefined}
           />
         );
       }}
@@ -95,17 +105,30 @@ export const StopsList: FunctionComponent = () => {
   );
 
   const handleOnSearch = (value: string) => {
-    console.log(value)
-  }
+    const sList = markersList.map(m => {
+      if (m.props.title.toLowerCase().includes(value.toLowerCase())) {
+        return { ...m, hide: false };
+      } else {
+        return { ...m, hide: true };
+      }
+    });
+    setCurrentList(sList);
+  };
 
-  const SearchBar = <Search onSearch={handleOnSearch}/>
+  useEffect(() => {
+    dispatch({ type: 'UPDATE_MARKERS_LIST', payload: currentList });
+  }, [currentList]);
+
+  const SearchBar = <Search onSearch={handleOnSearch} prefix={<span />} suffix={<span />} />;
 
   return (
-    <Card bordered={false}
-    title={SearchBar}
-    style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
-    bodyStyle={{ padding: 0, flex: 1 }}>
-        {autoSize}
+    <Card
+      bordered={false}
+      title={SearchBar}
+      style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
+      bodyStyle={{ padding: 0, flex: 1 }}
+    >
+      {autoSize}
     </Card>
   );
 };

@@ -3,13 +3,7 @@ import { EvtStreamType, AddMarkerToListInputType } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Subscription } from 'rxjs';
 import { Spin } from 'antd';
-import {
-  setGmMapConfig,
-  handleGmMapEvent,
-  setMapView,
-  combineEventStreams,
-  Marker,
-} from 'gm';
+import { setGmMapConfig, handleGmMapEvent, setMapView, combineEventStreams, Marker } from 'gm';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -24,6 +18,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     mapProvider,
     mapTools$,
     markersBounds,
+    markersList,
     zoom,
     searchBoxPlacesBounds,
     updateView,
@@ -70,15 +65,17 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   }, [mapProvider, gmEvents$, center, markersBounds]);
 
   useEffect(() => {
-    if(map && mapProvider === 'google') {
+    if (map && mapProvider === 'google') {
       setMapView(map, mapView.zoom, mapView.center);
     }
-  }, [updateView])
+  }, [updateView]);
 
   const Markers = (gmap: google.maps.Map) =>
-    state.markersList.map((m: AddMarkerToListInputType) => (
-      <Marker key={m.id} id={m.id} map={gmap} props={m.props} />
-    ));
+    markersList
+      .filter(m => !m.hide)
+      .map((m: AddMarkerToListInputType) => (
+        <Marker key={m.id} id={m.id} map={gmap} props={m.props} />
+      ));
 
   return (
     <div

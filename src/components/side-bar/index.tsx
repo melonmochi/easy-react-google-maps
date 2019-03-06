@@ -95,7 +95,7 @@ export const EasySideBar: FunctionComponent = () => {
       reverseArrow
       width={300}
     >
-      <Tabs className="menu-tabs" defaultActiveKey="map-menu" >
+      <Tabs className="menu-tabs" defaultActiveKey="map-menu">
         {TabContent(collapse)}
       </Tabs>
     </Sider>

@@ -13,23 +13,23 @@ export const setMarkerItemStream = (node: HTMLDivElement) =>
   }, {});
 
 type handleMarkerItemEvtInput = {
-  e: string,
-  id: string,
-  position: LatLng,
-  dispatch: GlobalContextDispatch,
-}
+  e: string;
+  id: string;
+  position: LatLng;
+  dispatch: GlobalContextDispatch;
+};
 export const handleMarkerItemEvt = (input: handleMarkerItemEvtInput) => {
-  const { e, id, position, dispatch } = input
+  const { e, id, position, dispatch } = input;
   const evtName = `on${camelCase(e)}`;
   switch (evtName) {
     case 'onClick':
       dispatch({ type: 'SELECT_MARKER', payload: id });
       break;
     case 'onDblclick':
-      dispatch({ type: 'SET_VIEW', payload: { center: position }})
-      dispatch({ type: 'UPDATE_VIEW' })
+      dispatch({ type: 'SET_VIEW', payload: { center: position } });
+      dispatch({ type: 'UPDATE_VIEW' });
       break;
     default:
       break;
   }
-}
+};

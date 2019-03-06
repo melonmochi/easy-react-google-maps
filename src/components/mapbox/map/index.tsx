@@ -109,15 +109,17 @@ export const MapboxMap: FunctionComponent<MapboxMapProps> = props => {
   }, [searchBoxPlacesBounds]);
 
   useEffect(() => {
-    if(map && mapProvider === 'mapbox') {
+    if (map && mapProvider === 'mapbox') {
       setMapView(map, mapView.center, mapView.zoom);
     }
-  }, [updateView])
+  }, [updateView]);
 
   const Markers = (mmap: mapboxgl.Map) =>
-    markersList.map((m: AddMarkerToListInputType) => (
-      <Marker key={m.id} id={m.id} props={m.props} map={mmap} />
-    ));
+    markersList
+      .filter(m => !m.hide)
+      .map((m: AddMarkerToListInputType) => (
+        <Marker key={m.id} id={m.id} props={m.props} map={mmap} />
+      ));
 
   return (
     <div
