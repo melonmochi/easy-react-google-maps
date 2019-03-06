@@ -1,7 +1,7 @@
 import './style';
 import React, { FunctionComponent, useState } from 'react';
 import { Layout, Menu, Icon, Card, Tabs, Tooltip } from 'antd';
-import { MapTool, StopsList } from 'components';
+import { MapTool, StopsList, Uploader } from 'components';
 const { Sider } = Layout;
 const { TabPane } = Tabs;
 const SubMenu = Menu.SubMenu;
@@ -28,6 +28,17 @@ const MapMenu = () => (
     mode="inline"
     className="sideBarMenu"
   >
+    <SubMenu
+      key="files"
+      title={
+        <span>
+          <Icon type="file" />
+          <span>Files</span>
+        </span>
+      }
+    >
+      <Uploader />
+    </SubMenu>
     <SubMenu
       key="basictools"
       title={

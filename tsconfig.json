@@ -18,7 +18,7 @@
       "assets": ["src/assets"],
       "components": ["src/components"],
       "config": ["config"],
-      "gm": ["src/components/google-maps"],
+      "gm": ["src/components/google"],
       "mapbox": ["src/components/mapbox"],
       "maplayout": ["src/components/layout/map-layout"],
       "osm": ["src/components/osm"],

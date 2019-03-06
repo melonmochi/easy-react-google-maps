@@ -2,7 +2,7 @@ import React, { FunctionComponent, useEffect, useContext, useState } from 'react
 import { GoogleMapsMap } from 'gm';
 import { OSMMap } from 'osm';
 import { MapboxMap } from 'mapbox';
-import { AllInOneMapProps } from 'typings';
+import { AllInOneMapProps, MarkerOriginType } from 'typings';
 import { GlobalContext } from 'components';
 import { Empty } from 'antd';
 import { googleMapsApiLoader } from 'utils';
@@ -48,7 +48,12 @@ export const AllInOneMap: FunctionComponent<AllInOneMapProps> = props => {
     if (markers && markers.length > 0) {
       dispatch({
         type: 'ADD_MARKERS',
-        payload: markers.map(m => ({ id: uuidv4(), props: m, hide: false })),
+        payload: markers.map(m => ({
+          type: 'root' as MarkerOriginType,
+          id: uuidv4(),
+          props: m,
+          hide: false,
+        })),
       });
     }
   }, []);

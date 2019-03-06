@@ -1,9 +1,10 @@
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
-import { EvtStreamType, AddMarkerToListInputType } from 'typings';
+import { EvtStreamType, AddMarkerToListInputType, Bounds } from 'typings';
 import { GlobalContext } from 'src/components/global-context';
 import { Subscription } from 'rxjs';
 import { Spin } from 'antd';
 import { setGmMapConfig, handleGmMapEvent, setMapView, combineEventStreams, Marker } from 'gm';
+import { boundsToGmbounds } from 'utils';
 
 interface GoogleMapsMapProps {
   google: typeof google;
@@ -13,6 +14,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
+    loading,
     mapProps,
     mapView,
     mapProvider,
@@ -21,6 +23,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     markersList,
     zoom,
     searchBoxPlacesBounds,
+    updateBounds,
     updateView,
   } = state;
   const { google } = props;
@@ -70,6 +73,12 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
     }
   }, [updateView]);
 
+  useEffect(() => {
+    if (map && mapProvider === 'google') {
+      map.fitBounds(boundsToGmbounds(markersBounds as Bounds));
+    }
+  }, [updateBounds]);
+
   const Markers = (gmap: google.maps.Map) =>
     markersList
       .filter(m => !m.hide)
@@ -85,7 +94,7 @@ export const GoogleMapsMap: FunctionComponent<GoogleMapsMapProps> = props => {
       <div className="defaultMap" ref={gmMapRef} />
       <Spin
         tip="Loading Map..."
-        spinning={map ? false : true}
+        spinning={map && !loading ? false : true}
         size="large"
         style={{ width: 0, margin: 'auto', zIndex: 11 }}
       />

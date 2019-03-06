@@ -28,12 +28,10 @@ export const OSMBoundsToBounds = (OSMBounds: L.LatLngBounds) => {
   return newBounds;
 };
 
-export const boundsToMapboxBounds = (bounds: Bounds) => {
-  const [sw, ne] = bounds;
-  const mapboxSW = sw.reverse() as LatLng;
-  const mapboxNE = ne.reverse() as LatLng;
-  const mapboxBounds = new mapboxgl.LngLatBounds(mapboxSW, mapboxNE);
-  return mapboxBounds;
+export const boundsToMapboxBounds = (mb: Bounds) => {
+  const swMapbox = [mb[0][1], mb[0][0]];
+  const neMapbox = [mb[1][1], mb[1][0]];
+  return [swMapbox, neMapbox] as Bounds;
 };
 
 export const mapboxBoundsToBounds = (mapboxBounds: mapboxgl.LngLatBounds) => {

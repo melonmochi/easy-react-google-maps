@@ -78,7 +78,7 @@ module.exports = {
       assets: path.resolve(__dirname, './src/assets'),
       config: path.resolve(__dirname, './config'),
       components: path.resolve(__dirname, './src/components'),
-      gm: path.resolve(__dirname, './src/components/google-maps'),
+      gm: path.resolve(__dirname, './src/components/google'),
       mapbox: path.resolve(__dirname, 'src/components/mapbox'),
       maplayout: path.resolve(__dirname, './src/components/layout/map-layout'),
       osm: path.resolve(__dirname, './src/components/osm'),

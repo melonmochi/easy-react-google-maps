@@ -13,6 +13,7 @@ import {
 } from 'mapbox';
 import { Spin } from 'antd';
 import { Subscription } from 'rxjs';
+import { boundsToMapboxBounds } from 'src/components/utils/bounds-converter';
 
 interface MapboxMapProps {
   token: string;
@@ -31,6 +32,7 @@ export const MapboxMap: FunctionComponent<MapboxMapProps> = props => {
     markersBounds,
     markersList,
     searchBoxPlacesBounds,
+    updateBounds,
     updateView,
     zoom,
   } = state;
@@ -113,6 +115,12 @@ export const MapboxMap: FunctionComponent<MapboxMapProps> = props => {
       setMapView(map, mapView.center, mapView.zoom);
     }
   }, [updateView]);
+
+  useEffect(() => {
+    if (map && mapProvider === 'mapbox' && markersBounds) {
+      map.fitBounds(boundsToMapboxBounds(markersBounds), { linear: true, padding: 100 });
+    }
+  }, [updateBounds]);
 
   const Markers = (mmap: mapboxgl.Map) =>
     markersList

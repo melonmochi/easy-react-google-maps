@@ -64,8 +64,6 @@ export { googleMapsScriptLoader } from './google-maps-script-loader';
 
 export { googleMapsApiLoader } from './google-maps-api-loader';
 
-export { childrenMarkerToObject } from './children-marker-to-object';
-
 export { CheckboxWithLabel } from './checkbox-with-label';
 
 export { reducers } from './reducers';
@@ -77,6 +75,8 @@ export { extendBounds } from './extend-bounds';
 export { boundsToCenters } from './bounds-to-center';
 
 export { ifSelected } from './if-selected';
+
+export { Stops2Markers } from './stops-to-markers';
 
 export {
   markerToGeoJSON,

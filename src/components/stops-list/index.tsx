@@ -28,7 +28,6 @@ const RowRenderer: FunctionComponent<
     </Avatar>
   );
 
-  console.log(props.index, stopItem.props.title);
   useEffect(() => {
     if (markerItemRef && markerItemRef.current) {
       const m$ = setMarkerItemStream(markerItemRef.current);
@@ -64,7 +63,11 @@ const RowRenderer: FunctionComponent<
           <List.Item.Meta
             avatar={randomavatar}
             title={<a className="list-item-meta-title">{stopItem.props.title}</a>}
-            description={<span className="list-item-meta-description">{stopItem.id}</span>}
+            description={
+              <span className="list-item-meta-description">
+                {stopItem.gtfsInfo ? stopItem.gtfsInfo.stop_id : stopItem.id}
+              </span>
+            }
           />
         </List.Item>
       </Tooltip>
@@ -119,7 +122,15 @@ export const StopsList: FunctionComponent = () => {
     dispatch({ type: 'UPDATE_MARKERS_LIST', payload: currentList });
   }, [currentList]);
 
-  const SearchBar = <Search onSearch={handleOnSearch} prefix={<span />} suffix={<span />} />;
+  const SearchBar = (
+    <Search
+      placeholder="Search by stop name"
+      enterButton
+      onSearch={handleOnSearch}
+      prefix={<span />}
+      suffix={<span />}
+    />
+  );
 
   return (
     <Card

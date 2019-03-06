@@ -3,7 +3,6 @@ import {
   EvtStreamType,
   handleMapEventInput,
   setMapConfigInput,
-  Bounds,
   setMarkerConfigInput,
   handleMarkerEventInput,
   AddMarkerToListInputType,
@@ -11,7 +10,7 @@ import {
   handleMapboxMarkerLayerEventInput,
 } from 'typings';
 import { fromEventPattern, merge, fromEvent } from 'rxjs';
-import { camelCase, markerEvents, markersToMapboxGeoJSON } from 'utils';
+import { camelCase, markerEvents, markersToMapboxGeoJSON, boundsToMapboxBounds } from 'utils';
 import { takeUntil, switchMap, filter } from 'rxjs/operators';
 import { Color } from 'csstype';
 export const mapboxMapEvents = ['load', 'click', 'dblclick', 'moveend'];
@@ -138,12 +137,6 @@ export const combineEventStreams = (m: mapboxgl.Map, mapTools$: EvtStreamType) =
     obj[e] = events$[e];
     return obj;
   }, {});
-};
-
-const boundsToMapboxBounds = (mb: Bounds) => {
-  const swMapbox = [mb[0][1], mb[0][0]];
-  const neMapbox = [mb[1][1], mb[1][0]];
-  return [swMapbox, neMapbox] as Bounds;
 };
 
 // ------------------------MARKER------------------------

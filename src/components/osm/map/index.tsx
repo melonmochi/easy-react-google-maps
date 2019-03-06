@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import React, { FunctionComponent, useEffect, useContext, useRef, useState } from 'react';
 import greenIconURL from 'assets/images/marker-green.svg';
-import { AddMarkerToListInputType, EvtStreamType } from 'typings';
+import { AddMarkerToListInputType, EvtStreamType, Bounds } from 'typings';
 import { GlobalContext } from 'components';
 import { Marker, setMapView, combineEventStreams, setOsmMapConfig, handleOsmMapEvent } from 'osm';
 import { Spin } from 'antd';
@@ -20,6 +20,7 @@ export const OSMMap: FunctionComponent = () => {
   const { state, dispatch } = useContext(GlobalContext);
   const {
     center,
+    loading,
     mapCardWidth,
     mapProps,
     mapProvider,
@@ -29,6 +30,7 @@ export const OSMMap: FunctionComponent = () => {
     markersList,
     osmMarkerClusterer,
     searchBoxPlacesBounds,
+    updateBounds,
     updateView,
     zoom,
   } = state;
@@ -96,6 +98,12 @@ export const OSMMap: FunctionComponent = () => {
     }
   }, [updateView]);
 
+  useEffect(() => {
+    if (map && mapProvider === 'osm') {
+      map.fitBounds(markersBounds as Bounds, { padding: [100, 100] });
+    }
+  }, [updateBounds]);
+
   const Markers = (omap: L.Map) =>
     markersList
       .filter(m => !m.hide)
@@ -111,9 +119,9 @@ export const OSMMap: FunctionComponent = () => {
       <div className="defaultMap" ref={osmMapRef} />
       <Spin
         tip="Loading Map..."
-        spinning={!map}
+        spinning={!map || loading}
         size="large"
-        style={{ width: 0, marginTop: 'auto', marginBottom: 'auto', zIndex: 11 }}
+        style={{ width: 0, margin: 'auto', zIndex: 11 }}
       />
       {map ? Markers(map) : null}
     </div>

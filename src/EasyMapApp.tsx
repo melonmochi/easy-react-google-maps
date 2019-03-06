@@ -6,7 +6,7 @@ export const EasyMapApp: FunctionComponent = () => {
   return (
     <div className="easyMapApp" style={{ height: '100%' }}>
       <Layout>
-        <Map center={city.London} zoom={11} mapsToShow="all" markers={Markers(100)} />
+        <Map center={city.London} zoom={11} mapsToShow="all" />
       </Layout>
     </div>
   );
@@ -14,7 +14,7 @@ export const EasyMapApp: FunctionComponent = () => {
 
 const emptyArr = (n: number) => Array.from(new Array(n));
 
-const Markers = (n: number) =>
+export const Markers = (n: number) =>
   emptyArr(n).map((_x, i) => ({
     title: i.toString(),
     position: randomLatLng(),

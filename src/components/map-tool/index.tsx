@@ -13,3 +13,5 @@ export const MapTool: React.FunctionComponent = () => {
 };
 
 export { SearchBox } from './search-box';
+
+export { Uploader } from './uploader';
