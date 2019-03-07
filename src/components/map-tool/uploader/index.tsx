@@ -65,7 +65,7 @@ export const Uploader: FunctionComponent = () => {
       setSelectedKey(newLoadedList.length > 0 ? (newLoadedList.length - 1).toString() : '');
     },
     beforeUpload: (file: UploadFile) => {
-      const isZIP: boolean = file.type === ('application/zip' || 'application/x-zip-compressed');
+      const isZIP: boolean = file.type === 'application/zip' || file.type === 'application/x-zip-compressed';
       if (!isZIP) {
         message.error('You can only upload zip file!', 10);
         file.status = 'error';
