@@ -6,7 +6,7 @@ export const EasyMapApp: FunctionComponent = () => {
   return (
     <div className="easyMapApp" style={{ height: '100%' }}>
       <Layout>
-        <Map center={city.London} zoom={11} mapsToShow="all" />
+        <Map center={city.London} zoom={11} mapsToShow="leaflet" />
       </Layout>
     </div>
   );

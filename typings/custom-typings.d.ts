@@ -15,77 +15,10 @@ declare module 'typings' {
     | 'BOTTOM_LEFT'
     | 'BOTTOM_CENTER'
     | 'BOTTOM_RIGHT';
-
-  type Calendar = {
-    service_id: string;
-    start_date: string;
-    end_date: string;
-    monday: string;
-    tuesday: string;
-    wednesday: string;
-    thursday: string;
-    friday: string;
-    saturday: string;
-    sunday: string;
-  };
-
-  type Calendars = { [key: string]: Calendar };
-  type CalendarDate = {
-    service_id: string;
-    date: string;
-    exception_type: string;
-  };
-  type CalendarDates = { [key: string]: CalendarDate };
   type MapTypeId = 'HYBRID' | 'ROADMAP' | 'SATELLITE' | 'TERRAIN'
   type GestureHandlingType = 'cooperative' | 'greedy' | 'none' | 'auto';
 
-  type Stop = {
-    stop_id: string;
-    stop_code?: string;
-    stop_name: string;
-    stop_desc?: string;
-    stop_lat: string;
-    stop_lon: string;
-    zone_id?: string;
-    stop_url?: string;
-    loacation_type?: string;
-    parent_station?: string;
-    stop_timezone?: string;
-    wheelchair_boarding?: string;
-  };
-
-  type Stops = { [key: string]: Stop };
-
-  type RouteShort = {
-    route_id: string;
-    agency_id?: string;
-    route_short_name: string;
-    route_long_name?: string;
-    route_desc?: string;
-    route_type: string;
-    route_url?: string;
-    route_color?: string;
-    route_text_color?: string;
-    route_sort_order?: string;
-  };
-
-  type RouteLong = {
-    route_id: string;
-    agency_id?: string;
-    route_short_name?: string;
-    route_long_name: string;
-    route_desc?: string;
-    route_type: string;
-    route_url?: string;
-    route_color?: string;
-    route_text_color?: string;
-    route_sort_order?: string;
-  };
-
-  type RoutesShort = { [key: string]: RouteShort };
-  type RoutesLong = { [key: string]: RouteLong };
   type MarkerOriginType = 'root' | 'gtfs'
-
   type AddMarkerToListInputType = {
     type: MarkerOriginType;
     id: string;
@@ -380,6 +313,77 @@ declare module 'typings' {
     transfers?: Object;
     feed_info?: Object;
   };
+
+  // Calendars
+  type Calendar = {
+    service_id: string;
+    start_date: string;
+    end_date: string;
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+    sunday: string;
+  };
+  type Calendars = Calendar[];
+  type CalendarDate = {
+    service_id: string;
+    date: string;
+    exception_type: string;
+  };
+  type CalendarDates = CalendarDate[];
+  type CalendarInfo = {
+    calendar?: Calendars;
+    calendar_dates?: CalendarDates;
+  };
+  type SelectedCalInfo = { selectedCal?: Calendar, selectedCaldates?: CalendarDates }
+
+  // Stops
+  type Stop = {
+    stop_id: string;
+    stop_code?: string;
+    stop_name: string;
+    stop_desc?: string;
+    stop_lat: string;
+    stop_lon: string;
+    zone_id?: string;
+    stop_url?: string;
+    loacation_type?: string;
+    parent_station?: string;
+    stop_timezone?: string;
+    wheelchair_boarding?: string;
+  };
+  type Stops = { [key: string]: Stop };
+
+  // Routes
+  type RouteShort = {
+    route_id: string;
+    agency_id?: string;
+    route_short_name: string;
+    route_long_name?: string;
+    route_desc?: string;
+    route_type: string;
+    route_url?: string;
+    route_color?: string;
+    route_text_color?: string;
+    route_sort_order?: string;
+  };
+  type RouteLong = {
+    route_id: string;
+    agency_id?: string;
+    route_short_name?: string;
+    route_long_name: string;
+    route_desc?: string;
+    route_type: string;
+    route_url?: string;
+    route_color?: string;
+    route_text_color?: string;
+    route_sort_order?: string;
+  };
+  type RoutesShort = { [key: string]: RouteShort };
+  type RoutesLong = { [key: string]: RouteLong };
 }
 
 declare module '*.svg' {
