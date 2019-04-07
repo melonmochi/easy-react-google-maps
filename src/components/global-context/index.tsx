@@ -43,6 +43,8 @@ export const GlobalContextProvider: FunctionComponent = props => {
     }
   }, [selectedGTFS]);
 
+  console.log(selectedGTFS);
+
   return (
     <GlobalContext.Provider value={{ state, dispatch }}>{props.children}</GlobalContext.Provider>
   );

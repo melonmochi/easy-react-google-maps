@@ -1,13 +1,12 @@
 import './style';
 import React, { FunctionComponent, useState } from 'react';
 import { Layout, Menu, Icon, Card, Tabs, Tooltip } from 'antd';
-import { MapTool, StopsList, Uploader, CalendarsList } from 'components';
+import { MapTool, StopsList, Uploader, CalendarsList, RoutesTree } from 'components';
+import { MenuOptionsListType, MenuKeyType } from 'typings';
 const { Sider } = Layout;
 const { TabPane } = Tabs;
 const SubMenu = Menu.SubMenu;
 
-type MenuKeyType = 'map-menu' | 'marker-menu';
-type MenuOptionsListType = Array<{ key: MenuKeyType; tabName: string; icon: string }>;
 const MenuOptionsList: MenuOptionsListType = [
   {
     key: 'map-menu',
@@ -19,12 +18,17 @@ const MenuOptionsList: MenuOptionsListType = [
     tabName: 'Marker',
     icon: 'flag',
   },
+  {
+    key: 'route-menu',
+    tabName: 'Route',
+    icon: 'swap',
+  },
 ];
 
 const MapMenu = () => (
   <Menu
     theme="light"
-    defaultOpenKeys={['files', 'calendars', 'network', 'basictools']}
+    defaultOpenKeys={['files', 'calendars', 'basictools']}
     mode="inline"
     className="sideBarMenu"
   >
@@ -72,6 +76,7 @@ const MapMenu = () => (
 const MenuList = {
   'map-menu': <MapMenu />,
   'marker-menu': <StopsList />,
+  'route-menu': <RoutesTree />,
 };
 
 const MenuCard = (key: MenuKeyType) => (

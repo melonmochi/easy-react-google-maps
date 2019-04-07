@@ -232,6 +232,10 @@ declare module 'typings' {
     dispatch: GlobalContextDispatch,
   }
 
+  // Side menu
+  type MenuKeyType = 'map-menu' | 'marker-menu' | 'route-menu';
+  type MenuOptionsListType = Array<{ key: MenuKeyType; tabName: string; icon: string }>;
+
   // GTFS
   type GTFSFileName = 'agency' |
     'stops' |
@@ -299,9 +303,9 @@ declare module 'typings' {
   type FileList = Array<UploadFile>;
 
   type GTFSFile = {
-    agency?: Object;
+    agency?: Agencies;
     stops?: Stops;
-    routes?: RoutesShort | RoutesLong;
+    routes?: Routes;
     trips?: Object;
     stop_times?: Object;
     calendar?: Calendars;
@@ -358,10 +362,10 @@ declare module 'typings' {
   type Stops = { [key: string]: Stop };
 
   // Routes
-  type RouteShort = {
+  type Route = {
     route_id: string;
     agency_id?: string;
-    route_short_name: string;
+    route_short_name?: string;
     route_long_name?: string;
     route_desc?: string;
     route_type: string;
@@ -370,20 +374,20 @@ declare module 'typings' {
     route_text_color?: string;
     route_sort_order?: string;
   };
-  type RouteLong = {
-    route_id: string;
-    agency_id?: string;
-    route_short_name?: string;
-    route_long_name: string;
-    route_desc?: string;
-    route_type: string;
-    route_url?: string;
-    route_color?: string;
-    route_text_color?: string;
-    route_sort_order?: string;
+  type Routes = Route[];
+
+  // Agencies
+  type Agency = {
+    agency_id?: string,
+    agency_name: string,
+    agency_url: string,
+    agency_timezone: string,
+    agency_lang?: string,
+    agency_phone?: string,
+    agency_fare_url?: string,
+    agency_email?: string,
   };
-  type RoutesShort = { [key: string]: RouteShort };
-  type RoutesLong = { [key: string]: RouteLong };
+  type Agencies = Agency[];
 }
 
 declare module '*.svg' {

@@ -1,6 +1,6 @@
-export { default as NetworkList } from './network';
-
 export { StopsList } from './stops-list';
+
+export { RoutesTree } from './routes-tree';
 
 export { EasyLayout as Layout } from './layout';
 
